@@ -1,0 +1,19 @@
+{
+  "name": "dental-geo-score",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "치과 GEO 인용 점수 — URL을 넣으면 생성형 AI 검색 인용 준비도를 점수화 (영업 리드젠 도구)",
+  "scripts": {
+    "test": "node --test",
+    "dev": "vercel dev",
+    "score": "node scripts/score-cli.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "tldts": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

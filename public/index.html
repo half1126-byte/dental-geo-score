@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>치과 GEO 인용 점수 — AI 검색이 우리 치과를 인용할 준비가 됐을까?</title>
+<meta name="description" content="치과 홈페이지 URL을 넣으면 생성형 AI 검색(ChatGPT·Perplexity)이 인용하기 좋은 구조인지 0~100 준비도 점수와 근거 기반 개선안을 보여줍니다." />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="/style.css" />
+<!-- Dogfood: this GEO tool is itself GEO-structured (answer-first + FAQPage JSON-LD). -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"GEO 인용 점수가 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"치과 홈페이지가 생성형 AI 검색(ChatGPT·Perplexity 등)에서 인용·추천되기 좋은 구조인지 0~100으로 평가한 준비도 점수입니다. robots.txt의 AI 크롤러 허용, 구조화 데이터(JSON-LD), 의료진 자격(E-E-A-T), 신선도, answer-first 구조 등 7개 신호를 측정합니다."}},
+{"@type":"Question","name":"점수가 낮으면 나쁜 건가요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 낮은 점수는 개선 여지가 크다는 뜻입니다. 대부분의 치과가 같은 출발선에 있으며, 보통 2~3가지 구조 수정으로 인용 가능성을 높일 수 있습니다."}}
+]}
+</script>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">메디앤메디 · 치과 GEO</div>
+    <h1>AI 검색이 우리 치과를<br/><span class="g">인용할 준비</span>가 됐을까?</h1>
+    <p class="sub">홈페이지 주소를 넣으면, 생성형 AI(ChatGPT·Perplexity)가 인용하기 좋은 구조인지 0~100으로 진단하고 개선안을 알려드립니다.</p>
+    <form class="form" id="scoreForm">
+      <input type="url" id="urlInput" placeholder="https://우리치과.co.kr" autocomplete="off" required />
+      <button class="btn p" type="submit" id="goBtn">측정</button>
+    </form>
+    <p class="hint">측정 가능한 신호만 평가합니다 · 결과에 근거를 함께 표시합니다 · 무료</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- measuring -->
+  <section id="loading" class="hidden">
+    <div class="prog">
+      <div class="row"><span class="spin"></span> 홈페이지를 안전하게 불러오는 중...</div>
+      <div class="row">구조화 데이터·의료진 신호·answer-first 구조 분석 중...</div>
+    </div>
+  </section>
+
+  <!-- error -->
+  <section id="error" class="hidden">
+    <div class="err"><b>측정하지 못했습니다.</b> <span id="errMsg"></span></div>
+  </section>
+
+  <!-- result -->
+  <section id="result" class="hidden">
+    <div class="card">
+      <div class="meter">
+        <div class="score" id="scoreNum">0<small>/100</small></div>
+        <div class="meta">
+          <span class="band" id="bandLabel">—</span>
+          <div class="verdict" id="verdict">—</div>
+        </div>
+      </div>
+      <div class="bar"><i id="scoreBar" style="width:0"></i></div>
+      <div class="rendernote hidden" id="renderNote"></div>
+    </div>
+
+    <!-- real-citation email gate (Phase 2 fills the actual measurement) -->
+    <div class="card gate">
+      <h3>그래서, AI가 실제로 우리를 인용하고 있을까?</h3>
+      <p>위 점수는 <b>인용될 준비도(예측)</b>입니다. ChatGPT·Perplexity에 실제로 질문해 <b>지금 인용되는지(사실)</b>를 측정한 전체 결과를 이메일로 보내드립니다.</p>
+      <form class="form" id="leadForm">
+        <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
+        <button class="btn p" type="submit" id="leadBtn">실측 결과 받기</button>
+      </form>
+      <p class="ok hidden" id="leadOk">신청되었습니다. 실측 결과를 이메일로 보내드리겠습니다.</p>
+    </div>
+
+    <div class="card">
+      <b>신호별 진단</b>
+      <div class="bd" id="breakdown"></div>
+    </div>
+
+    <div class="card">
+      <b>가장 효과 큰 개선 3가지</b>
+      <div id="fixes"></div>
+    </div>
+
+    <p class="small muted" id="meta"></p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    메디앤메디 · 치과 GEO 인용 점수 (v0.1) · 휴리스틱 준비도 점수는 결정론적·재현 가능 ·
+    <a href="/methodology.html">측정 방법론</a><br/>
+    측정 대상은 공개 웹페이지이며 환자 개인정보는 수집하지 않습니다.
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
