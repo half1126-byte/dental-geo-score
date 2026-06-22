@@ -101,19 +101,35 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-// Email gate (Phase 1 stub: captures intent; Phase 2 wires the real ChatGPT/Perplexity panel)
+// Email gate → real-citation panel (/api/citation). Pending (lead-captured) until keys enabled.
 $('leadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = $('emailInput').value.trim();
   const url = $('urlInput').value.trim();
   $('leadBtn').disabled = true;
+  $('leadBtn').textContent = '신청 중...';
+  let data = null;
   try {
-    await fetch('/api/lead', {
+    const res = await fetch('/api/citation', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email, url }),
     });
-  } catch (_) { /* stub — non-blocking */ }
+    data = await res.json().catch(() => null);
+  } catch (_) { /* non-blocking */ }
   hide('leadForm');
+  if (data && Array.isArray(data.perEngine) && data.perEngine.length) {
+    $('leadOk').innerHTML = renderCitation(data);
+  } else {
+    $('leadOk').textContent = (data && data.message) || '신청되었습니다. 실측 인용 결과를 이메일로 보내드리겠습니다.';
+  }
   show('leadOk');
 });
+
+function renderCitation(d) {
+  const rows = d.perEngine.map((p) => {
+    const v = !p.measured ? '측정 안 됨' : p.cited ? `✓ 인용됨 (${p.citedRuns}/${p.runs})` : `이 프롬프트에선 미인용 (0/${p.runs})`;
+    return `<div style="padding:5px 0;border-top:1px solid var(--border)"><b>${esc(p.engine)}</b> — ${esc(v)}</div>`;
+  }).join('');
+  return `<div><b>실측 인용 결과 — ${esc(d.domain || d.clinicDomain || '')}</b>${rows}<div class="muted small" style="margin-top:8px">${esc(d.note || '')}</div></div>`;
+}
