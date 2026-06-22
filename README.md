@@ -44,6 +44,12 @@ npx vercel dev              # 로컬 서버 (api + 정적)
 정적 + `/api` 단일 Vercel 프로젝트. `vercel --prod`.
 Phase 2 env: `OPENAI_API_KEY`, `PERPLEXITY_API_KEY`(Sensitive), Upstash/KV(레이트리밋·캐시).
 
+## 엔진별 추천 로직 ([docs/engines/](docs/engines/))
+각 AI 엔진의 치과 추천 로직을 조사·적대검증(no-fake)해 정본화. **하나의 GEO가 아님** — 엔진별로 측정 모드·레버가 다름.
+- 문서: `docs/engines/{chatgpt,gemini,claude,perplexity,naver}.md` + `README.md`(비교표).
+- 적용: `lib/engines.js`(엔진 config·**검증된 인용 필드패스 추출기** `extractCitedUrls`/`isClinicCited`·측정 프롬프트), `lib/checklists.js`(Gemini-GBP·네이버-플레이스 준비도), `api/engines.js`(GET → config+checklists).
+- **자동 측정**: ChatGPT·Claude·Perplexity(인용 API). **체크리스트**: Gemini(ToS 차단=GBP), 네이버(API 없음=플레이스). Phase 2의 `/api/citation`이 이 패스를 사용.
+
 ## 로드맵
 - **Phase 1** ✅ 휴리스틱 점수 + 공개 페이지 + SSRF 게이트.
 - **Phase 2** 실측 인용 패널(`api/citation` SSE, ChatGPT+Perplexity, `tool_choice:required`) + 이메일 게이트 + KV 비용 가드 + 내부 `/audit`.
