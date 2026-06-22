@@ -13,10 +13,10 @@
 - GPTBot이 가장 많이 차단되나 **허용(5.84%)이 차단(4.71%)을 처음 추월**.
 - 권장: **학습봇(GPTBot·ClaudeBot·Meta-ExternalAgent·CCBot) 차단 vs 검색/유저봇(OAI-SearchBot·ChatGPT-User·PerplexityBot) 허용**을 구분.
 
-## 측정/적용 (POC 검증 대상)
-- 전제: 거래처가 **Cloudflare(또는 로그 접근 가능한 호스트)** 사용. 아니면 서버 access log 파싱으로 대체.
-- API: **Cloudflare GraphQL Analytics / AI Audit API**로 봇별 크롤 수를 거래처별 자동 추출 가능한지 + 플랜 요건 **POC 확인**.
-- 이게 **OAI-SearchBot 허용(우리 점수 1번 신호)**이 실제로 작동하는지 검증하는 1차 증거.
+## 측정/적용 (POC 확정 2026-06-23)
+- ◐ **부분 자동.** `POST api.cloudflare.com/client/v4/graphql` → `httpRequestsAdaptiveGroups`. **정밀(봇별)=`botDetectionIds_hasany`** → **Enterprise + Bot Management** 필요. Free/Pro는 `userAgent LIKE '%GPTBot%'` 폴백(스푸핑 가능 → 카운트 UNVERIFIED 라벨). `requestSource:"eyeball"` 필수, 非Ent 보존 ~72h(자주 폴링·저장).
+- **인증(에이전시 친화):** 거래처 계정별 API 토큰 **Account Analytics:Read**.
+- 이게 **OAI-SearchBot 허용(점수 1번 신호)**의 실제 작동 1차 증거 + **인용 0의 원인 설명**(크롤 0 → 인용 0).
 
 ## 출처
 - [Cloudflare blog — AI crawler traffic by purpose and industry](https://blog.cloudflare.com/ai-crawler-traffic-by-purpose-and-industry/)

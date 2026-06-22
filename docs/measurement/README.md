@@ -4,15 +4,21 @@
 
 > ⚠️ 아래 "API 가용성/필드"는 **POC 검증 대상**(다음 단계 전 워크플로로 확인). 문서엔 라이브 조사 기준 사실 + 미확인은 "POC 검증" 라벨.
 
-## 도구 ↔ 답하는 질문 ↔ 측정 모드
+## 도구 ↔ 답하는 질문 ↔ 측정 모드 (POC 확정 2026-06-23)
 
-| 도구 | 답하는 질문 | 자동(API)? | 문서 |
+| 도구 | 답하는 질문 | 자동 API? (POC 검증) | 문서 |
 |---|---|---|---|
-| **GSC Gen-AI 리포트**(구글, 2026-06 신규) | 내 페이지가 **AI Overviews·AI Mode에 노출**됐나(impressions) | POC(Search Analytics API 신규 차원?) | [gsc-genai.md](gsc-genai.md) |
-| **GA4 AI Assistant 채널**(구글, 2026-05) | **AI 추천 유입 트래픽** | 예(GA4 Data API) — POC 확인 | [ga4-ai-channel.md](ga4-ai-channel.md) |
-| **Cloudflare AI Audit/Crawl Control** | **AI 크롤러가 실제로 긁나**(GPTBot·OAI-SearchBot·PerplexityBot·ClaudeBot) | 예(GraphQL Analytics?) — POC | [cloudflare-ai-audit.md](cloudflare-ai-audit.md) |
-| **Google Business Profile 인사이트** | **로컬/지도(Gemini)** 조회·전화·길찾기 | 예(Performance API) — POC | [google-business-profile.md](google-business-profile.md) |
-| **네이버 서치어드바이저 + 스마트플레이스** | 네이버 검색·플레이스 노출/예약(한국 1차) | 부분/수동 — POC | [naver-search-advisor.md](naver-search-advisor.md) |
+| **GA4 AI Assistant 채널** | **AI 추천 유입 트래픽** | ✅ **자동 — 최우선**. GA4 Data API runReport, `sessionMedium == "ai-assistant"`(토큰) | [ga4-ai-channel.md](ga4-ai-channel.md) |
+| **Cloudflare AI Crawl Control** | **AI 크롤러가 실제로 긁나** | ◐ **부분**. GraphQL `httpRequestsAdaptiveGroups`+`botDetectionIds`(정밀=Enterprise+Bot Mgmt) / Free·Pro=UA매칭(스푸핑 가능) | [cloudflare-ai-audit.md](cloudflare-ai-audit.md) |
+| **GSC Gen-AI 리포트** | AI Overviews·AI Mode **노출** | ❌ **API 없음(UI 전용)**. searchanalytics.query는 AI 분리 불가('aiOverview' API값은 **환각**) | [gsc-genai.md](gsc-genai.md) |
+| **Google Business Profile** | **로컬/지도(Gemini)** | ◐ API 있으나 **이중게이트**(프로젝트 승인 0→300 QPM + 거래처별 소유/매니저, 서비스계정 불가) | [google-business-profile.md](google-business-profile.md) |
+| **네이버 서치어드바이저/스마트플레이스** | 네이버 검색·플레이스(한국) | ❌ **API 없음(수동 export)**. DataLab=상대추세만, Search Ad=유료광고만 | [naver-search-advisor.md](naver-search-advisor.md) |
+
+### POC 검증 결과 — 무엇을 지을까 (5/5 검증·반박 통과)
+- **지금 지을 커넥터(자동·에이전시 확장 가능):** ① **`ga4-ai`**(에이전시 서비스계정 1개 → 거래처는 GA4에 Viewer로 SA 이메일 추가 1스텝; medium=`ai-assistant` 필터·플랫폼별 분해) ② **`cf-aibots`**(거래처별 Account Analytics:Read 토큰; 플랜에 따라 정밀/UA 2모드).
+- **커넥터 짓지 말 것(수동 체크리스트):** GSC AI세그(API 없음·롤아웃 한정), GBP(승인+매니저 게이트 → Phase 3), 네이버(API 없음·스크래핑=ToS 위험).
+- **3단 퍼널로 합쳐진다(엔진별):** ① **크롤/적격** `cf-aibots`(OAI-SearchBot·ClaudeBot·PerplexityBot이 긁나 — 0이면 인용도 0인 이유 설명) → ② **인용/노출** 기존 패널 `lib/engines.js`(인용됐나) → ③ **결과/트래픽** `ga4-ai`(AI 세션·전환 왔나). *구글 AI Overviews/네이버는 양 축 모두 수동·체크리스트 유지(비대칭 보존).*
+- **잔여 리스크:** GA4는 무리퍼러→Direct 누수(=하한선으로 보고)·데이터 2026-06-07부터(이력 없음); Cloudflare 정밀=Enterprise·非Ent 보존 ~72h; GBP 승인 SLA 없음; 크리덴셜 blast radius(읽기전용·회전 필요); 3계층 식별자 정합은 휴리스틱.
 
 근거(인용용, 1차/학술): [authoritative-sources.md](authoritative-sources.md) — Pew·GEO논문(KDD'24)·Semrush/Similarweb.
 

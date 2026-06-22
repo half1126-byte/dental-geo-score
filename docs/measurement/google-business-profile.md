@@ -10,9 +10,9 @@
 - Gemini Maps 그라운딩이 GBP 레코드(NAP·카테고리·시간·리뷰·평점)를 **답변 생성 소스**로 사용. GBP가 비거나 부정확하면 Gemini 로컬 인용 후보에서 약화.
 - 한국: **2026-02-27 정밀지도 반출 승인** 후 한국 Google Maps/GBP 가치↑(점진).
 
-## 측정/적용 (POC 검증 대상)
-- API: **Business Profile Performance API**(`businessprofileperformance.googleapis.com`)로 거래처 location의 metrics(CALL_CLICKS·BUSINESS_DIRECTION_REQUESTS·WEBSITE_CLICKS·노출 등)를 자동 추출 가능한지 + OAuth/소유권 요건 **POC 확인**.
-- GBP는 **자동 측정 불가인 Gemini 인용의 대체 신호** → [GBP 준비도 체크리스트](../../lib/checklists.js)(11항목)와 함께 사용.
+## 측정/적용 (POC 확정 2026-06-23)
+- ◐ **API 실재하나 이중게이트 → Phase 3.** `GET .../v1/{location=locations/*}:fetchMultiDailyMetricsTimeSeries`(CALL_CLICKS·BUSINESS_DIRECTION_REQUESTS·WEBSITE_CLICKS·BUSINESS_IMPRESSIONS_*). 그러나 (1) **프로젝트별 구글 승인**(0→300 QPM·SLA 없음) + (2) **거래처 GBP에 소유/매니저** 필요, **서비스계정 경로 없음**(거래처당 OAuth). BUSINESS_BOOKINGS는 Reserve-with-Google만(국내 치과는 네이버예약→빈값).
+- → 거래처가 에이전시를 GBP 매니저로 등록한 경우만 Phase 3 커넥터. 그 전엔 [GBP 준비도 체크리스트](../../lib/checklists.js)(11항목).
 
 ## 출처
 - [Google — Business Profile Performance API](https://developers.google.com/my-business/reference/performance/rest)

@@ -15,9 +15,9 @@
 - **구글 전용** — ChatGPT/Perplexity/Claude는 안 보임.
 - 별도 **opt-out 토글**: AI 기능 노출 차단 가능(차단 시 AI 노출/트래픽 포기, 일반 랭킹엔 영향 없음).
 
-## 측정/적용 (POC 검증 대상)
-- API: Search Console **Search Analytics API**에 AI-feature를 거르는 신규 차원(예: searchAppearance/type)이 생겼는지 **POC로 확인**. 안 생겼으면 당분간 **UI/내보내기 수동**.
-- 거래처 GSC 속성 접근 권한 필요. 거래처별 "AI 노출 추세"를 월간 리포트에 포함.
+## 측정/적용 (POC 확정 2026-06-23)
+- ❌ **API 없음.** searchanalytics.query는 AI Overviews/AI Mode를 분리 못 함 — AI 트래픽이 `type:web`에 합산. **SEO 블로그들이 말하는 'aiOverview' searchAppearance 값은 공식 문서에 없음(환각 — no-fake가 확인)**. Gen-AI 리포트는 **UI 수동 export만** + 롤아웃 한정.
+- → **수동 체크리스트**: 롤아웃 대상 속성이면 운영자가 UI 노출수를 거래처 레코드에 수기 입력. 분기별 API 재확인. (베이스라인 GSC 커넥터는 가능하나 "AI 분리 아님"으로 명시.)
 
 ## 출처
 - [Google Search Central — Gen-AI performance reports (2026-06-03)](https://developers.google.com/search/blog/2026/06/gen-ai-performance-reports)

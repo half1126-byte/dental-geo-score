@@ -12,10 +12,10 @@
 - 트래픽 자체가 작음(예: B2B 테크 ~6.4%, 2026-01) — 단 **전환율은 유기검색의 4~5배**.
 - 네이버 AI 브리핑 등은 미포함(네이버 생태계 별도).
 
-## 측정/적용 (POC 검증 대상)
-- API: **GA4 Data API**(Analytics Data)로 `sessionDefaultChannelGroup == 'AI Assistant'` 세션·전환을 거래처별 자동 추출 가능한지 **POC 확인**(정확한 채널 그룹 값/차원명).
-- 보강: 커스텀 채널 그룹 정규식으로 Perplexity/Copilot/you.com 추가(리퍼러 있는 분만).
-- GA를 **단독 진실로 쓰지 말 것** — "트래픽" 보조. "AI가 인용했나"는 별도(엔진 API).
+## 측정/적용 (POC 확정 2026-06-23)
+- ✅ **자동 가능 — 스택 최우선 커넥터.** `POST analyticsdata.googleapis.com/v1beta/properties/{id}:runReport`, 필터 **`sessionMedium == "ai-assistant"`(현지화 라벨 'AI Assistant' 아닌 토큰)**, `sessionSourceMedium`로 플랫폼별 분해, metrics sessions/전환.
+- **인증(에이전시 친화):** 에이전시 **서비스계정 1개** → 거래처는 GA4 속성에 SA 이메일을 **Viewer로 추가**(거래처당 1스텝, per-user OAuth 갱신 없음).
+- caveat: 무리퍼러 AI 클릭은 Direct로 누수(→ **하한선**으로 보고), AI Overviews/AI Mode 제외, 데이터 2026-06-07~.
 
 ## 출처
 - [Semrush — GA4 adds AI Assistant channel](https://www.semrush.com/blog/ga4-adds-ai-assistant-channel/)
