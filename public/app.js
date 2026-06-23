@@ -33,11 +33,24 @@ $('scoreForm').addEventListener('submit', async (e) => {
   }
 });
 
+// Unmeasurable != failure != score 0 (AD-17). Distinguish the reason so a citable site that we
+// simply couldn't read (expired cert, block, timeout) reads as "측정 불가 + 고칠 거리", not "낙제".
 function showError(data) {
-  const reasonMsg = {
-    'fetch-blocked': '해당 주소를 불러올 수 없습니다 (접근 차단·내부 주소·존재하지 않는 사이트일 수 있습니다). 홈페이지 주소가 맞는지 확인해 주세요.',
-  };
-  $('errMsg').textContent = reasonMsg[data.error] || data.message || '잠시 후 다시 시도해 주세요.';
+  const reason = (data && data.reason) || '';
+  const detail = (data && data.detail) || '';
+  let msg;
+  if (/cert|certificate|TLS|SSL|self.?signed|expired/i.test(detail) || reason === 'tls-cert') {
+    msg = '이 사이트는 보안 인증서가 만료·오류 상태라 AI도 안전하게 읽지 못합니다. 점수가 낮은 게 아니라 측정 불가 — 인증서부터 고치면 AI 노출의 기본 조건이 갖춰집니다.';
+  } else if (reason === 'blocked-ip' || reason === 'dns-failed' || reason === 'dns-empty' || reason === 'invalid-url') {
+    msg = '해당 주소를 찾을 수 없습니다. 홈페이지 주소가 맞는지 확인해 주세요 (존재하지 않거나 내부 주소일 수 있습니다).';
+  } else if (reason === 'timeout' || reason === 'connect-failed' || reason === 'read-failed') {
+    msg = '사이트 응답이 없어 측정하지 못했습니다 (차단·시간초과). 측정 불가이며 점수 0이 아닙니다 — 잠시 후 다시 시도해 주세요.';
+  } else if (reason === 'too-many-redirects') {
+    msg = '리다이렉트가 너무 많아 측정하지 못했습니다.';
+  } else {
+    msg = (data && data.message) || '잠시 후 다시 시도해 주세요.';
+  }
+  $('errMsg').textContent = msg;
   show('error');
 }
 
@@ -66,7 +79,8 @@ function render(d) {
     el.className = 'item';
     el.innerHTML =
       `<span class="mark ${x.status}">${mark}</span>` +
-      `<div class="t"><b>${esc(x.label)}</b><small>${esc(x.note || '')}</small></div>` +
+      `<div class="t"><b>${esc(x.label)}</b><small>${esc(x.note || '')}</small>` +
+      (x.why ? `<small class="why">왜: ${esc(x.why)}</small>` : '') + `</div>` +
       `<span class="pts">${x.points}/${x.max}</span>`;
     bd.appendChild(el);
   }
@@ -80,7 +94,8 @@ function render(d) {
   (d.topFixes || []).forEach((f) => {
     const el = document.createElement('div');
     el.className = 'fix';
-    el.innerHTML = `<span class="gain">+${f.gain}</span><div>${esc(f.fix)}</div>`;
+    el.innerHTML = `<span class="gain">+${f.gain}<small>점</small></span><div>${esc(f.fix)}` +
+      `<small class="muted" style="display:block">${esc(f.gainLabel || '구조 위생 점수 · 인용 예측 아님')}</small></div>`;
     fx.appendChild(el);
   });
 
@@ -126,10 +141,26 @@ $('leadForm').addEventListener('submit', async (e) => {
   show('leadOk');
 });
 
+// 4 honest states. Never a bare "측정 안 됨"=0; never a CI/upper-bound next to 0 cited (의료광고법 A-2).
 function renderCitation(d) {
-  const rows = d.perEngine.map((p) => {
-    const v = !p.measured ? '측정 안 됨' : p.cited ? `✓ 인용됨 (${p.citedRuns}/${p.runs})` : `이 프롬프트에선 미인용 (0/${p.runs})`;
-    return `<div style="padding:5px 0;border-top:1px solid var(--border)"><b>${esc(p.engine)}</b> — ${esc(v)}</div>`;
+  const label = { chatgpt: 'ChatGPT (API)', perplexity: 'Perplexity (API)', claude: 'Claude (API)' };
+  const pct = (x) => Math.round((x || 0) * 100);
+  const rows = (d.perEngine || []).map((p) => {
+    let v;
+    if (!p.measured) {
+      const why = p.unmeasurable === 'engine-error' ? '엔진 오류로 측정 실패'
+        : p.unmeasurable === 'no-search' ? '엔진이 이 회차 검색을 안 함'
+        : '측정 전 (키 필요)';
+      v = `측정 안 됨 — ${why} · 0% 아님`;
+    } else if (p.cited) {
+      const ci = p.ci ? ` · 신뢰구간 ${pct(p.ci.low)}–${pct(p.ci.high)}%` : '';
+      v = `✓ ${p.validRuns}회 중 ${p.citedRuns}회 추천 (${pct(p.hitRate)}%${ci}) · N=${p.validRuns} 소표본`;
+    } else {
+      v = `이 표본엔 미인용 (0/${p.validRuns}) — "추천 안 함"이 아니라 이번 표본 미관측`;
+    }
+    return `<div style="padding:5px 0;border-top:1px solid var(--border)"><b>${esc(label[p.engine] || p.engine)}</b> — ${esc(v)}</div>`;
   }).join('');
-  return `<div><b>실측 인용 결과 — ${esc(d.domain || d.clinicDomain || '')}</b>${rows}<div class="muted small" style="margin-top:8px">${esc(d.note || '')}</div></div>`;
+  return `<div><b>실측 인용 결과 — ${esc(d.clinicDomain || d.domain || '')}</b>${rows}` +
+    `<div class="muted small" style="margin-top:8px">이 수치는 <b>개발자 API</b> 기준이며 일반 ChatGPT 앱 결과와 다를 수 있습니다. 특정 시점 관측이라 환자 대상 광고에 "추천·1위·인증"으로 인용 금지(의료광고법).</div>` +
+    (d.note ? `<div class="muted small">${esc(d.note)}</div>` : '') + `</div>`;
 }

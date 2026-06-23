@@ -76,3 +76,16 @@ section{padding:18px 0}
 .err b{color:var(--amber)}
 
 footer{padding:30px 0 50px;text-align:center;color:var(--text-2);font-size:.8rem;border-top:1px solid var(--border);margin-top:20px}
+
+/* v0.2 — demoted page-hygiene score (collapsed footnote, no longer the headline) */
+.score-foot { cursor: pointer; }
+.score-foot > summary { display:flex; align-items:center; gap:10px; list-style:none; font-size:.95rem; color:var(--text-2); }
+.score-foot > summary::-webkit-details-marker { display:none; }
+.score-foot > summary::before { content:"▸"; color:var(--text-2); }
+.score-foot[open] > summary::before { content:"▾"; }
+.score-foot .foot-label { color:var(--text-1); font-weight:600; }
+.score-foot .score-inline { color:var(--gold); font-weight:700; }
+.score-foot .score-inline small { color:var(--text-2); font-weight:400; font-size:.7em; }
+
+/* v0.2 — per-signal "왜 중요한지" line in the breakdown card */
+.item .why { display:block; color:var(--gold-2); opacity:.8; margin-top:2px; }

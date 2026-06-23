@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex,nofollow" />
+<title>운영자 실측 도구 · 메디앤메디 치과 GEO</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header class="hero" style="padding:36px 0 8px">
+  <div class="wrap">
+    <div class="kicker">메디앤메디 · 내부 운영자 도구</div>
+    <h1 style="font-size:1.6rem">거래처 <span class="g">AI 추천 실측</span></h1>
+    <p class="sub">거래처 홈페이지·지역·진료를 넣으면 ChatGPT·Perplexity가 실제로 추천하는지 측정합니다. (내부 전용 · 결과는 영업 자료)</p>
+    <form class="form" id="opForm" style="flex-wrap:wrap;gap:8px">
+      <input type="password" id="opKey" placeholder="운영자 키" autocomplete="off" style="flex:1 1 100%" />
+      <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" required style="flex:1 1 100%" />
+      <input type="text" id="opRegion" placeholder="지역 (예: 성남 수정구)" style="flex:1 1 46%" />
+      <input type="text" id="opProc" placeholder="진료 (예: 임플란트)" style="flex:1 1 46%" />
+      <button class="btn p" type="submit" id="opBtn" style="flex:1 1 100%">측정</button>
+    </form>
+    <p class="hint">실측은 유료 API 호출 — 거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="opLoading" class="hidden"><div class="prog">
+    <div class="row"><span class="spin"></span> 페이지 위생 점수 측정 중...</div>
+    <div class="row">ChatGPT·Perplexity에 실제 질의해 인용 측정 중 (최대 1~2분)...</div>
+  </div></section>
+  <section id="opError" class="hidden"><div class="err"><b>측정 실패.</b> <span id="opErrMsg"></span></div></section>
+  <section id="opResult" class="hidden"></section>
+</main>
+
+<footer><div class="wrap">메디앤메디 치과 GEO · 내부 운영자 전용(noindex) · 실측 수치는 환자 대상 광고에 "추천·1위·인증"으로 인용 금지(의료광고법)</div></footer>
+<script src="/operator.js"></script>
+</body>
+</html>

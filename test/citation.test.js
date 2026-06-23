@@ -29,12 +29,12 @@ test('ENGINE_API endpoints + env keys correct', () => {
   assert.equal(ENGINE_API.claude.envKey, 'ANTHROPIC_API_KEY');
 });
 
-test('runCitationPanel aggregates per-engine hit-rate with mock fetch + evidence', async () => {
+test('runCitationPanel: honest denominator (validRuns) excludes no-search runs (C3)', async () => {
   const fetchImpl = async (url, opts) => {
     const body = JSON.parse(opts.body);
     if (url.includes('openai')) {
       const userMsg = body.input.find((m) => m.role === 'user').content;
-      const cited = userMsg.includes('추천'); // cite only on recommendation-shaped prompts
+      const cited = userMsg.includes('추천'); // mock cites only on recommendation-shaped prompts; others return NO citations
       return { ok: true, json: async () => ({ output: [{ type: 'message', content: [{ type: 'output_text', annotations: cited ? [{ type: 'url_citation', url: 'https://www.haruplant.co.kr/implant' }] : [] }] }] }) };
     }
     if (url.includes('perplexity')) {
@@ -45,19 +45,28 @@ test('runCitationPanel aggregates per-engine hit-rate with mock fetch + evidence
   const r = await runCitationPanel({ clinicDomain: 'haruplant.co.kr', region: '강남', procedure: '임플란트', keys: { chatgpt: 'k1', perplexity: 'k2' }, nowIso: '2026-06-23T00:00:00Z', fetchImpl });
   const cg = r.perEngine.find((p) => p.engine === 'chatgpt');
   const px = r.perEngine.find((p) => p.engine === 'perplexity');
-  assert.ok(cg.runs >= 3);
+  assert.ok(cg.attempts >= 3);
+  assert.ok(cg.inconclusiveRuns >= 1, 'a no-citation run is inconclusive, not counted as not-cited');
+  assert.ok(cg.validRuns < cg.attempts, 'validRuns excludes the inconclusive run');
   assert.ok(cg.citedRuns >= 1, 'chatgpt cites on 추천 prompts');
   assert.equal(cg.cited, true);
+  assert.equal(cg.measured, true);
   assert.ok(cg.evidence.some((ev) => ev.matchedUrls && ev.matchedUrls.length));
+  // perplexity searched (returned a result) but cited a competitor → measured, not cited
   assert.equal(px.cited, false);
-  assert.equal(px.measured, true); // measured but not cited != not measured
+  assert.equal(px.measured, true);
+  assert.ok(px.validRuns >= 1);
 });
 
-test('runCitationPanel skips engines without a key; failures captured as evidence', async () => {
+test('runCitationPanel: all-error engine is measured:false + unmeasurable (C1, no fake 0/N)', async () => {
   const fetchImpl = async (url) => (url.includes('openai') ? { ok: false, status: 500 } : { ok: true, json: async () => ({ output: [] }) });
   const r = await runCitationPanel({ clinicDomain: 'x.co.kr', keys: { chatgpt: 'k' }, nowIso: 't', fetchImpl });
   assert.equal(r.perEngine.length, 1);
   assert.equal(r.perEngine[0].engine, 'chatgpt');
   assert.equal(r.perEngine[0].cited, false);
+  assert.equal(r.perEngine[0].measured, false, 'all calls failed → NOT measured');
+  assert.equal(r.perEngine[0].unmeasurable, 'engine-error');
+  assert.equal(r.perEngine[0].validRuns, 0);
+  assert.ok(r.perEngine[0].erroredRuns >= 1);
   assert.ok(r.perEngine[0].evidence.some((e) => e.error));
 });

@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>치과 GEO 인용 점수 — AI 검색이 우리 치과를 인용할 준비가 됐을까?</title>
-<meta name="description" content="치과 홈페이지 URL을 넣으면 생성형 AI 검색(ChatGPT·Perplexity)이 인용하기 좋은 구조인지 0~100 준비도 점수와 근거 기반 개선안을 보여줍니다." />
+<title>치과 AI 추천 실측 — 지금 AI가 우리 치과를 추천하나?</title>
+<meta name="description" content="치과 홈페이지 URL을 넣으면 ChatGPT·Perplexity가 실제로 추천하는지 실측하고, 더 추천받기 위해 채울 갭을 근거와 함께 알려줍니다. 점수는 페이지 위생(필요조건)일 뿐 노출 예측이 아닙니다." />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="/style.css" />
 <!-- Dogfood: this GEO tool is itself GEO-structured (answer-first + FAQPage JSON-LD). -->
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"GEO 인용 점수가 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"치과 홈페이지가 생성형 AI 검색(ChatGPT·Perplexity 등)에서 인용·추천되기 좋은 구조인지 0~100으로 평가한 준비도 점수입니다. robots.txt의 AI 크롤러 허용, 구조화 데이터(JSON-LD), 의료진 자격(E-E-A-T), 신선도, answer-first 구조 등 7개 신호를 측정합니다."}},
-{"@type":"Question","name":"점수가 낮으면 나쁜 건가요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 낮은 점수는 개선 여지가 크다는 뜻입니다. 대부분의 치과가 같은 출발선에 있으며, 보통 2~3가지 구조 수정으로 인용 가능성을 높일 수 있습니다."}}
+{"@type":"Question","name":"이 도구는 무엇을 측정하나요?","acceptedAnswer":{"@type":"Answer","text":"두 가지입니다. (1) 페이지 추출 위생: 치과 홈페이지가 AI가 읽기 좋은 구조인지(robots.txt AI 크롤러 허용, JSON-LD, 의료진 자격, 신선도, answer-first 등 7개 신호)를 즉시 점검합니다. 이건 뜨기 위한 필요조건일 뿐 노출 예측이 아닙니다. (2) 실측: ChatGPT·Perplexity에 실제로 질문해 지금 추천되는지를 증거와 함께 확인합니다."}},
+{"@type":"Question","name":"점수가 높으면 AI에 뜨나요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 점수는 페이지 구조 위생일 뿐, 실제 노출은 디렉터리 등재·전문의 정보·지역 정합 등 별개 요인이 좌우합니다. 점수가 높아도 안 뜨고, 낮아도 뜨는 경우가 있습니다. 그래서 실제 추천 여부는 실측으로 확인합니다."}}
 ]}
 </script>
 </head>
@@ -20,8 +20,8 @@
 <header class="hero">
   <div class="wrap">
     <div class="kicker">메디앤메디 · 치과 GEO</div>
-    <h1>AI 검색이 우리 치과를<br/><span class="g">인용할 준비</span>가 됐을까?</h1>
-    <p class="sub">홈페이지 주소를 넣으면, 생성형 AI(ChatGPT·Perplexity)가 인용하기 좋은 구조인지 0~100으로 진단하고 개선안을 알려드립니다.</p>
+    <h1>지금 AI가 우리 치과를<br/><span class="g">추천</span>하고 있나?</h1>
+    <p class="sub">홈페이지 주소를 넣으면, 인용되기 좋은 구조인지 즉시 점검하고 — 실제 추천 여부는 ChatGPT·Perplexity에 직접 물어 증거와 함께 확인해 드립니다.</p>
     <form class="form" id="scoreForm">
       <input type="url" id="urlInput" placeholder="https://우리치과.co.kr" autocomplete="off" required />
       <button class="btn p" type="submit" id="goBtn">측정</button>
@@ -46,22 +46,10 @@
 
   <!-- result -->
   <section id="result" class="hidden">
-    <div class="card">
-      <div class="meter">
-        <div class="score" id="scoreNum">0<small>/100</small></div>
-        <div class="meta">
-          <span class="band" id="bandLabel">—</span>
-          <div class="verdict" id="verdict">—</div>
-        </div>
-      </div>
-      <div class="bar"><i id="scoreBar" style="width:0"></i></div>
-      <div class="rendernote hidden" id="renderNote"></div>
-    </div>
-
-    <!-- real-citation email gate (Phase 2 fills the actual measurement) -->
+    <!-- HOOK / CLOSE: real measurement + the gap to close (email-gated). The headline value. -->
     <div class="card gate">
-      <h3>그래서, AI가 실제로 우리를 인용하고 있을까?</h3>
-      <p>위 점수는 <b>인용될 준비도(예측)</b>입니다. ChatGPT·Perplexity에 실제로 질문해 <b>지금 인용되는지(사실)</b>를 측정한 전체 결과를 이메일로 보내드립니다.</p>
+      <h3>지금 AI가 실제로 우리를 추천하고 있을까?</h3>
+      <p>ChatGPT·Perplexity에 "[지역] 치과 추천"을 실제로 물어, <b>지금 추천되는지(사실)</b>와 더 추천받기 위해 <b>채울 갭</b>을 증거와 함께 측정해 이메일로 보내드립니다.</p>
       <form class="form" id="leadForm">
         <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
         <button class="btn p" type="submit" id="leadBtn">실측 결과 받기</button>
@@ -75,9 +63,19 @@
     </div>
 
     <div class="card">
-      <b>가장 효과 큰 개선 3가지</b>
+      <b>구조 보완 우선순위 3가지</b>
+      <p class="small muted">구조 위생 점수를 올리는 항목입니다 — 인용·노출 증가를 보장하지 않습니다(필요조건).</p>
       <div id="fixes"></div>
     </div>
+
+    <!-- FOOTNOTE: page-hygiene score, demoted. Necessary-condition, NOT a citation predictor. -->
+    <details class="card score-foot">
+      <summary><span class="foot-label">페이지 위생 점수</span> <span class="score-inline" id="scoreNum">0<small>/100</small></span> <span class="band" id="bandLabel">—</span></summary>
+      <p class="small muted" id="verdict">—</p>
+      <div class="bar"><i id="scoreBar" style="width:0"></i></div>
+      <div class="rendernote hidden" id="renderNote"></div>
+      <p class="small muted">이 점수는 <b>페이지 추출 위생</b>(AI가 읽기 쉬운 구조인지)입니다 — 뜨기 위한 <b>필요조건</b>이지 노출 예측이 아닙니다. 점수가 높아도 안 뜨고, 낮아도 뜰 수 있습니다. 실제 추천 여부는 위 <b>실측</b>으로 확인하세요.</p>
+    </details>
 
     <p class="small muted" id="meta"></p>
   </section>
@@ -85,7 +83,7 @@
 
 <footer>
   <div class="wrap">
-    메디앤메디 · 치과 GEO 인용 점수 (v0.1) · 휴리스틱 준비도 점수는 결정론적·재현 가능 ·
+    메디앤메디 · 치과 AI 추천 실측 (v0.2) · 페이지 위생 점수는 결정론적·재현 가능, 노출 예측 아님 ·
     <a href="/methodology.html">측정 방법론</a><br/>
     측정 대상은 공개 웹페이지이며 환자 개인정보는 수집하지 않습니다.
   </div>

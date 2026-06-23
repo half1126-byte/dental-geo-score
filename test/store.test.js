@@ -1,0 +1,37 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { makeStore } from '../lib/store.js';
+
+test('in-memory cache get/set honors TTL (injectable clock)', async () => {
+  let t = 1000;
+  const store = makeStore({ now: () => t });
+  await store.cacheSet('k', { a: 1 }, 5000);
+  assert.deepEqual(await store.cacheGet('k'), { a: 1 });
+  t = 7000; // past ttl
+  assert.equal(await store.cacheGet('k'), null);
+});
+
+test('in-memory incrDaily increments per day key', async () => {
+  const store = makeStore();
+  assert.equal(await store.incrDaily('2026-06-23'), 1);
+  assert.equal(await store.incrDaily('2026-06-23'), 2);
+  assert.equal(await store.incrDaily('2026-06-24'), 1);
+});
+
+test('KV-backed path uses injected kv + sets expire once', async () => {
+  const data = new Map();
+  let expireCalls = 0;
+  const kv = {
+    async get(k) { return data.has(k) ? data.get(k) : null; },
+    async set(k, v) { data.set(k, v); },
+    async incr(k) { const n = (data.get(k) || 0) + 1; data.set(k, n); return n; },
+    async expire() { expireCalls++; },
+  };
+  const store = makeStore({ kv });
+  assert.equal(store.backedByKv, true);
+  await store.cacheSet('x', { y: 2 }, 86400000);
+  assert.deepEqual(await store.cacheGet('x'), { y: 2 });
+  assert.equal(await store.incrDaily('d1'), 1); // first → expire set
+  assert.equal(await store.incrDaily('d1'), 2); // second → no new expire
+  assert.equal(expireCalls, 1);
+});
