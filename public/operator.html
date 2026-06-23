@@ -7,34 +7,56 @@
 <title>운영자 실측 도구 · 메디앤메디 치과 GEO</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="/style.css" />
+<style>
+  .chip { display:inline-block; padding:6px 12px; margin:3px 4px 3px 0; border:1px solid var(--border,rgba(255,255,255,.15)); border-radius:999px; background:transparent; color:inherit; font-size:.86rem; cursor:pointer; text-decoration:none; }
+  .chip.on { background:var(--g,#3ddc97); color:#04201d; border-color:transparent; font-weight:600; }
+  .chip:hover { border-color:var(--g,#3ddc97); }
+  #opConfirm { margin-top:14px; padding:14px; border:1px solid var(--border,rgba(255,255,255,.12)); border-radius:12px; }
+  #opConfirm label { display:block; font-size:.82rem; opacity:.8; margin:10px 0 4px; }
+  #opConfirm input[type=text]{ width:100%; }
+  #opPreview { margin:12px 0; padding:10px 12px; background:rgba(255,255,255,.04); border-radius:8px; font-size:.9rem; }
+  #opPreview code, .card code { background:rgba(255,255,255,.06); padding:2px 6px; border-radius:5px; }
+</style>
 </head>
 <body>
 <header class="hero" style="padding:36px 0 8px">
   <div class="wrap">
     <div class="kicker">메디앤메디 · 내부 운영자 도구</div>
     <h1 style="font-size:1.6rem">거래처 <span class="g">AI 추천 실측</span></h1>
-    <p class="sub">거래처 홈페이지·지역·진료를 넣으면 ChatGPT·Perplexity가 실제로 추천하는지 측정합니다. (내부 전용 · 결과는 영업 자료)</p>
+    <p class="sub">URL만 넣으면 지역·진료를 자동 감지합니다. 확인 후 ChatGPT·Perplexity가 실제로 추천하는지 측정합니다. (내부 전용 · 결과는 영업 자료)</p>
+
     <form class="form" id="opForm" style="flex-wrap:wrap;gap:8px">
       <input type="password" id="opKey" placeholder="운영자 키" autocomplete="off" style="flex:1 1 100%" />
-      <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" required style="flex:1 1 100%" />
-      <input type="text" id="opRegion" placeholder="지역 (예: 성남 수정구)" style="flex:1 1 46%" />
-      <input type="text" id="opProc" placeholder="진료 (예: 임플란트)" style="flex:1 1 46%" />
-      <button class="btn p" type="submit" id="opBtn" style="flex:1 1 100%">측정</button>
+      <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" required style="flex:1 1 70%" />
+      <button class="btn p" type="submit" id="opBtn" style="flex:1 1 24%">분석</button>
     </form>
-    <p class="hint">실측은 유료 API 호출 — 거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
+
+    <section id="opConfirm" class="hidden">
+      <label for="opRegion">측정 지역 (자동 감지 · 수정 가능)</label>
+      <input type="text" id="opRegion" list="regionList" placeholder="예: 강남, 서초, 강남역" />
+      <datalist id="regionList"></datalist>
+      <div class="muted small" id="opRegionHint" style="margin-top:4px"></div>
+
+      <label>진료 (감지됨 · 클릭해 선택, 없으면 입력)</label>
+      <div id="opProcChips"></div>
+      <input type="text" id="opProcAdd" placeholder="다른 진료 입력 후 Enter" style="margin-top:6px;width:100%" />
+
+      <div id="opPreview"></div>
+      <button class="btn p" type="button" id="opMeasureBtn" style="width:100%">측정 (유료 API)</button>
+      <p class="hint">실측은 유료 API 호출 — 거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
+    </section>
   </div>
 </header>
 
 <main class="wrap">
   <section id="opLoading" class="hidden"><div class="prog">
-    <div class="row"><span class="spin"></span> 페이지 위생 점수 측정 중...</div>
-    <div class="row">ChatGPT·Perplexity에 실제 질의해 인용 측정 중 (최대 1~2분)...</div>
+    <div class="row"><span class="spin"></span> <span id="opLoadMsg">처리 중...</span></div>
   </div></section>
-  <section id="opError" class="hidden"><div class="err"><b>측정 실패.</b> <span id="opErrMsg"></span></div></section>
+  <section id="opError" class="hidden"><div class="err"><b>오류.</b> <span id="opErrMsg"></span></div></section>
   <section id="opResult" class="hidden"></section>
 </main>
 
 <footer><div class="wrap">메디앤메디 치과 GEO · 내부 운영자 전용(noindex) · 실측 수치는 환자 대상 광고에 "추천·1위·인증"으로 인용 금지(의료광고법)</div></footer>
-<script src="/operator.js"></script>
+<script type="module" src="/operator.js"></script>
 </body>
 </html>

@@ -71,7 +71,7 @@ export default async function handler(req, res) {
 
   try {
     // 24h cache first — a cache hit does NOT consume the daily cap.
-    const cacheKey = `${domain}|${region || ''}|${procedure || ''}`;
+    const cacheKey = `${domain}|${(region || '').trim().toLowerCase()}|${(procedure || '').trim().toLowerCase()}`;
     const cached = await store.cacheGet(cacheKey);
     if (cached) {
       res.status(200).json({ ...view(cached), cached: true });
