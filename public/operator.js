@@ -223,7 +223,12 @@ function renderHygiene(scoreRes) {
     const mark = x.status === 'ok' ? '✓' : x.status === 'warn' ? '!' : '✗';
     return `<div class="item"><span class="mark ${x.status}">${mark}</span><div class="t"><b>${esc(x.label)}</b><small>${esc(x.note || '')}</small>${x.why ? `<small class="why">왜: ${esc(x.why)}</small>` : ''}</div><span class="pts">${x.points}/${x.max}</span></div>`;
   }).join('');
-  const body = `<p class="small muted">${d.score}/100 (${esc(d.band || '')}) · 페이지 추출 위생 — 뜨기 위한 <b>필요조건</b>, 노출 예측 아님. ${esc(d.renderMode || '')}</p>${bd}`;
+  const meta = [
+    { label: 'llms.txt 존재', val: d.hasLlmsTxt, note: 'AI 읽기 전용 색인용 파일 (점수 미반영)' },
+    { label: 'Google Maps 삽입', val: d.hasMapEmbed, note: 'Maps/Place ID 감지 (점수 미반영)' },
+    { label: '비급여 가격 안내', val: d.hasPriceInfo, note: '임플란트/교정/비급여 비용 키워드 (점수 미반영)' },
+  ].map((m) => `<div class="item"><span class="mark ${m.val ? 'ok' : ''}">${m.val ? '✓' : '○'}</span><div class="t"><b>${esc(m.label)}</b><small>${esc(m.note)}</small></div><span class="pts" style="color:var(--muted);font-size:11px">메타</span></div>`).join('');
+  const body = `<p class="small muted">${d.score}/100 (${esc(d.band || '')}) · 페이지 추출 위생 — 뜨기 위한 <b>필요조건</b>, 노출 예측 아님. ${esc(d.renderMode || '')}</p>${bd}<p class="small muted" style="margin-top:8px">─ 메타데이터 (참고용, 점수와 무관) ─</p>${meta}`;
   return `<details class="card"><summary><b>페이지 위생 점수 ${d.score}/100</b> (펼쳐보기)</summary>${body}</details>`;
 }
 
