@@ -4,59 +4,160 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex,nofollow" />
-<title>운영자 실측 도구 · 메디앤메디 치과 GEO</title>
+<title>AI 추천 실측 · 메디앤메디</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="/style.css" />
 <style>
-  .chip { display:inline-block; padding:6px 12px; margin:3px 4px 3px 0; border:1px solid var(--border,rgba(255,255,255,.15)); border-radius:999px; background:transparent; color:inherit; font-size:.86rem; cursor:pointer; text-decoration:none; }
-  .chip.on { background:var(--g,#3ddc97); color:#04201d; border-color:transparent; font-weight:600; }
-  .chip:hover { border-color:var(--g,#3ddc97); }
-  #opConfirm { margin-top:14px; padding:14px; border:1px solid var(--border,rgba(255,255,255,.12)); border-radius:12px; }
-  #opConfirm label { display:block; font-size:.82rem; opacity:.8; margin:10px 0 4px; }
-  #opConfirm input[type=text]{ width:100%; }
-  #opPreview { margin:12px 0; padding:10px 12px; background:rgba(255,255,255,.04); border-radius:8px; font-size:.9rem; }
-  #opPreview code, .card code { background:rgba(255,255,255,.06); padding:2px 6px; border-radius:5px; }
+/* ── operator-specific ── */
+.op-wrap { max-width: 640px; margin: 0 auto; padding: 0 20px 60px; }
+
+/* step header */
+.step-label { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.step-num { width:28px; height:28px; border-radius:50%; background:rgba(201,168,76,.18); color:var(--gold-2); font-weight:800; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.step-title { font-weight:700; font-size:1rem; }
+.step-sub { font-size:.82rem; color:var(--text-2); margin-top:1px; }
+
+/* setup card */
+.setup-card { background:var(--bg-3); border:1px solid rgba(201,168,76,.3); border-radius:16px; padding:22px; margin-bottom:16px; }
+.setup-card .key-note { background:rgba(201,168,76,.08); border-radius:8px; padding:10px 14px; font-size:.82rem; color:var(--text-2); margin:10px 0; }
+.setup-card .key-note b { color:var(--gold-2); }
+.key-saved { display:flex; align-items:center; gap:10px; padding:12px 16px; background:rgba(31,206,196,.08); border:1px solid rgba(31,206,196,.25); border-radius:11px; margin-bottom:16px; }
+.key-saved .badge { font-size:.78rem; font-weight:700; color:var(--teal); }
+.key-saved .change { font-size:.78rem; color:var(--text-2); cursor:pointer; text-decoration:underline; margin-left:auto; }
+
+/* analyze card */
+.analyze-card { background:var(--bg-3); border:1px solid var(--border); border-radius:16px; padding:22px; margin-bottom:16px; }
+.url-row { display:flex; gap:8px; }
+.url-row input { flex:1; background:var(--bg-2); border:1px solid var(--border); border-radius:11px; padding:13px 16px; color:var(--text-1); font-size:.95rem; font-family:inherit; }
+.url-row input:focus { outline:none; border-color:var(--gold); }
+
+/* confirm card */
+.confirm-card { background:var(--bg-3); border:1px solid var(--border); border-radius:16px; padding:22px; margin-bottom:16px; }
+.confirm-card label { display:block; font-size:.82rem; color:var(--text-2); margin:14px 0 6px; }
+.confirm-card label:first-of-type { margin-top:0; }
+.confirm-card input[type=text] { width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:9px; padding:11px 14px; color:var(--text-1); font-size:.9rem; font-family:inherit; }
+.confirm-card input[type=text]:focus { outline:none; border-color:var(--gold); }
+.region-hint { font-size:.78rem; color:var(--text-2); margin-top:4px; }
+.region-hint.ok { color:var(--teal); }
+
+/* chips */
+.chip-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+.chip { display:inline-flex; align-items:center; padding:6px 14px; border:1px solid var(--border); border-radius:999px; background:transparent; color:var(--text-2); font-size:.84rem; font-family:inherit; cursor:pointer; transition:all .15s; }
+.chip:hover { border-color:var(--gold); color:var(--text-1); }
+.chip.on { background:rgba(201,168,76,.18); color:var(--gold-2); border-color:rgba(201,168,76,.4); font-weight:600; }
+
+/* preview */
+.query-preview { background:rgba(255,255,255,.04); border-radius:10px; padding:12px 14px; margin-top:12px; }
+.query-preview .qlabel { font-size:.78rem; color:var(--text-2); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+.query-preview ol { margin:0; padding-left:20px; }
+.query-preview li { font-size:.88rem; color:var(--text-1); padding:3px 0; }
+
+/* measure btn */
+.measure-btn { width:100%; margin-top:14px; padding:15px; background:var(--gold); color:var(--bg-1); border:none; border-radius:11px; font-weight:800; font-size:1rem; font-family:inherit; cursor:pointer; }
+.measure-btn:disabled { opacity:.5; cursor:wait; }
+.measure-hint { text-align:center; font-size:.78rem; color:var(--text-2); margin-top:8px; }
+
+/* key field row */
+.key-input-row { display:flex; gap:8px; margin-top:10px; }
+.key-input-row input { flex:1; background:var(--bg-2); border:1px solid var(--border); border-radius:9px; padding:11px 14px; color:var(--text-1); font-size:.9rem; font-family:inherit; }
+.key-input-row input:focus { outline:none; border-color:var(--gold); }
+.key-input-row button { padding:11px 18px; border-radius:9px; border:none; background:rgba(201,168,76,.18); color:var(--gold-2); font-weight:700; font-size:.88rem; font-family:inherit; cursor:pointer; }
 </style>
 </head>
 <body>
-<header class="hero" style="padding:36px 0 8px">
+
+<header class="hero" style="padding:40px 0 24px">
   <div class="wrap">
-    <div class="kicker">메디앤메디 · 내부 운영자 도구</div>
-    <h1 style="font-size:1.6rem">거래처 <span class="g">AI 추천 실측</span></h1>
-    <p class="sub">URL만 넣으면 지역·진료를 자동 감지합니다. 확인 후 ChatGPT·Perplexity가 실제로 추천하는지 측정합니다. (내부 전용 · 결과는 영업 자료)</p>
-
-    <form class="form" id="opForm" style="flex-wrap:wrap;gap:8px">
-      <input type="password" id="opKey" placeholder="운영자 키" autocomplete="off" style="flex:1 1 100%" />
-      <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" required style="flex:1 1 70%" />
-      <button class="btn p" type="submit" id="opBtn" style="flex:1 1 24%">분석</button>
-    </form>
-
-    <section id="opConfirm" class="hidden">
-      <label for="opRegion">측정 지역 (자동 감지 · 수정 가능)</label>
-      <input type="text" id="opRegion" list="regionList" placeholder="예: 강남, 서초, 강남역" />
-      <datalist id="regionList"></datalist>
-      <div class="muted small" id="opRegionHint" style="margin-top:4px"></div>
-
-      <label>진료 (감지됨 · 클릭해 선택, 없으면 입력)</label>
-      <div id="opProcChips"></div>
-      <input type="text" id="opProcAdd" placeholder="다른 진료 입력 후 Enter" style="margin-top:6px;width:100%" />
-
-      <div id="opPreview"></div>
-      <button class="btn p" type="button" id="opMeasureBtn" style="width:100%">측정 (유료 API)</button>
-      <p class="hint">실측은 유료 API 호출 — 거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
-    </section>
+    <div class="kicker">메디앤메디 · 내부 전용</div>
+    <h1 style="font-size:1.7rem">거래처 <span class="g">AI 추천 실측</span></h1>
+    <p class="sub" style="font-size:.92rem">URL만 넣으면 ChatGPT·Perplexity가 실제로 추천하는지 측정합니다</p>
   </div>
 </header>
 
-<main class="wrap">
-  <section id="opLoading" class="hidden"><div class="prog">
-    <div class="row"><span class="spin"></span> <span id="opLoadMsg">처리 중...</span></div>
-  </div></section>
-  <section id="opError" class="hidden"><div class="err"><b>오류.</b> <span id="opErrMsg"></span></div></section>
+<main class="op-wrap" style="padding-top:24px">
+
+  <!-- ① 운영자 패스코드 -->
+  <section id="setupSection">
+    <div id="keySaved" class="key-saved hidden">
+      <span class="badge">🔑 패스코드 설정됨</span>
+      <span id="keyMasked" class="muted small"></span>
+      <span class="change" id="keyChangeBtn">변경</span>
+    </div>
+    <div id="setupCard" class="setup-card hidden">
+      <div class="step-label">
+        <div class="step-num">①</div>
+        <div>
+          <div class="step-title">운영자 패스코드 입력</div>
+          <div class="step-sub">처음 한 번만 — 이후 자동 저장</div>
+        </div>
+      </div>
+      <div class="key-note">
+        <b>API 키와 다릅니다.</b> OpenAI·Perplexity API 키를 여기에 넣지 마세요.<br>
+        메디앤메디 서버 <code>.env.local</code>의 <code>OPERATOR_KEY=</code> 뒤 값을 입력합니다.
+      </div>
+      <div class="key-input-row">
+        <input type="password" id="opKey" placeholder="운영자 전용 패스코드" autocomplete="off" />
+        <button type="button" id="keySaveBtn">저장</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② URL 분석 -->
+  <section id="analyzeSection" class="hidden" style="margin-top:10px">
+    <div class="analyze-card">
+      <div class="step-label" style="margin-bottom:12px">
+        <div class="step-num">②</div>
+        <div>
+          <div class="step-title">거래처 URL 입력</div>
+          <div class="step-sub">지역·진료를 자동 감지합니다</div>
+        </div>
+      </div>
+      <div class="url-row">
+        <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" />
+        <button class="btn p" type="button" id="opBtn">분석</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 지역·진료 확인 + 측정 -->
+  <section id="confirmSection" class="hidden" style="margin-top:4px">
+    <div class="confirm-card">
+      <div class="step-label">
+        <div class="step-num">③</div>
+        <div>
+          <div class="step-title">지역·진료 확인 후 AI 실측</div>
+          <div class="step-sub">자동 감지된 값을 확인·수정하세요</div>
+        </div>
+      </div>
+
+      <label>측정 지역</label>
+      <input type="text" id="opRegion" list="regionList" placeholder="예: 강남, 서초, 마포" />
+      <datalist id="regionList"></datalist>
+      <div class="region-hint" id="opRegionHint"></div>
+
+      <label>진료 과목</label>
+      <div class="chip-wrap" id="opProcChips"><span class="muted small">감지 중...</span></div>
+      <input type="text" id="opProcAdd" placeholder="직접 입력 후 Enter (예: 임플란트)" style="margin-top:8px;" />
+
+      <div id="opPreview" class="query-preview" style="display:none"></div>
+
+      <button class="measure-btn" type="button" id="opMeasureBtn">측정 시작 (유료 API)</button>
+      <p class="measure-hint">거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
+    </div>
+  </section>
+
+  <!-- 상태 -->
+  <section id="opLoading" class="hidden">
+    <div class="prog"><div class="row"><span class="spin"></span> <span id="opLoadMsg">처리 중...</span></div></div>
+  </section>
+  <section id="opError" class="hidden">
+    <div class="err"><b>오류.</b> <span id="opErrMsg"></span></div>
+  </section>
   <section id="opResult" class="hidden"></section>
+
 </main>
 
-<footer><div class="wrap">메디앤메디 치과 GEO · 내부 운영자 전용(noindex) · 실측 수치는 환자 대상 광고에 "추천·1위·인증"으로 인용 금지(의료광고법)</div></footer>
+<footer><div class="wrap">메디앤메디 내부 전용(noindex) · 실측 수치는 환자 광고에 "추천·1위·인증"으로 인용 금지(의료광고법)</div></footer>
 <script type="module" src="/operator.js"></script>
 </body>
 </html>
