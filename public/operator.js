@@ -185,34 +185,42 @@ function showError(msg) { $('opErrMsg').innerHTML = msg; show('opError'); }
 function render(scoreRes, citeRes, q) {
   geminiVerdicts = [];
   const parts = [
+    renderResultHeader(scoreRes, citeRes, q),
     renderCitation(citeRes),
     renderGemini(q),
     renderImprovements(scoreRes),
-    renderAgentActionability(scoreRes),
     renderHygiene(scoreRes),
+    renderAgentActionability(scoreRes),
   ];
   $('opResult').innerHTML = parts.join('');
   show('opResult');
+  // animate score bar
+  requestAnimationFrame(() => {
+    const bar = document.querySelector('.score-bar-fill');
+    if (bar) bar.style.width = bar.dataset.pct + '%';
+  });
 }
 
 function renderGemini(q) {
   const variants = dentalQueryVariants({ district: q.region, procedure: q.procedure });
   const rows = variants.map((v, i) => `
-    <div style="padding:10px 0;border-top:1px solid var(--border)">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <code style="flex:1 1 180px;font-size:.85rem;background:rgba(255,255,255,.06);padding:4px 8px;border-radius:6px">${esc(v)}</code>
-        <button type="button" class="chip" data-gcopy="${esc(v)}">복사</button>
+    <div style="padding:12px 0;border-top:1px solid var(--border)">
+      <div style="font-size:.88rem;font-weight:600;color:var(--text-1);margin-bottom:8px;line-height:1.4">"${esc(v)}"</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="chip" data-gcopy="${esc(v)}">📋 복사</button>
         <a class="chip" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer">Gemini 열기 ↗</a>
-      </div>
-      <div style="margin-top:6px;display:flex;gap:6px">
-        <button type="button" class="chip" data-gset="${i}:cited">떴음 ✓</button>
-        <button type="button" class="chip" data-gset="${i}:not">안 떴음</button>
-        <button type="button" class="chip" data-gset="${i}:unsure">불확실</button>
+        <span style="flex:1 0 100%;height:4px"></span>
+        <button type="button" class="chip" data-gset="${i}:cited">✅ 추천됨</button>
+        <button type="button" class="chip" data-gset="${i}:not">❌ 추천 안 됨</button>
+        <button type="button" class="chip" data-gset="${i}:unsure">❓ 불확실</button>
       </div>
     </div>`).join('');
-  return card('Gemini (수동 확인)',
-    '<p class="muted small" style="margin-bottom:4px">Gemini는 약관상 자동 측정 불가 — 문구 복사 후 직접 확인하고 결과를 클릭하세요.</p>'
-    + rows + '<p class="small muted" id="gTally" style="margin-top:10px">기록 없음</p>', 'gate');
+  return `<div class="card gate">
+    <b style="font-size:1rem">Gemini — 직접 확인</b>
+    <p class="muted small" style="margin:6px 0 4px">Gemini는 자동 측정이 어렵습니다. 아래 검색어를 복사해 Gemini에 붙여넣고 이 치과가 나오면 <b>추천됨</b>을 클릭하세요.</p>
+    ${rows}
+    <p class="small muted" id="gTally" style="margin-top:12px;text-align:center">아직 기록 없음</p>
+  </div>`;
 }
 
 $('opResult').addEventListener('click', (e) => {
@@ -235,6 +243,15 @@ $('opResult').addEventListener('click', (e) => {
   }
 });
 
+function renderResultHeader(scoreRes, citeRes, q) {
+  const d = (citeRes && citeRes.d) || {};
+  const domain = d.clinicDomain || lastUrl.replace(/^https?:\/\//,'').split('/')[0];
+  return `<div class="result-header">
+    <div class="result-domain">${esc(domain)}</div>
+    <div class="result-region">${esc(q.region || '')} ${esc(q.procedure || '')} · AI 추천 실측 리포트</div>
+  </div>`;
+}
+
 function renderCitation(citeRes) {
   if (!citeRes) return card('AI 실측', '<p class="muted">인용 측정에 실패했습니다.</p>');
   const d = citeRes.d || {};
@@ -243,34 +260,63 @@ function renderCitation(citeRes) {
   const eng = Array.isArray(d.perEngine) ? d.perEngine : [];
   if (!eng.length) return card('AI 실측', '<p class="muted">측정 결과 없음.</p>');
 
-  const rows = eng.map((p) => {
-    let head;
+  const ENGINE_SHORT = { chatgpt: 'ChatGPT', perplexity: 'Perplexity', claude: 'Claude' };
+
+  const cells = eng.map((p) => {
+    let badge, statusText, statText, cls;
     if (!p.measured) {
-      const why = p.unmeasurable === 'engine-error' ? '엔진 오류' : p.unmeasurable === 'no-search' ? '검색 미수행' : '키 필요';
-      head = `<span class="mark fail">·</span> <b>${esc(ENGINE_LABEL[p.engine] || p.engine)}</b> — 측정 안 됨 (${esc(why)})`;
+      badge = '⚠️'; statusText = '측정 불가'; statText = '키 또는 엔진 오류'; cls = 'error';
     } else if (p.cited) {
-      head = `<span class="mark ok">✓</span> <b>${esc(ENGINE_LABEL[p.engine] || p.engine)}</b> — ${p.validRuns}회 중 ${p.citedRuns}회 인용 (${pct(p.hitRate)}%)`;
+      badge = '✅'; statusText = 'AI가 추천했습니다'; statText = `${p.citedRuns}/${p.validRuns}회 인용`; cls = 'cited';
     } else {
-      head = `<span class="mark warn">!</span> <b>${esc(ENGINE_LABEL[p.engine] || p.engine)}</b> — 이 표본 미인용 (0/${p.validRuns})`;
+      badge = '❌'; statusText = '추천하지 않음'; statText = `0/${p.validRuns}회 인용`; cls = 'not-cited';
     }
-    const ev = (p.evidence || []).filter((x) => x.matchedUrls && x.matchedUrls.length).flatMap((x) => x.matchedUrls);
-    const evHtml = ev.length ? `<small class="muted" style="display:block;margin-top:4px">인용 위치: ${ev.slice(0, 4).map((u) => esc(u)).join(', ')}</small>` : '';
     const comp = (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain);
-    const compHtml = comp.length ? `<small class="muted" style="display:block;margin-top:2px">AI가 함께 호명: ${comp.slice(0, 8).map((x) => esc(x)).join(', ')}</small>` : '';
-    return `<div style="padding:10px 0;border-top:1px solid var(--border)">${head}${evHtml}${compHtml}</div>`;
+    const compHtml = comp.length ? `<div class="competitor-box" style="text-align:left;margin-top:10px">
+      <div class="competitor-title">대신 이곳이 추천됐습니다</div>
+      <div class="competitor-list">${comp.slice(0, 6).map((x) => `<span class="comp-chip">${esc(x)}</span>`).join('')}</div>
+    </div>` : '';
+    return `<div class="engine-cell ${cls}">
+      <div class="engine-name">${esc(ENGINE_SHORT[p.engine] || p.engine)}</div>
+      <div class="engine-badge">${badge}</div>
+      <div class="engine-status">${statusText}</div>
+      <div class="engine-stat">${statText}</div>
+      ${compHtml}
+    </div>`;
   }).join('');
 
-  const note = `<p class="muted small" style="margin-top:12px">개발자 API 기준 — 일반 ChatGPT 앱과 다를 수 있음. <b>환자 대상 광고에 인용 금지(의료광고법).</b></p>`;
-  return card(`AI 실측 결과 — ${esc(d.clinicDomain || '')}`, rows + note, 'gate');
+  const note = `<p class="muted small" style="margin-top:12px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
+  return `<div class="card gate">
+    <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
+    <div class="engine-grid" style="margin-top:12px">${cells}</div>
+    ${note}
+  </div>`;
 }
 
 function renderImprovements(scoreRes) {
   const fixes = (scoreRes && scoreRes.d && scoreRes.d.topFixes) || [];
-  const proven = `<div class="fix"><span class="gain" style="background:var(--teal);color:#04201d;border-radius:4px;padding:2px 8px">입증</span><div style="flex:1"><b>콘텐츠 인용성 강화</b><small class="muted" style="display:block;margin-top:2px">본문에 출처·통계·전문의 인용 추가 — AI 인용과 인과 입증된 유일 레버 (KDD'24)</small></div></div>`;
-  const hygiene = fixes.map((f) => `<div class="fix"><span class="gain">+${f.gain}<small>점</small></span><div style="flex:1">${esc(f.fix)}<small class="muted" style="display:block;margin-top:2px">${esc(f.gainLabel || '구조 위생 점수 · 인용 예측 아님')}</small></div></div>`).join('');
-  return card('개선 우선순위',
-    proven + hygiene +
-    '<p class="muted small" style="margin-top:10px">위생 점수↑ ≠ 인용↑ — robots·구조데이터·E-E-A-T는 필요조건(위생)이며 인용 예측 아님.</p>');
+  const provenItem = `<li class="action-item">
+    <div class="action-num">1</div>
+    <div class="action-body">
+      <div class="action-title">콘텐츠에 출처·통계·전문의 인용 추가</div>
+      <div class="action-desc">진료 페이지 본문에 "연구에 따르면…", 의료진 자격·경력, 실제 수치를 넣습니다. AI가 신뢰할 수 있는 콘텐츠로 인식합니다.</div>
+      <span class="action-tag tag-proven">인과 입증된 유일 레버</span>
+    </div>
+  </li>`;
+  const hygieneItems = fixes.map((f, i) => `<li class="action-item">
+    <div class="action-num">${i + 2}</div>
+    <div class="action-body">
+      <div class="action-title">${esc(f.fix)}</div>
+      <div class="action-desc">${esc(f.note || '검색엔진·AI 크롤러가 사이트를 더 잘 읽을 수 있게 됩니다.')}</div>
+      <span class="action-tag tag-hygiene">위생 개선 +${f.gain}점</span>
+    </div>
+  </li>`).join('');
+  return `<div class="card">
+    <b style="font-size:1rem">개선 실행 목록</b>
+    <p class="muted small" style="margin:6px 0 12px">우선순위 순서입니다. 1번이 AI 인용에 가장 직접적인 영향을 줍니다.</p>
+    <ul class="action-list">${provenItem}${hygieneItems}</ul>
+    <p class="muted small" style="margin-top:10px">2번 이하 항목은 홈페이지 구조 개선이며 인용을 직접 보장하지 않습니다.</p>
+  </div>`;
 }
 
 function renderAgentActionability(scoreRes) {
@@ -281,20 +327,49 @@ function renderAgentActionability(scoreRes) {
 function renderHygiene(scoreRes) {
   if (!scoreRes || !scoreRes.ok) {
     const reason = scoreRes && scoreRes.d && (scoreRes.d.reason || scoreRes.d.message);
-    return card('페이지 위생 점수', `<p class="muted">측정 불가${reason ? ' — ' + esc(reason) : ''}</p>`);
+    return `<details class="card"><summary><b>홈페이지 기술 점수</b> — 측정 불가</summary><p class="muted" style="margin-top:8px">${reason ? esc(reason) : '분석 불가'}</p></details>`;
   }
   const d = scoreRes.d;
-  const bd = (d.breakdown || []).map((x) => {
-    const mark = x.status === 'ok' ? '✓' : x.status === 'warn' ? '!' : '✗';
-    return `<div class="item"><span class="mark ${x.status}">${mark}</span><div class="t"><b>${esc(x.label)}</b><small>${esc(x.note || '')}</small>${x.why ? `<small class="why">왜: ${esc(x.why)}</small>` : ''}</div><span class="pts">${x.points}/${x.max}</span></div>`;
+  const pctVal = Math.round((d.score / 100) * 100);
+  const bandLabel = d.score >= 70 ? '양호' : d.score >= 40 ? '개선 필요' : '시급';
+  const bandColor = d.score >= 70 ? 'var(--teal)' : d.score >= 40 ? 'var(--gold-2)' : 'var(--amber)';
+
+  const checks = (d.breakdown || []).map((x) => {
+    const iconCls = x.status === 'ok' ? 'icon-ok' : x.status === 'warn' ? 'icon-warn' : 'icon-fail';
+    const icon = x.status === 'ok' ? '✓' : x.status === 'warn' ? '!' : '✗';
+    return `<div class="check-row">
+      <div class="check-icon ${iconCls}">${icon}</div>
+      <div class="check-text">
+        <span class="check-label">${esc(x.label)}</span>
+        ${x.why ? `<span class="check-why">${esc(x.why)}</span>` : ''}
+      </div>
+      <span class="check-pts">${x.points}/${x.max}</span>
+    </div>`;
   }).join('');
-  const meta = [
-    { label: 'llms.txt', val: d.hasLlmsTxt, note: 'AI 읽기 전용 색인 파일 (점수 외)' },
-    { label: 'Google Maps 삽입', val: d.hasMapEmbed, note: 'Maps/Place ID 감지 (점수 외)' },
-    { label: '비급여 가격 안내', val: d.hasPriceInfo, note: '임플란트/교정/비급여 키워드 (점수 외)' },
-  ].map((m) => `<div class="item"><span class="mark ${m.val ? 'ok' : ''}">${m.val ? '✓' : '○'}</span><div class="t"><b>${esc(m.label)}</b><small>${esc(m.note)}</small></div><span class="pts" style="color:var(--text-2);font-size:.78rem">참고</span></div>`).join('');
-  const body = `<p class="small muted">${d.score}/100 · 필요조건(위생), 인용 예측 아님. ${esc(d.renderMode || '')}</p>${bd}<p class="small muted" style="margin:10px 0 4px">── 참고 메타데이터 (점수 외) ──</p>${meta}`;
-  return `<details class="card"><summary><b>페이지 위생 점수 ${d.score}/100</b> (펼쳐보기)</summary><div style="margin-top:10px">${body}</div></details>`;
+
+  const metaItems = [
+    { label: 'llms.txt 파일', val: d.hasLlmsTxt, note: 'AI 전용 색인 파일 있음' },
+    { label: 'Google Maps', val: d.hasMapEmbed, note: '지도 삽입 있음' },
+    { label: '비급여 가격 안내', val: d.hasPriceInfo, note: '가격 키워드 감지됨' },
+  ].map((m) => `<div class="check-row">
+    <div class="check-icon ${m.val ? 'icon-ok' : 'icon-fail'}">${m.val ? '✓' : '○'}</div>
+    <div class="check-text"><span class="check-label">${esc(m.label)}</span>${m.val ? `<span class="check-why">${esc(m.note)}</span>` : ''}</div>
+    <span class="check-pts" style="color:var(--text-2);font-size:.75rem">참고</span>
+  </div>`).join('');
+
+  const body = `<div class="score-visual">
+    <div class="score-big">${d.score}<small>/100</small></div>
+    <div class="score-meaning">
+      <span style="font-weight:700;color:${bandColor}">${bandLabel}</span>
+      <div class="score-bar-wrap"><div class="score-bar-fill" data-pct="${pctVal}" style="width:0%"></div></div>
+      <div class="muted small" style="margin-top:4px">AI가 이 사이트를 읽고 추출할 수 있는 준비 수준</div>
+    </div>
+  </div>
+  ${checks}
+  <p class="muted small" style="margin:10px 0 4px;text-align:center">─ 추가 확인 항목 ─</p>
+  ${metaItems}`;
+
+  return `<details class="card"><summary><b style="font-size:.95rem">홈페이지 기술 점수 ${d.score}/100</b> <span class="muted small">(클릭해서 세부 항목 보기)</span></summary><div style="margin-top:14px">${body}</div></details>`;
 }
 
 function card(title, bodyHtml, cls) {

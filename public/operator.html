@@ -8,6 +8,54 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="/style.css" />
 <style>
+/* ── result cards ── */
+.result-header { text-align:center; padding:20px 0 10px; }
+.result-domain { font-size:1rem; color:var(--text-2); margin-bottom:4px; }
+.result-region { font-size:.82rem; color:var(--gold); font-weight:700; letter-spacing:.04em; }
+
+.engine-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0; }
+@media(max-width:500px){ .engine-grid { grid-template-columns:1fr; } }
+.engine-cell { background:var(--bg-2); border-radius:12px; padding:16px; border:1px solid var(--border); text-align:center; }
+.engine-cell.cited { border-color:rgba(31,206,196,.4); background:rgba(31,206,196,.07); }
+.engine-cell.not-cited { border-color:rgba(232,179,57,.25); }
+.engine-cell.error { border-color:rgba(141,160,187,.2); }
+.engine-name { font-size:.75rem; font-weight:700; letter-spacing:.06em; color:var(--text-2); text-transform:uppercase; margin-bottom:8px; }
+.engine-badge { font-size:1.6rem; margin-bottom:6px; }
+.engine-status { font-size:.9rem; font-weight:700; }
+.engine-stat { font-size:.78rem; color:var(--text-2); margin-top:3px; }
+
+.competitor-box { background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-top:10px; }
+.competitor-title { font-size:.75rem; font-weight:700; color:var(--text-2); letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px; }
+.competitor-list { display:flex; flex-wrap:wrap; gap:6px; }
+.comp-chip { font-size:.75rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--text-2); }
+
+.action-list { list-style:none; counter-reset:action; }
+.action-item { display:flex; gap:12px; padding:13px 0; border-top:1px solid var(--border); }
+.action-item:first-child { border-top:none; }
+.action-num { width:26px; height:26px; border-radius:50%; background:rgba(201,168,76,.15); color:var(--gold-2); font-weight:800; font-size:.82rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.action-body { flex:1; }
+.action-title { font-weight:700; font-size:.93rem; margin-bottom:2px; }
+.action-desc { font-size:.82rem; color:var(--text-2); line-height:1.5; }
+.action-tag { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:4px; margin-top:5px; }
+.tag-proven { background:rgba(31,206,196,.15); color:var(--teal); }
+.tag-hygiene { background:rgba(201,168,76,.12); color:var(--gold-2); }
+
+.score-visual { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.score-big { font-size:2.8rem; font-weight:800; line-height:1; color:var(--gold); }
+.score-big small { font-size:1rem; color:var(--text-2); font-weight:400; }
+.score-meaning { flex:1; }
+.score-bar-wrap { background:rgba(255,255,255,.06); border-radius:6px; height:8px; overflow:hidden; margin-top:6px; }
+.score-bar-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--gold),var(--gold-2)); transition:width 1s ease; }
+.check-row { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-top:1px solid var(--border); font-size:.88rem; }
+.check-icon { width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; flex-shrink:0; }
+.icon-ok { background:rgba(31,206,196,.15); color:var(--teal); }
+.icon-warn { background:rgba(201,168,76,.15); color:var(--gold-2); }
+.icon-fail { background:rgba(141,160,187,.1); color:var(--text-2); }
+.check-text { flex:1; }
+.check-label { font-weight:700; display:block; margin-bottom:1px; }
+.check-why { font-size:.78rem; color:var(--text-2); }
+.check-pts { font-size:.82rem; color:var(--text-2); white-space:nowrap; }
+
 /* ── operator-specific ── */
 .op-wrap { max-width: 640px; margin: 0 auto; padding: 0 20px 60px; }
 
