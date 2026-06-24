@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'method-not-allowed' });
     return;
   }
-  const { url, email, region, procedure } = req.body || {};
+  const { url, email, region, procedure, queries } = req.body || {};
 
   // --- operator gate (internal tool) ---
   const operatorKeySet = !!process.env.OPERATOR_KEY;
@@ -89,6 +89,10 @@ export default async function handler(req, res) {
       }
     }
 
+    const customPrompts = Array.isArray(queries) && queries.length > 0
+      ? queries.slice(0, 3).map((q) => String(q).trim()).filter(Boolean)
+      : null;
+
     const result = await runCitationPanel({
       clinicDomain: domain,
       region: region || '',
@@ -96,6 +100,7 @@ export default async function handler(req, res) {
       keys,
       loc: { city: region || '' },
       repeats: 1,
+      customPrompts,
     });
     await store.cacheSet(cacheKey, result, DAY); // full panel cached server-side; view() redacts per audience
     res.status(200).json(view(result));

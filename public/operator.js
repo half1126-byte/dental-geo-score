@@ -1,5 +1,5 @@
 import { agentCardHtml } from './agent-card.js';
-import { dentalQueryVariants } from './query-preview.js';
+import { dentalQueryVariants, allQueryVariants } from './query-preview.js';
 import { REGION_TERMS } from './kr-regions.js';
 
 const $ = (id) => document.getElementById(id);
@@ -13,6 +13,7 @@ let lastScoreRes = null;
 let lastUrl = '';
 let selectedProcedure = '';
 let geminiVerdicts = [];
+let selectedQueries = []; // strings selected by operator for measurement (max 3)
 
 $('regionList').innerHTML = REGION_TERMS.map((r) => `<option value="${esc(r)}">`).join('');
 
@@ -102,7 +103,7 @@ function populateConfirm(d) {
   const procs = d.procedureGuess || [];
   selectedProcedure = procs.length ? procs[0].q : '';
   renderProcChips(procs.map((p) => ({ q: p.q, label: p.label })));
-  updatePreview();
+  updateQueryChips();
 }
 
 function renderProcChips(items) {
@@ -120,7 +121,7 @@ $('opProcChips').addEventListener('click', (e) => {
   const b = e.target.closest('[data-proc]'); if (!b) return;
   selectedProcedure = b.getAttribute('data-proc');
   $('opProcChips').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === b));
-  updatePreview();
+  updateQueryChips();
 });
 
 $('opProcAdd').addEventListener('keydown', (e) => {
@@ -132,19 +133,52 @@ $('opProcAdd').addEventListener('keydown', (e) => {
   if (!cur.some((c) => c.q === v)) cur.push({ q: v, label: v });
   renderProcChips(cur);
   e.target.value = '';
-  updatePreview();
+  updateQueryChips();
 });
 
-$('opRegion').addEventListener('input', updatePreview);
+$('opRegion').addEventListener('input', updateQueryChips);
 
-function updatePreview() {
+function updateQueryChips() {
   const region = $('opRegion').value.trim();
-  const prev = $('opPreview');
-  if (!region && !selectedProcedure) { prev.style.display = 'none'; return; }
-  const variants = dentalQueryVariants({ district: region, procedure: selectedProcedure });
-  prev.style.display = 'block';
-  prev.innerHTML = `<div class="qlabel">AI에게 보내는 질의</div><ol>${variants.map((v) => `<li>${esc(v)}</li>`).join('')}</ol>`;
+  const variants = allQueryVariants({ district: region, procedure: selectedProcedure });
+  // default: first 3 selected (reset on region/procedure change)
+  selectedQueries = variants.slice(0, 3);
+  renderQueryChips(variants);
 }
+
+function renderQueryChips(variants) {
+  const wrap = $('opQueryChips');
+  if (!variants.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = variants.map((v, i) => {
+    const on = selectedQueries.includes(v);
+    return `<button type="button" class="q-chip${on ? ' on' : ''}" data-query="${esc(v)}">
+      <div class="q-chip-num">${on ? selectedQueries.indexOf(v) + 1 : '·'}</div>
+      <div class="q-chip-text">${esc(v)}</div>
+    </button>`;
+  }).join('');
+  updateQueryHint();
+}
+
+function updateQueryHint() {
+  const h = $('opQueryHint');
+  const n = selectedQueries.length;
+  if (h) h.textContent = `${n}개 선택됨 (최대 3개) · 선택된 질의로만 AI에게 질문합니다.`;
+}
+
+$('opQueryChips').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-query]'); if (!btn) return;
+  const q = btn.getAttribute('data-query');
+  if (selectedQueries.includes(q)) {
+    if (selectedQueries.length <= 1) return; // 최소 1개 유지
+    selectedQueries = selectedQueries.filter((x) => x !== q);
+  } else {
+    if (selectedQueries.length >= 3) return; // 최대 3개
+    selectedQueries = [...selectedQueries, q];
+  }
+  // re-render chips with updated selection
+  const all = [...$('opQueryChips').querySelectorAll('[data-query]')].map((b) => b.getAttribute('data-query'));
+  renderQueryChips(all);
+});
 
 // ── PHASE 2: 측정 (/api/citation) ──────────────────────────────
 $('opMeasureBtn').addEventListener('click', async () => {
@@ -159,9 +193,10 @@ $('opMeasureBtn').addEventListener('click', async () => {
   $('opMeasureBtn').disabled = true; $('opMeasureBtn').textContent = '측정 중...';
   try {
     const headers = { 'content-type': 'application/json', 'x-operator-key': key };
+    const queriesToSend = selectedQueries.length > 0 ? selectedQueries : undefined;
     const citeRes = await fetch('/api/citation', {
       method: 'POST', headers,
-      body: JSON.stringify({ url: lastUrl, region, procedure }),
+      body: JSON.stringify({ url: lastUrl, region, procedure, queries: queriesToSend }),
     }).then((r) => r.json().then((d) => ({ ok: r.ok, status: r.status, d }))).catch(() => null);
     hide('opLoading');
     if (citeRes && citeRes.status === 401) {
@@ -228,7 +263,7 @@ $('opResult').addEventListener('click', (e) => {
   if (cp) {
     const t = cp.getAttribute('data-gcopy');
     if (navigator.clipboard) navigator.clipboard.writeText(t).catch(() => {});
-    cp.textContent = '복사됨'; setTimeout(() => { cp.textContent = '복사'; }, 1200);
+    cp.textContent = '📋 복사됨'; setTimeout(() => { cp.textContent = '📋 복사'; }, 1200);
     return;
   }
   const set = e.target.closest('[data-gset]');
@@ -240,8 +275,87 @@ $('opResult').addEventListener('click', (e) => {
     const cited = geminiVerdicts.filter((v) => v === 'cited').length;
     const el = $('gTally');
     if (el) el.textContent = `Gemini(수동): ${n}개 기록 · 떴음 ${cited}건`;
+    return;
+  }
+  // competitor compare — intercept link clicks that have data-compare
+  const cmpLink = e.target.closest('[data-compare]');
+  if (cmpLink) {
+    e.preventDefault();
+    const domain = cmpLink.getAttribute('data-compare');
+    const href = cmpLink.getAttribute('href');
+    loadCompare(domain, href);
   }
 });
+
+async function loadCompare(compDomain, compUrl) {
+  const userBreakdown = lastScoreRes && lastScoreRes.d && lastScoreRes.d.breakdown;
+  const userDomain = lastScoreRes && lastScoreRes.d && lastScoreRes.d.domain;
+  const sec = $('compareSection');
+  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} 분석 중...</p></div>`;
+  show('compareSection');
+  sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  let compScore = null;
+  try {
+    const url = compUrl || (compDomain.startsWith('http') ? compDomain : `https://${compDomain}`);
+    const res = await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ url }),
+    }).then((r) => r.json().then((d) => ({ ok: r.ok, d }))).catch(() => null);
+    if (res && res.ok) compScore = res.d;
+  } catch { /* ignore */ }
+
+  sec.innerHTML = renderCompare(userDomain, userBreakdown, compDomain, compScore);
+}
+
+function renderCompare(userDomain, userBreakdown, compDomain, compScore) {
+  const compBreakdown = compScore && compScore.breakdown;
+  const closeBtn = `<button type="button" onclick="document.getElementById('compareSection').classList.add('hidden')" class="chip" style="float:right;margin-left:8px">닫기 ✕</button>`;
+  if (!userBreakdown || !compBreakdown) {
+    return `<div class="compare-panel">${closeBtn}<p class="muted">비교 데이터 없음 (${!userBreakdown ? '측정 대상 재분석 필요' : '경쟁 치과 분석 실패'})</p></div>`;
+  }
+
+  const compMap = Object.fromEntries(compBreakdown.map((c) => [c.label, c]));
+  const gaps = [], same = [], userBetter = [];
+  for (const u of userBreakdown) {
+    const c = compMap[u.label];
+    if (!c) continue;
+    const uOk = u.status === 'ok';
+    const cOk = c.status === 'ok';
+    if (!uOk && cOk) gaps.push({ label: u.label, uNote: u.note, cNote: c.note });
+    else if (uOk && cOk) same.push({ label: u.label });
+    else if (uOk && !cOk) userBetter.push({ label: u.label });
+  }
+
+  const row = (label, uOk, cOk, note) => `<div class="compare-row">
+    <div class="compare-label">${esc(label)}${note ? `<div style="font-size:.75rem;color:var(--text-2);margin-top:2px">${esc(note)}</div>` : ''}</div>
+    <div class="compare-val ${uOk ? 'ok' : 'fail'}">${uOk ? '✓ 있음' : '✗ 없음'}</div>
+    <div class="compare-val ${cOk ? 'ok' : 'fail'}">${cOk ? '✓ 있음' : '✗ 없음'}</div>
+  </div>`;
+
+  const compScoreNum = compScore ? compScore.score : '?';
+  const userScoreNum = lastScoreRes && lastScoreRes.d ? lastScoreRes.d.score : '?';
+
+  return `<div class="compare-panel">
+    ${closeBtn}
+    <div class="compare-title">📊 비교 분석</div>
+    <div class="compare-domains">
+      <span class="compare-domain-tag compare-tag-user">📍 ${esc(userDomain || '측정 대상')} · ${userScoreNum}점</span>
+      <span style="color:var(--text-2);font-size:.8rem;align-self:center">vs</span>
+      <span class="compare-domain-tag compare-tag-comp">🏆 ${esc(compDomain)} · ${compScoreNum}점</span>
+    </div>
+    ${gaps.length ? `<div class="compare-section-head">⬆️ 경쟁 치과에 있고 이 치과에 없는 것 (${gaps.length}개)</div>
+    <div style="font-size:.78rem;color:var(--text-2);margin-bottom:6px">이 항목들이 AI 추천 격차의 원인일 수 있습니다</div>
+    <div style="display:flex;font-size:.72rem;color:var(--text-2);padding:0 0 4px;gap:10px"><div style="flex:1"></div><div style="width:60px;text-align:center">${esc(userDomain || '이 치과')}</div><div style="width:60px;text-align:center">${esc(compDomain)}</div></div>
+    ${gaps.map((g) => row(g.label, false, true, g.cNote)).join('')}` : ''}
+    ${same.length ? `<div class="compare-section-head" style="margin-top:14px">✅ 양쪽 모두 통과 (${same.length}개)</div>
+    ${same.map((g) => row(g.label, true, true, '')).join('')}` : ''}
+    ${userBetter.length ? `<div class="compare-section-head" style="margin-top:14px">📌 이 치과만 있는 것 (${userBetter.length}개)</div>
+    ${userBetter.map((g) => row(g.label, true, false, '')).join('')}` : ''}
+    <p class="muted small" style="margin-top:12px">기술 점수 비교 — AI 인용과 직접 인과관계 없음 (필요조건·위생 지표)</p>
+  </div>`;
+}
 
 function renderResultHeader(scoreRes, citeRes, q) {
   const d = (citeRes && citeRes.d) || {};
@@ -252,6 +366,13 @@ function renderResultHeader(scoreRes, citeRes, q) {
   </div>`;
 }
 
+const ENGINE_LOGO = {
+  chatgpt: `<span class="engine-logo logo-chatgpt" title="ChatGPT">G</span>`,
+  perplexity: `<span class="engine-logo logo-perplexity" title="Perplexity">P</span>`,
+  claude: `<span class="engine-logo logo-claude" title="Claude">C</span>`,
+};
+const ENGINE_SHORT = { chatgpt: 'ChatGPT', perplexity: 'Perplexity', claude: 'Claude' };
+
 function renderCitation(citeRes) {
   if (!citeRes) return card('AI 실측', '<p class="muted">인용 측정에 실패했습니다.</p>');
   const d = citeRes.d || {};
@@ -259,8 +380,6 @@ function renderCitation(citeRes) {
   if (d.status === 'cap-reached') return card('AI 실측 — 한도 소진', `<p class="muted">${esc(d.message || '오늘 한도 소진.')}</p>`);
   const eng = Array.isArray(d.perEngine) ? d.perEngine : [];
   if (!eng.length) return card('AI 실측', '<p class="muted">측정 결과 없음.</p>');
-
-  const ENGINE_SHORT = { chatgpt: 'ChatGPT', perplexity: 'Perplexity', claude: 'Claude' };
 
   const cells = eng.map((p) => {
     let badge, statusText, statText, cls;
@@ -274,10 +393,14 @@ function renderCitation(citeRes) {
     const comp = (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain);
     const compHtml = comp.length ? `<div class="competitor-box" style="text-align:left;margin-top:10px">
       <div class="competitor-title">대신 이곳이 추천됐습니다</div>
-      <div class="competitor-list">${comp.slice(0, 6).map((x) => `<span class="comp-chip">${esc(x)}</span>`).join('')}</div>
+      <div class="competitor-list">${comp.slice(0, 6).map((x) => {
+        const href = /^https?:\/\//.test(x) ? x : `https://${x}`;
+        return `<a class="comp-link" href="${esc(href)}" target="_blank" rel="noopener" data-compare="${esc(x)}">${esc(x)}</a>`;
+      }).join('')}</div>
     </div>` : '';
+    const logo = ENGINE_LOGO[p.engine] || '';
     return `<div class="engine-cell ${cls}">
-      <div class="engine-name">${esc(ENGINE_SHORT[p.engine] || p.engine)}</div>
+      <div class="engine-name" style="display:flex;align-items:center;gap:5px;justify-content:center">${logo}${esc(ENGINE_SHORT[p.engine] || p.engine)}</div>
       <div class="engine-badge">${badge}</div>
       <div class="engine-status">${statusText}</div>
       <div class="engine-stat">${statText}</div>
@@ -285,10 +408,14 @@ function renderCitation(citeRes) {
     </div>`;
   }).join('');
 
+  const logos = eng.map((p) => ENGINE_LOGO[p.engine] || '').filter(Boolean).join('');
   const note = `<p class="muted small" style="margin-top:12px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
   return `<div class="card gate">
-    <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
-    <div class="engine-grid" style="margin-top:12px">${cells}</div>
+    <div class="engine-title-row">
+      <div class="engine-title-logos">${logos}</div>
+      <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
+    </div>
+    <div class="engine-grid">${cells}</div>
     ${note}
   </div>`;
 }

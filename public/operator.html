@@ -56,6 +56,41 @@
 .check-why { font-size:.78rem; color:var(--text-2); }
 .check-pts { font-size:.82rem; color:var(--text-2); white-space:nowrap; }
 
+/* ── query selector ── */
+.query-selector-label { font-size:.82rem; color:var(--text-2); margin:14px 0 6px; display:block; }
+.query-chips-wrap { display:flex; flex-direction:column; gap:6px; }
+.q-chip { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--text-1); font-size:.84rem; font-family:inherit; cursor:pointer; text-align:left; line-height:1.4; transition:all .15s; }
+.q-chip:hover { border-color:var(--gold); }
+.q-chip.on { background:rgba(201,168,76,.12); border-color:rgba(201,168,76,.4); }
+.q-chip-num { width:20px; height:20px; border-radius:50%; background:rgba(201,168,76,.15); color:var(--gold-2); font-weight:800; font-size:.72rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.q-chip.on .q-chip-num { background:var(--gold); color:var(--bg-1); }
+.q-chip-text { flex:1; }
+.q-select-hint { font-size:.76rem; color:var(--text-2); margin-top:6px; }
+
+/* ── engine logos ── */
+.engine-logo { width:18px; height:18px; border-radius:4px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:#fff; }
+.logo-chatgpt { background:#10a37f; }
+.logo-perplexity { background:#20b2aa; }
+.logo-claude { background:#d97559; }
+.engine-title-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.engine-title-logos { display:flex; gap:5px; }
+
+/* ── competitor compare ── */
+.comp-link { font-size:.75rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--gold-2); text-decoration:none; cursor:pointer; }
+.comp-link:hover { border-color:var(--gold); background:rgba(201,168,76,.1); }
+.compare-panel { margin-top:14px; background:var(--bg-3); border:1px solid rgba(201,168,76,.25); border-radius:14px; padding:18px; }
+.compare-title { font-weight:700; font-size:.95rem; margin-bottom:12px; }
+.compare-domains { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.compare-domain-tag { font-size:.76rem; padding:4px 10px; border-radius:6px; font-weight:700; }
+.compare-tag-user { background:rgba(141,160,187,.15); color:var(--text-2); }
+.compare-tag-comp { background:rgba(31,206,196,.12); color:var(--teal); }
+.compare-section-head { font-size:.78rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--text-2); margin:12px 0 6px; }
+.compare-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-top:1px solid var(--border); font-size:.84rem; }
+.compare-label { flex:1; }
+.compare-val { width:60px; text-align:center; font-size:.8rem; font-weight:700; }
+.compare-val.ok { color:var(--teal); }
+.compare-val.fail { color:var(--text-2); }
+
 /* ── operator-specific ── */
 .op-wrap { max-width: 640px; margin: 0 auto; padding: 0 20px 60px; }
 
@@ -187,7 +222,9 @@
       <div class="chip-wrap" id="opProcChips"><span class="muted small">감지 중...</span></div>
       <input type="text" id="opProcAdd" placeholder="직접 입력 후 Enter (예: 임플란트)" style="margin-top:8px;" />
 
-      <div id="opPreview" class="query-preview" style="display:none"></div>
+      <label class="query-selector-label">AI에게 보낼 질의 선택 <span class="muted" style="font-weight:400">(최대 3개)</span></label>
+      <div class="query-chips-wrap" id="opQueryChips"></div>
+      <p class="q-select-hint" id="opQueryHint">선택된 질의로만 측정합니다.</p>
 
       <button class="measure-btn" type="button" id="opMeasureBtn">측정 시작 (유료 API)</button>
       <p class="measure-hint">거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
@@ -202,6 +239,7 @@
     <div class="err"><b>오류.</b> <span id="opErrMsg"></span></div>
   </section>
   <section id="opResult" class="hidden"></section>
+  <section id="compareSection" class="hidden"></section>
 
 </main>
 
