@@ -58,6 +58,40 @@ test('runCitationPanel: honest denominator (validRuns) excludes no-search runs (
   assert.ok(px.validRuns >= 1);
 });
 
+test('runCitationPanel: customPrompts string array → {system,user} conversion, only those queries sent', async () => {
+  const sentUserMsgs = [];
+  const fetchImpl = async (url, opts) => {
+    if (url.includes('openai')) {
+      const body = JSON.parse(opts.body);
+      const userMsg = body.input?.find((m) => m.role === 'user')?.content;
+      if (userMsg) sentUserMsgs.push(userMsg);
+      return { ok: true, json: async () => ({ output: [{ type: 'message', content: [{ type: 'output_text', annotations: [] }] }] }) };
+    }
+    return { ok: false, status: 404 };
+  };
+  const customQ = ['강남 임플란트 치과 추천해줘', '강남역 근처 치과 아무데나 가도 돼?'];
+  await runCitationPanel({ clinicDomain: 'x.co.kr', region: '강남', procedure: '임플란트', keys: { chatgpt: 'k' }, customPrompts: customQ, nowIso: 't', fetchImpl });
+  assert.ok(sentUserMsgs.includes('강남 임플란트 치과 추천해줘'), 'customPrompts[0] must be sent as user message');
+  assert.ok(sentUserMsgs.includes('강남역 근처 치과 아무데나 가도 돼?'), 'customPrompts[1] must be sent');
+  // ensure only 2 queries sent (not 3 from buildPrompts)
+  assert.equal(sentUserMsgs.length, 2, 'exactly customPrompts.length calls, not buildPrompts default 3');
+});
+
+test('runCitationPanel: customPrompts=[] falls back to buildPrompts (3 default queries)', async () => {
+  const sentUserMsgs = [];
+  const fetchImpl = async (url, opts) => {
+    if (url.includes('openai')) {
+      const body = JSON.parse(opts.body);
+      const userMsg = body.input?.find((m) => m.role === 'user')?.content;
+      if (userMsg) sentUserMsgs.push(userMsg);
+      return { ok: true, json: async () => ({ output: [{ type: 'message', content: [{ type: 'output_text', annotations: [] }] }] }) };
+    }
+    return { ok: false, status: 404 };
+  };
+  await runCitationPanel({ clinicDomain: 'x.co.kr', region: '강남', procedure: '임플란트', keys: { chatgpt: 'k' }, customPrompts: [], nowIso: 't', fetchImpl });
+  assert.equal(sentUserMsgs.length, 3, 'empty customPrompts must fall back to buildPrompts 3 queries');
+});
+
 test('runCitationPanel: all-error engine is measured:false + unmeasurable (C1, no fake 0/N)', async () => {
   const fetchImpl = async (url) => (url.includes('openai') ? { ok: false, status: 500 } : { ok: true, json: async () => ({ output: [] }) });
   const r = await runCitationPanel({ clinicDomain: 'x.co.kr', keys: { chatgpt: 'k' }, nowIso: 't', fetchImpl });

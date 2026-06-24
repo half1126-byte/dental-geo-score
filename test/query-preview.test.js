@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dentalQueryVariants } from '../public/query-preview.js';
+import { dentalQueryVariants, allQueryVariants } from '../public/query-preview.js';
 import { buildPrompts } from '../lib/engines.js';
 import { REGION_TERMS } from '../public/kr-regions.js';
 
@@ -20,6 +20,32 @@ test('preview phrasing is identical to buildPrompts (no drift)', () => {
     const backend = buildPrompts(c).map((u) => u.user);
     assert.deepEqual(preview, backend, `mismatch for ${JSON.stringify(c)}`);
   }
+});
+
+test('allQueryVariants: district+procedure → ≥6 variants, first 3 identical to dentalQueryVariants', () => {
+  const all = allQueryVariants({ district: '강남', procedure: '임플란트' });
+  const base = dentalQueryVariants({ district: '강남', procedure: '임플란트' });
+  assert.ok(all.length >= 6, `expected ≥6 variants, got ${all.length}`);
+  assert.deepEqual(all.slice(0, 3), base, 'first 3 must match dentalQueryVariants exactly');
+  assert.ok(all.some((q) => q.includes('출퇴근')), 'conversational "출퇴근" variant should be present');
+});
+
+test('allQueryVariants: district only (no procedure) → ≥4 variants, includes district-only conversational', () => {
+  const all = allQueryVariants({ district: '강남', procedure: '' });
+  assert.ok(all.length >= 4, `expected ≥4 variants, got ${all.length}`);
+  assert.ok(all.some((q) => q.includes('강남') && q.includes('치과')), 'district-only conversational variant present');
+  assert.ok(!all.some((q) => q.includes('임플란트')), 'no procedure leak with empty procedure');
+});
+
+test('allQueryVariants: procedure only (no district) → ≥4 variants, includes procedure-only conversational', () => {
+  const all = allQueryVariants({ district: '', procedure: '임플란트' });
+  assert.ok(all.length >= 4, `expected ≥4 variants, got ${all.length}`);
+  assert.ok(all.some((q) => q.includes('임플란트') && q.includes('추천')), 'procedure-only conversational variant present');
+});
+
+test('allQueryVariants: both empty → returns exactly 3 base variants', () => {
+  const all = allQueryVariants({ district: '', procedure: '' });
+  assert.equal(all.length, 3, 'empty inputs → only 3 base variants');
 });
 
 test('region terms list is non-empty, deduped, trimmed', () => {

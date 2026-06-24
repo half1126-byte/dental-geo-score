@@ -70,8 +70,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 24h cache first — a cache hit does NOT consume the daily cap.
-    const cacheKey = `${domain}|${(region || '').trim().toLowerCase()}|${(procedure || '').trim().toLowerCase()}`;
+    // Build customPrompts early so cache key can include query fingerprint.
+    const rawCustom = Array.isArray(queries) && queries.length > 0
+      ? queries.slice(0, 3).map((q) => String(q).trim().slice(0, 300)).filter(Boolean)
+      : null;
+    // Null-out empty arrays so runCitationPanel falls back to buildPrompts.
+    const customPrompts = rawCustom && rawCustom.length > 0 ? rawCustom : null;
+
+    // 24h cache — key includes query fingerprint so different selections don't collide.
+    const queryFP = customPrompts ? customPrompts.slice().sort().join('§').slice(0, 120) : '';
+    const cacheKey = `${domain}|${(region || '').trim().toLowerCase()}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
     const cached = await store.cacheGet(cacheKey);
     if (cached) {
       res.status(200).json({ ...view(cached), cached: true });
@@ -88,10 +96,6 @@ export default async function handler(req, res) {
         return;
       }
     }
-
-    const customPrompts = Array.isArray(queries) && queries.length > 0
-      ? queries.slice(0, 3).map((q) => String(q).trim()).filter(Boolean)
-      : null;
 
     const result = await runCitationPanel({
       clinicDomain: domain,
