@@ -15,6 +15,8 @@ let selectedProcedure = '';
 let geminiVerdicts = [];   // per-phrase manual verdict: 'cited' | 'not' | 'unsure'
 
 $('regionList').innerHTML = REGION_TERMS.map((r) => `<option value="${esc(r)}">`).join('');
+const _urlKey = new URLSearchParams(location.search).get('key');
+if (_urlKey) { localStorage.setItem('opKey', _urlKey); history.replaceState(null, '', location.pathname); }
 $('opKey').value = localStorage.getItem('opKey') || '';
 
 // ── PHASE 1: 분석 (free /api/score → auto-detect region + procedure) ──────────
