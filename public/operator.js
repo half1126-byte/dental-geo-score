@@ -96,6 +96,17 @@ $('keyChangeBtn').addEventListener('click', () => {
   $('opKey').focus();
 });
 
+$('keyShareBtn').addEventListener('click', () => {
+  const key = localStorage.getItem('opKey') || '';
+  if (!key) return;
+  const shareUrl = `${location.origin}/operator.html?key=${encodeURIComponent(key)}`;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    const btn = $('keyShareBtn');
+    btn.textContent = '복사됨!';
+    setTimeout(() => { btn.textContent = '링크 복사'; }, 2000);
+  }).catch(() => { prompt('이 URL을 복사하세요:', shareUrl); });
+});
+
 // ── PHASE 1: 분석 (/api/score) ─────────────────────────────────
 $('opBtn').addEventListener('click', async () => {
   let url = ($('opUrl').value || '').trim();

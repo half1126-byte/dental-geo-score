@@ -4,12 +4,20 @@ const show = (id) => $(id).classList.remove('hidden');
 const hide = (id) => $(id).classList.add('hidden');
 
 let lastScoreData = null;
+let lastScoredUrl = '';
+
+// URL ?key= 자동 저장 (베타 공유용)
+(function () {
+  const k = new URLSearchParams(location.search).get('key');
+  if (k) { localStorage.setItem('opKey', k); history.replaceState(null, '', location.pathname); }
+})();
 
 $('scoreForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   let url = $('urlInput').value.trim();
   if (!url) return;
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  lastScoredUrl = url;
 
   hide('result'); hide('error'); show('loading');
   $('goBtn').disabled = true; $('goBtn').textContent = '측정 중...';
@@ -105,6 +113,37 @@ function render(d) {
   // meta
   const when = d.measuredAt ? new Date(d.measuredAt).toLocaleString('ko-KR') : '';
   $('meta').textContent = `측정 ${when} · 방법론 ${d.methodologyVersion || 'v0.1'} · 대상 ${d.domain || ''} · ${d.renderMode || ''}`;
+
+  // 운영자 키 있으면 이메일 게이트 생략 — 직접 실측 패널 표시
+  const _opKey = localStorage.getItem('opKey');
+  if (_opKey) {
+    hide('leadForm');
+    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity)...</p>';
+    show('citationPanel');
+    autoFetchCitation(_opKey);
+  }
+}
+
+async function autoFetchCitation(key) {
+  const url = lastScoredUrl || $('urlInput').value.trim();
+  if (!url) return;
+  try {
+    const res = await fetch('/api/citation', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json().catch(() => null);
+    if (data && Array.isArray(data.perEngine) && data.perEngine.length) {
+      $('citationPanel').innerHTML = renderCitation(data);
+    } else {
+      $('citationPanel').innerHTML = `<div class="muted small">${esc(data?.message || '실측 결과 준비 중입니다.')}</div>`;
+    }
+  } catch {
+    $('citationPanel').innerHTML = '';
+    hide('citationPanel');
+    show('leadForm');
+  }
 }
 
 // Opportunity framing — never grades/낙제, attribute gaps to page structure, not the dentist.
