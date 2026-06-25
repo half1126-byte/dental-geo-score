@@ -38,7 +38,7 @@
 </nav>
 
 <!-- ── HERO ── -->
-<header class="hero" id="measure">
+<header class="hero">
   <video id="heroVideo" autoplay muted loop playsinline poster="/hero-poster.webp">
     <source src="/hero.mp4" type="video/mp4" />
   </video>
@@ -46,14 +46,10 @@
     <div class="wrap-wide">
       <div class="hero-split">
         <div class="hero-text">
-          <p class="kicker">AI 검색 시대 · 치과 GEO 무료 진단</p>
+          <p class="kicker">AI 검색 시대 · 치과 GEO 진단</p>
           <h1>이제 <span class="g2">AI</span>가<br/>환자를<br/><span class="g">보낸다</span></h1>
           <p class="sub">AI는 네이버 블로그를 읽지 못합니다.<br/>블로그에 쏟은 마케팅이<br/>ChatGPT·Perplexity·Gemini엔 존재하지 않습니다.</p>
-          <form class="form" id="scoreForm" style="text-align:left;max-width:440px;margin:0 0 10px">
-            <input type="url" id="urlInput" placeholder="https://우리치과.co.kr" autocomplete="off" required />
-            <button class="btn p" type="submit" id="goBtn">측정</button>
-          </form>
-          <p class="hint" style="text-align:left">무료 · 즉시 결과 · 7개 신호 · 근거 표시</p>
+          <a href="#measure" class="btn-hero-scroll">우리 치과 지금 진단받기 ↓</a>
         </div>
       </div>
     </div>
@@ -209,7 +205,7 @@
 <div class="mid-cta">
   <div class="wrap">
     <p class="mid-cta-text">우리 치과는 AI에 몇 점인가요?</p>
-    <a href="#measure" class="btn-cta-mid">지금 무료 측정</a>
+    <a href="#measure" class="btn-cta-mid">지금 진단받기</a>
   </div>
 </div>
 
@@ -333,6 +329,20 @@
   </div>
 </section>
 
+<!-- ── MEASURE ── -->
+<section id="measure" class="measure-section">
+  <div class="wrap" style="max-width:620px">
+    <p class="kicker" style="text-align:center">GEO 진단</p>
+    <h2 style="text-align:center">우리 치과,<br/><span class="g">지금 진단받으세요</span></h2>
+    <p class="sub" style="text-align:center;max-width:440px;margin:0 auto 32px">홈페이지 URL 하나로 즉시 — AI가 우리 홈페이지를 어떻게 읽는지 7가지 신호로 확인합니다.</p>
+    <form class="form" id="scoreForm" style="max-width:480px;margin:0 auto 12px">
+      <input type="url" id="urlInput" placeholder="https://우리치과.co.kr" autocomplete="off" required />
+      <button class="btn p" type="submit" id="goBtn">진단받기</button>
+    </form>
+    <p class="hint" style="text-align:center">즉시 결과 · 7가지 신호 · 근거 표시</p>
+  </div>
+</section>
+
 <!-- ── FAQ ── -->
 <section class="faq-sec">
   <div class="wrap">
@@ -381,7 +391,7 @@
 
   <section id="result" class="hidden">
 
-    <!-- 점수 배너 (항상 펼쳐진 상태) -->
+    <!-- 점수 배너 — 항상 표시 -->
     <div class="card score-banner">
       <div class="score-banner-row">
         <div class="score-banner-left">
@@ -394,30 +404,44 @@
       </div>
       <div class="bar" style="margin-top:12px"><i id="scoreBar" style="width:0"></i></div>
       <div class="rendernote hidden" id="renderNote"></div>
-      <p class="small muted" style="margin-top:10px;font-size:.73rem">페이지 추출 위생 점수(GEO 준비도) — 필요조건이지 AI 추천 예측이 아닙니다.</p>
+      <p class="small muted" style="margin-top:10px;font-size:.73rem">페이지 구조 GEO 준비도 점수 — AI 추천 예측이 아닌 구조 위생 진단입니다.</p>
     </div>
 
+    <!-- 신호별 진단 — 항상 표시 -->
     <div class="card">
       <b>신호별 진단</b>
       <div class="bd" id="breakdown"></div>
     </div>
 
-    <div class="card">
+    <!-- 이메일 게이트 — 항상 표시, 제출 후 아래 항목 공개 -->
+    <div class="card gate">
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:6px">개선 우선순위 + AI 실측 결과 받기</h3>
+      <p>구조 개선 가이드 3가지와 ChatGPT·Perplexity·Gemini의 <b>실제 추천 여부</b>를 이메일로 보내드립니다.</p>
+      <form class="form" id="leadForm">
+        <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
+        <button class="btn p" type="submit" id="leadBtn">결과 받기</button>
+      </form>
+      <p class="ok hidden" id="leadOk">신청되었습니다. 개선 가이드와 실측 결과를 이메일로 보내드리겠습니다.</p>
+      <div id="citationPanel" class="hidden" style="margin-top:12px"></div>
+    </div>
+
+    <!-- 이하 이메일 제출 후 공개 -->
+
+    <div class="card hidden" id="fixesCard">
       <b>구조 보완 우선순위 3가지</b>
       <p class="small muted">구조 위생 점수를 올리는 항목입니다 — 인용·노출 증가를 보장하지 않습니다(필요조건).</p>
       <div id="fixes"></div>
     </div>
 
-    <div class="card" style="text-align:center;background:linear-gradient(135deg,rgba(128,82,255,.1),rgba(128,82,255,.03));border-color:rgba(128,82,255,.22)">
+    <div class="card hidden" id="resultCtaCard" style="text-align:center;background:linear-gradient(135deg,rgba(128,82,255,.1),rgba(128,82,255,.03));border-color:rgba(128,82,255,.22)">
       <p style="font-size:.95rem;font-weight:700;margin-bottom:8px">AI 인용 전략, 메디앤메디와 함께하세요</p>
       <p class="small muted" style="margin-bottom:16px">진단 결과를 바탕으로 맞춤 GEO 전략을 제안드립니다.</p>
-      <a href="https://www.medinmedi.com/" target="_blank" rel="noopener" class="btn-cta-large" style="padding:14px 36px;font-size:.92rem">무료 상담 신청</a>
+      <a href="https://www.medinmedi.com/" target="_blank" rel="noopener" class="btn-cta-large" style="padding:14px 36px;font-size:.92rem">상담 신청</a>
     </div>
 
     <p class="small muted" id="meta"></p>
 
-    <!-- 경쟁 치과 비교 분석 (새 기능) -->
-    <div class="card cmp-card">
+    <div class="card cmp-card hidden" id="compareCard">
       <b>경쟁 치과 GEO 비교</b>
       <p class="small muted" style="margin:6px 0 14px">AI가 다른 치과를 더 추천하는 이유를 구조로 파악합니다.<br>비교하고 싶은 치과 홈페이지 주소를 입력하면 신호별로 비교해드립니다.</p>
       <form class="form" id="compareForm" style="max-width:none;margin-bottom:0">
@@ -429,18 +453,6 @@
       <div class="prog"><div class="row"><span class="spin"></span> 경쟁 치과 분석 중...</div></div>
     </div>
     <div id="compareResult"></div>
-
-    <!-- AI 실측 게이트 (이메일) -->
-    <div class="card gate">
-      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:6px">지금 AI가 실제로 우리를 추천하고 있을까?</h3>
-      <p>ChatGPT·Perplexity에 "[지역] 치과 추천"을 실제로 물어, <b>지금 추천되는지(사실)</b>와 더 추천받기 위해 <b>채울 갭</b>을 증거와 함께 측정해 이메일로 보내드립니다.</p>
-      <form class="form" id="leadForm">
-        <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
-        <button class="btn p" type="submit" id="leadBtn">실측 결과 받기</button>
-      </form>
-      <p class="ok hidden" id="leadOk">신청되었습니다. 실측 결과를 이메일로 보내드리겠습니다.</p>
-      <div id="citationPanel" class="hidden" style="margin-top:12px"></div>
-    </div>
 
   </section>
 

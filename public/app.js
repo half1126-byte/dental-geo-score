@@ -39,7 +39,7 @@ $('scoreForm').addEventListener('submit', async (e) => {
     hide('loading');
     showError({ message: '네트워크 오류로 측정하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
   } finally {
-    $('goBtn').disabled = false; $('goBtn').textContent = '측정';
+    $('goBtn').disabled = false; $('goBtn').textContent = '진단받기';
   }
 });
 
@@ -114,11 +114,23 @@ function render(d) {
   const when = d.measuredAt ? new Date(d.measuredAt).toLocaleString('ko-KR') : '';
   $('meta').textContent = `측정 ${when} · 방법론 ${d.methodologyVersion || 'v0.1'} · 대상 ${d.domain || ''} · ${d.renderMode || ''}`;
 
-  // 운영자 키 있으면 이메일 게이트 생략 — 직접 실측 패널 표시
+  // 이메일 게이트 이하 항목은 제출 전까지 숨김
+  const _fc = document.getElementById('fixesCard');
+  const _rc = document.getElementById('resultCtaCard');
+  const _cc = document.getElementById('compareCard');
+  [_fc, _rc, _cc].forEach(el => { if (el) el.classList.add('hidden'); });
+
+  // 결과 섹션으로 스크롤
+  requestAnimationFrame(() => {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // 운영자 키 있으면 이메일 게이트 생략 — 직접 실측 패널 + 게이트 항목 표시
   const _opKey = localStorage.getItem('opKey');
   if (_opKey) {
     hide('leadForm');
-    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity)...</p>';
+    [_fc, _rc, _cc].forEach(el => { if (el) el.classList.remove('hidden'); });
+    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity·Gemini)...</p>';
     show('citationPanel');
     autoFetchCitation(_opKey);
   }
@@ -175,6 +187,13 @@ $('leadForm').addEventListener('submit', async (e) => {
     data = await res.json().catch(() => null);
   } catch (_) { /* non-blocking */ }
   hide('leadForm');
+  // 게이트 항목 공개
+  const _gfc = document.getElementById('fixesCard');
+  const _grc = document.getElementById('resultCtaCard');
+  const _gcc = document.getElementById('compareCard');
+  [_gfc, _grc, _gcc].forEach(el => { if (el) el.classList.remove('hidden'); });
+  if (_gfc) _gfc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   if (data && Array.isArray(data.perEngine) && data.perEngine.length) {
     const citationHtml = renderCitation(data);
     $('citationPanel').innerHTML = citationHtml;
@@ -182,7 +201,7 @@ $('leadForm').addEventListener('submit', async (e) => {
     $('leadOk').textContent = '';
     show('leadOk');
   } else {
-    $('leadOk').textContent = (data && data.message) || '신청되었습니다. 실측 인용 결과를 이메일로 보내드리겠습니다.';
+    $('leadOk').textContent = (data && data.message) || '신청되었습니다. 개선 가이드와 실측 결과를 이메일로 보내드리겠습니다.';
     show('leadOk');
   }
 });

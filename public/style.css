@@ -1014,6 +1014,31 @@ footer.site-footer {
 .footer-info { font-size:.7rem; color:rgba(255,255,255,.2); line-height:2; }
 .footer-copy { font-size:.67rem; color:rgba(255,255,255,.15); margin-top:10px; }
 
+/* ── HERO CTA BUTTON (hook-only hero) ── */
+.btn-hero-scroll {
+  display:inline-block;
+  background:var(--plum);
+  color:#fff;
+  border-radius:999px;
+  padding:16px 40px;
+  font-size:1rem;
+  font-weight:700;
+  text-decoration:none;
+  transition:opacity .15s, transform .15s;
+  margin-top:8px;
+  letter-spacing:-.01em;
+}
+.btn-hero-scroll:hover { opacity:.85; transform:translateY(-2px); }
+
+/* ── MEASURE SECTION ── */
+.measure-section {
+  padding:90px 0 80px;
+  border-top:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(128,82,255,.04) 0%,transparent 100%);
+  text-align:center;
+}
+.measure-section .hint { color:rgba(255,255,255,.38); font-size:.78rem; margin-top:8px; }
+
 /* ── MID-PAGE CTA ── */
 .mid-cta {
   padding:28px 0;
