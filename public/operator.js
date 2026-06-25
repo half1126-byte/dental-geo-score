@@ -279,8 +279,8 @@ function render(scoreRes, citeRes, q) {
   $('opResult').innerHTML = `
     ${header}
     ${strategyOrBannerHtml}
-    <div class="result-3col">
-      <div>${citation}</div>
+    ${citation}
+    <div class="result-2col">
       <div>${improve}${agent}</div>
       <div>${hygiene}</div>
     </div>
@@ -531,47 +531,83 @@ function renderCitation(citeRes) {
   const d = citeRes.d || {};
   if (d.status === 'pending') return card('AI 실측 — 비활성', `<p class="muted">${esc(d.message || 'CITATION_ENABLED 키 필요.')}</p>`);
   if (d.status === 'cap-reached') return card('AI 실측 — 한도 소진', `<p class="muted">${esc(d.message || '오늘 한도 소진.')}</p>`);
-  // Multi-region response
   if (d.byRegion && Array.isArray(d.regions)) return renderRegionHitmap(d);
   const eng = Array.isArray(d.perEngine) ? d.perEngine : [];
   if (!eng.length) return card('AI 실측', '<p class="muted">측정 결과 없음.</p>');
 
-  const cells = eng.map((p) => {
-    let badge, statusText, statText, cls;
-    if (!p.measured) {
-      badge = '⚠️'; statusText = '측정 불가'; statText = '키 또는 엔진 오류'; cls = 'error';
-    } else if (p.cited) {
-      badge = '✅'; statusText = 'AI가 추천했습니다'; statText = `${p.citedRuns}/${p.validRuns}회 인용`; cls = 'cited';
-    } else {
-      badge = '❌'; statusText = '추천하지 않음'; statText = `0/${p.validRuns}회 인용`; cls = 'not-cited';
-    }
-    const comp = (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain);
-    const compHtml = comp.length ? `<div class="competitor-box" style="text-align:left;margin-top:10px">
-      <div class="competitor-title">대신 이곳이 추천됐습니다</div>
-      <div class="competitor-list">${comp.slice(0, 6).map((x) => {
-        const href = /^https?:\/\//.test(x) ? x : `https://${x}`;
-        return `<a class="comp-link" href="${esc(href)}" target="_blank" rel="noopener" data-compare="${esc(x)}">${esc(x)}</a>`;
-      }).join('')}</div>
-    </div>` : '';
-    const logo = ENGINE_LOGO[p.engine] || '';
-    return `<div class="engine-cell ${cls}">
-      <div class="engine-name" style="display:flex;align-items:center;gap:5px;justify-content:center">${logo}${esc(ENGINE_SHORT[p.engine] || p.engine)}</div>
-      <div class="engine-badge">${badge}</div>
-      <div class="engine-status">${statusText}</div>
-      <div class="engine-stat">${statText}</div>
-      ${compHtml}
-    </div>`;
-  }).join('');
-
   const logos = eng.map((p) => ENGINE_LOGO[p.engine] || '').filter(Boolean).join('');
   const note = `<p class="muted small" style="margin-top:12px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
   const urlMatchHtml = d.citedUrlMatch ? renderCitedUrlMatch(d.citedUrlMatch) : '';
-  return `<div class="card gate">
+
+  const TH_LABEL = 'padding:11px 16px;font-size:.72rem;font-weight:700;color:var(--text-2);text-align:left;white-space:nowrap;border-right:1px solid var(--border);background:rgba(255,255,255,.02)';
+  const TD_LABEL = 'padding:12px 16px;font-size:.72rem;font-weight:700;color:var(--text-2);white-space:nowrap;border-right:1px solid var(--border);background:rgba(255,255,255,.02);vertical-align:middle';
+
+  // Header: engine logos + names as columns
+  const engHeaders = eng.map((p) => {
+    const logo = ENGINE_LOGO[p.engine] || '';
+    const name = ENGINE_SHORT[p.engine] || p.engine;
+    const accent = p.cited ? '#1fcec4' : 'var(--text-2)';
+    const borderAccent = p.cited ? 'border-bottom:2px solid #1fcec4' : 'border-bottom:2px solid rgba(255,255,255,.1)';
+    return `<th style="padding:11px 20px;font-size:.85rem;font-weight:700;color:${accent};text-align:center;${borderAccent}">${logo} ${esc(name)}</th>`;
+  }).join('');
+
+  // Row 1 — AI 추천 결과
+  const resultCells = eng.map((p) => {
+    if (!p.measured) return `<td style="padding:16px 20px;text-align:center;color:var(--text-2)"><div style="font-size:.9rem">—</div><div style="font-size:.72rem;margin-top:3px">측정불가</div></td>`;
+    if (p.cited) return `<td style="padding:16px 20px;text-align:center;background:rgba(31,206,196,.06)">
+      <div style="font-size:1.4rem;line-height:1">✅</div>
+      <div style="font-size:.88rem;font-weight:700;color:#1fcec4;margin-top:5px">${p.citedRuns}/${p.validRuns}회 인용</div>
+      <div style="font-size:.73rem;color:#1fcec4;margin-top:2px;opacity:.8">AI가 추천했습니다</div>
+    </td>`;
+    return `<td style="padding:16px 20px;text-align:center">
+      <div style="font-size:1.4rem;line-height:1">❌</div>
+      <div style="font-size:.88rem;color:var(--text-2);margin-top:5px">0/${p.validRuns}회 인용</div>
+      <div style="font-size:.73rem;color:var(--text-2);margin-top:2px;opacity:.7">미추천</div>
+    </td>`;
+  }).join('');
+
+  // Row 2 — 대신 인용된 경쟁 도메인
+  const compCells = eng.map((p) => {
+    const comp = (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain);
+    if (!p.measured || !comp.length) return `<td style="padding:14px 20px;text-align:center;color:rgba(255,255,255,.2);font-size:.82rem">—</td>`;
+    const links = comp.slice(0, 6).map((x) => {
+      const href = /^https?:\/\//.test(x) ? x : `https://${x}`;
+      return `<a class="comp-link" href="${esc(href)}" target="_blank" rel="noopener" data-compare="${esc(x)}"
+        style="display:block;margin-bottom:5px;word-break:break-all">${esc(x)}</a>`;
+    }).join('');
+    return `<td style="padding:14px 20px;vertical-align:top">${links}</td>`;
+  }).join('');
+
+  const colgroup = `<colgroup><col style="width:72px">${eng.map(() => '<col>').join('')}</colgroup>`;
+
+  const table = `<div style="overflow-x:auto;margin-top:14px;border-radius:10px;border:1px solid var(--border)">
+    <table class="engine-htable">
+      ${colgroup}
+      <thead>
+        <tr>
+          <th style="${TH_LABEL}">구분</th>
+          ${engHeaders}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="${TD_LABEL}">AI 추천</td>
+          ${resultCells}
+        </tr>
+        <tr>
+          <td style="${TD_LABEL}">대신<br>인용됨</td>
+          ${compCells}
+        </tr>
+      </tbody>
+    </table>
+  </div>`;
+
+  return `<div class="card gate" style="margin-top:16px">
     <div class="engine-title-row">
       <div class="engine-title-logos">${logos}</div>
       <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
     </div>
-    <div class="engine-grid">${cells}</div>
+    ${table}
     ${urlMatchHtml}
     ${note}
   </div>`;
