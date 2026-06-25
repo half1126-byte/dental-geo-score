@@ -30,7 +30,32 @@ body {
   color: var(--text-1);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  /* dot grid texture */
+  background-image: radial-gradient(circle, rgba(255,255,255,.032) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
+
+/* ambient gradient orbs — fixed, behind everything */
+html::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 900px 700px at 8%  12%, rgba(128,82,255,.09)  0%, transparent 62%),
+    radial-gradient(ellipse 700px 600px at 92% 88%, rgba(255,184,41,.06)  0%, transparent 58%),
+    radial-gradient(ellipse 500px 500px at 72% 22%, rgba(128,82,255,.05)  0%, transparent 55%),
+    radial-gradient(ellipse 400px 350px at 30% 75%, rgba(255,184,41,.04)  0%, transparent 50%);
+  animation: ambientFloat 22s ease-in-out infinite alternate;
+}
+@keyframes ambientFloat {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(2%, 2%) scale(1.07); }
+}
+
+/* all main content sits above the orb layer */
+nav, header, section, main, footer { position: relative; z-index: 1; }
 
 .wrap{max-width:720px;margin:0 auto;padding:0 20px}
 a{color:var(--plum);text-decoration:none}
@@ -320,6 +345,7 @@ footer a{color:var(--text-2)}
 .paradigm {
   padding: 100px 0;
   border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent 0%, rgba(128,82,255,.04) 50%, transparent 100%);
 }
 .paradigm h2 { text-align: center; margin-bottom: 48px; }
 .paradigm-track {
@@ -400,6 +426,7 @@ footer a{color:var(--text-2)}
 .why-now {
   padding: 80px 0;
   border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent 0%, rgba(255,184,41,.03) 60%, transparent 100%);
 }
 .why-now h2 { text-align: center; margin-bottom: 48px; }
 .stat-grid {
@@ -838,7 +865,22 @@ main.wrap { padding-top: 20px; }
 .fade-up.d3.visible { animation-delay:.24s; }
 
 /* ── AI DEMO 3-COLUMN ── */
-.ai-demo { padding:90px 0; border-top:1px solid var(--border); }
+.ai-demo {
+  padding:90px 0; border-top:1px solid var(--border);
+  background: linear-gradient(180deg, transparent 0%, rgba(128,82,255,.05) 40%, rgba(128,82,255,.02) 100%);
+  position: relative;
+}
+.ai-demo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(128,82,255,.04) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(128,82,255,.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+}
 .ai-demo-intro { text-align:center; max-width:580px; margin:0 auto 44px; }
 .ai-demo-grid {
   display:grid;
@@ -939,6 +981,7 @@ main.wrap { padding-top: 20px; }
   padding:100px 0 60px;
   border-top:1px solid var(--border);
   text-align:center;
+  background: radial-gradient(ellipse 700px 400px at 50% 0%, rgba(128,82,255,.1) 0%, transparent 70%);
 }
 .cta-section h2 {
   font-size:clamp(1.8rem,4.5vw,3rem);
