@@ -825,3 +825,118 @@ main.wrap { padding-top: 20px; }
 
 /* ── COMPARE LOADING ── */
 #compareLoading { margin-bottom: 8px; }
+
+/* ── SCROLL FADE-UP ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(30px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { opacity:0; transform:translateY(30px); }
+.fade-up.visible { animation:fadeUp .65s cubic-bezier(.22,1,.36,1) forwards; }
+.fade-up.d1.visible { animation-delay:.08s; }
+.fade-up.d2.visible { animation-delay:.16s; }
+.fade-up.d3.visible { animation-delay:.24s; }
+
+/* ── AI DEMO 3-COLUMN ── */
+.ai-demo { padding:90px 0; border-top:1px solid var(--border); }
+.ai-demo-intro { text-align:center; max-width:580px; margin:0 auto 44px; }
+.ai-demo-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  margin-top:0;
+}
+@media(max-width:900px){ .ai-demo-grid{ grid-template-columns:1fr; } }
+.ai-col {
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  overflow:hidden;
+  background:rgba(255,255,255,.03);
+  display:flex;
+  flex-direction:column;
+}
+.ai-col-header {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 16px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.025);
+}
+.ai-engine-badge {
+  font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  padding:4px 12px; border-radius:999px; border:1px solid; white-space:nowrap;
+}
+.ai-engine-badge.gpt { border-color:rgba(16,163,127,.5); color:#10a37f; background:rgba(16,163,127,.1); }
+.ai-engine-badge.ppl { border-color:rgba(32,169,255,.5); color:#20a9ff; background:rgba(32,169,255,.1); }
+.ai-engine-badge.gem { border-color:rgba(234,180,53,.5); color:#f0b429; background:rgba(234,180,53,.1); }
+.ai-col-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:12px; }
+.ai-user-q {
+  background:var(--plum-dim);
+  border:1px solid rgba(128,82,255,.25);
+  border-radius:12px 3px 12px 12px;
+  padding:10px 14px;
+  font-size:.82rem; color:rgba(255,255,255,.88);
+  align-self:flex-end; max-width:92%;
+}
+.ai-response {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:3px 12px 12px 12px;
+  padding:12px 14px;
+  font-size:.8rem; color:rgba(255,255,255,.75); line-height:1.68;
+  flex:1; min-height:180px;
+}
+.clinic-hi { color:var(--amber); font-weight:700; }
+.cite-ref {
+  display:inline-block; margin-top:10px;
+  font-size:.69rem; color:var(--plum);
+  background:var(--plum-dim); border-radius:5px; padding:3px 8px;
+}
+.ai-cursor {
+  display:inline-block; width:2px; height:.95em;
+  background:var(--plum); margin-left:2px; vertical-align:text-bottom;
+  animation:blink .75s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.ai-col-foot {
+  padding:9px 16px; border-top:1px solid rgba(255,255,255,.05);
+  font-size:.65rem; color:rgba(255,255,255,.2);
+}
+
+/* ── FOOTER CTA ── */
+.cta-section {
+  padding:100px 0 60px;
+  border-top:1px solid var(--border);
+  text-align:center;
+}
+.cta-section h2 {
+  font-size:clamp(1.8rem,4.5vw,3rem);
+  font-weight:200; letter-spacing:-.03em; line-height:1.15;
+  margin-bottom:28px;
+}
+.cta-section h2 strong { color:var(--plum); font-weight:700; }
+.btn-cta-large {
+  display:inline-block;
+  background:var(--plum); color:#fff;
+  border-radius:999px; padding:18px 48px;
+  font-size:1.05rem; font-weight:700; letter-spacing:.03em;
+  text-decoration:none; border:none; cursor:pointer; font-family:inherit;
+  transition:opacity .15s, transform .15s;
+  margin-bottom:16px;
+}
+.btn-cta-large:hover { opacity:.86; transform:translateY(-1px); }
+.cta-sub { font-size:.82rem; color:rgba(255,255,255,.3); }
+
+/* ── SITE FOOTER ── */
+footer.site-footer {
+  padding:32px 0 44px;
+  border-top:1px solid var(--border);
+  text-align:center;
+}
+.footer-brand { font-size:.85rem; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.45); margin-bottom:10px; }
+.footer-policy { display:flex; justify-content:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+.footer-policy a { font-size:.72rem; color:rgba(255,255,255,.3); text-decoration:none; }
+.footer-policy a:hover { color:rgba(255,255,255,.6); }
+.footer-info { font-size:.7rem; color:rgba(255,255,255,.2); line-height:2; }
+.footer-copy { font-size:.67rem; color:rgba(255,255,255,.15); margin-top:10px; }
