@@ -15,6 +15,8 @@ let selectedProcedure = '';
 let geminiVerdicts = [];
 let selectedQueries = []; // strings selected by operator for measurement (max 3)
 let selectedRegions = []; // for multi-region sweep (max 5)
+let selectedProducts = []; // for product recommendation (medinmedi services)
+let lastCiteRes = null; // saved from last citation measurement
 
 $('regionList').innerHTML = REGION_TERMS.map((r) => `<option value="${esc(r)}">`).join('');
 
@@ -302,9 +304,12 @@ function showError(msg) { $('opErrMsg').innerHTML = msg; show('opError'); }
 
 function render(scoreRes, citeRes, q) {
   geminiVerdicts = [];
+  lastCiteRes = citeRes;
+  selectedProducts = [];
 
   const header    = renderResultHeader(scoreRes, citeRes, q);
   const citation  = renderCitation(citeRes);
+  const recommend = renderProductRecommend(citeRes, scoreRes);
   const hygiene   = renderHygiene(scoreRes);
   const improve   = renderImprovements(scoreRes);
   const agent     = renderAgentActionability(scoreRes);
@@ -325,6 +330,7 @@ function render(scoreRes, citeRes, q) {
     ${header}
     ${strategyOrBannerHtml}
     ${citation}
+    ${recommend}
     <div class="result-2col">
       <div>${improve}${agent}</div>
       <div>${hygiene}</div>
@@ -445,6 +451,21 @@ $('opResult').addEventListener('click', (e) => {
     const domain = cmpLink.getAttribute('data-compare');
     const href = cmpLink.getAttribute('href');
     loadCompare(domain, href);
+    return;
+  }
+  // Product inquiry CTA — toggle lead form
+  if (e.target.closest('#prodInquiryBtn')) {
+    const formWrap = $('leadFormWrap');
+    if (formWrap) {
+      const isOpen = formWrap.style.display !== 'none' && formWrap.style.display !== '';
+      formWrap.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) updateLeadProductChips();
+    }
+    return;
+  }
+  // Lead form submit
+  if (e.target.closest('#leadSubmitBtn')) {
+    submitLead();
   }
 });
 
@@ -1000,4 +1021,203 @@ function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
     </div>
     ${kvNote}
   </div>`;
+}
+
+// ── 상품 추천 + 리드 캡처 ──────────────────────────────────────────
+
+const PRODUCTS = [
+  {
+    id: 'geo-diagnosis',
+    name: 'GEO 진단 리포트',
+    desc: 'AI·네이버 검색에서 내 치과가 어떻게 읽히는지 데이터 진단',
+    how: '1회 리포트 + 대면 설명',
+    trigger: () => true,
+  },
+  {
+    id: 'content-hub',
+    name: 'GEO 콘텐츠 허브 구축',
+    desc: '임플란트·교정 등 진료별 AI 인용 기준 문서 제작',
+    how: '1회 구축 + 의료진 검수',
+    trigger: (cited, score) => !cited || score < 70,
+  },
+  {
+    id: 'blog-posting',
+    name: '네이버 블로그 포스팅',
+    desc: '지역+진료 조합 — AI가 학습하는 제3자 블로그 언급 생성',
+    how: '월 N편 발행',
+    trigger: (cited) => !cited,
+  },
+  {
+    id: 'media-feature',
+    name: '의료 미디어 기고',
+    desc: '헬스조선·코메디닷컴 등 권위 도메인 기고 — AI 인용 가중치 최고',
+    how: '건당 기획·작성·게재',
+    trigger: (cited) => !cited,
+  },
+  {
+    id: 'geo-column',
+    name: 'GEO칼럼 월 운영',
+    desc: '3개월 폐쇄 루프 — 진단→구축→데이터 분석 반복',
+    how: '월 정기 운영 계약',
+    trigger: () => true,
+  },
+  {
+    id: 'reboot-30',
+    name: '신환 리부트 30일',
+    desc: '신환 정체 진단 + 30일 스프린트 + Before/After 리포트',
+    how: '30일 집중 구축',
+    trigger: (cited) => !cited,
+  },
+];
+
+function renderProductRecommend(citeRes, scoreRes) {
+  const cited = citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine)
+    && citeRes.d.perEngine.some((p) => p.cited);
+  const score = scoreRes?.score ?? 100;
+  const count = selectedProducts.length;
+
+  const cards = PRODUCTS.map((p) => {
+    const isRec = p.trigger(cited, score);
+    const checked = selectedProducts.includes(p.id);
+    const cardBorder = isRec
+      ? 'border:1.5px solid var(--gold);background:linear-gradient(135deg,var(--bg-3),rgba(201,168,76,.06))'
+      : 'border:1px solid var(--border);background:var(--bg-3);opacity:.82';
+    return `<label data-prodid="${esc(p.id)}" style="display:block;cursor:pointer;border-radius:13px;padding:14px 16px;${cardBorder};transition:opacity .15s">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <input type="checkbox" data-prodcheck="${esc(p.id)}" ${checked ? 'checked' : ''} style="margin-top:3px;flex-shrink:0;accent-color:var(--gold);width:16px;height:16px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:.92rem;font-weight:700;color:var(--text-1)">${esc(p.name)}</span>
+            ${isRec ? '<span style="font-size:.7rem;font-weight:700;background:var(--gold);color:var(--bg-1);border-radius:6px;padding:2px 8px">추천</span>' : ''}
+          </div>
+          <div style="font-size:.83rem;color:var(--text-2);margin-top:4px;line-height:1.5">${esc(p.desc)}</div>
+          <div style="font-size:.78rem;color:var(--text-2);margin-top:3px;opacity:.75">제공: ${esc(p.how)}</div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">상담 문의</div>
+        </div>
+      </div>
+    </label>`;
+  }).join('');
+
+  return `<div id="productSection" style="background:var(--bg-3);border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <b style="font-size:1rem">메디앤메디 서비스 추천</b>
+      <span id="prodCountBadge" style="font-size:.78rem;font-weight:700;background:var(--teal);color:var(--bg-1);border-radius:10px;padding:2px 9px;display:${count > 0 ? 'inline' : 'none'}">${count}개 선택됨</span>
+    </div>
+    <p class="muted small" style="margin:0 0 14px">진단 결과 기반 맞춤 추천입니다. 관심 있는 서비스를 체크하세요.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+      ${cards}
+    </div>
+    <button type="button" id="prodInquiryBtn" class="btn p" style="width:100%;margin-top:16px;font-size:.92rem" ${count === 0 ? 'disabled' : ''}>
+      ${count === 0 ? '서비스를 선택하면 문의할 수 있습니다' : `선택한 서비스 문의하기 (${count}개)`}
+    </button>
+    <div id="leadFormWrap" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+      <b style="font-size:.92rem">문의 정보 입력</b>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+        <div><label class="muted small" style="display:block;margin-bottom:4px">치과명 *</label><input id="leadClinicName" type="text" placeholder="예: 이도치과" style="width:100%;box-sizing:border-box"></div>
+        <div><label class="muted small" style="display:block;margin-bottom:4px">담당자 이름 *</label><input id="leadContactName" type="text" placeholder="예: 홍길동" style="width:100%;box-sizing:border-box"></div>
+        <div><label class="muted small" style="display:block;margin-bottom:4px">연락처 *</label><input id="leadPhone" type="tel" placeholder="010-0000-0000" style="width:100%;box-sizing:border-box"></div>
+        <div><label class="muted small" style="display:block;margin-bottom:4px">이메일 (선택)</label><input id="leadEmail" type="email" placeholder="clinic@example.com" style="width:100%;box-sizing:border-box"></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="muted small" style="margin-bottom:6px">선택 서비스</div>
+        <div id="leadProductChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+      <div style="margin-top:10px">
+        <label class="muted small" style="display:block;margin-bottom:4px">메모 (선택)</label>
+        <textarea id="leadNotes" rows="3" placeholder="추가 문의 내용..." style="width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;background:var(--bg-2);color:var(--text-1);border:1px solid var(--border);border-radius:10px;padding:10px 14px"></textarea>
+      </div>
+      <div id="leadMsg" style="display:none;font-size:.85rem;margin-top:10px;padding:10px 14px;border-radius:10px"></div>
+      <button type="button" id="leadSubmitBtn" class="btn p" style="margin-top:12px;width:100%">문의 제출</button>
+    </div>
+  </div>`;
+}
+
+// Product checkbox change → update selectedProducts + UI
+$('opResult').addEventListener('change', (e) => {
+  const cb = e.target.closest('[data-prodcheck]');
+  if (!cb) return;
+  const id = cb.getAttribute('data-prodcheck');
+  if (cb.checked) {
+    if (!selectedProducts.includes(id)) selectedProducts = [...selectedProducts, id];
+  } else {
+    selectedProducts = selectedProducts.filter((x) => x !== id);
+  }
+  updateProductUI();
+});
+
+function updateProductUI() {
+  const count = selectedProducts.length;
+  const badge = $('prodCountBadge');
+  if (badge) { badge.textContent = `${count}개 선택됨`; badge.style.display = count > 0 ? 'inline' : 'none'; }
+  const btn = $('prodInquiryBtn');
+  if (btn) {
+    btn.disabled = count === 0;
+    btn.textContent = count === 0 ? '서비스를 선택하면 문의할 수 있습니다' : `선택한 서비스 문의하기 (${count}개)`;
+  }
+  updateLeadProductChips();
+}
+
+function updateLeadProductChips() {
+  const wrap = $('leadProductChips');
+  if (!wrap) return;
+  wrap.innerHTML = selectedProducts.map((id) => {
+    const p = PRODUCTS.find((x) => x.id === id);
+    return `<span class="chip on" style="font-size:.78rem">${esc(p ? p.name : id)}</span>`;
+  }).join('');
+}
+
+async function submitLead() {
+  const clinicName  = ($('leadClinicName')?.value  || '').trim();
+  const contactName = ($('leadContactName')?.value || '').trim();
+  const phone       = ($('leadPhone')?.value       || '').trim();
+  const email       = ($('leadEmail')?.value       || '').trim();
+  const notes       = ($('leadNotes')?.value       || '').trim();
+  const msgEl       = $('leadMsg');
+
+  const showMsg = (text, ok) => {
+    if (!msgEl) return;
+    msgEl.style.display = 'block';
+    msgEl.style.background = ok ? 'rgba(31,206,196,.15)' : 'rgba(240,94,106,.15)';
+    msgEl.style.color = ok ? 'var(--teal)' : '#f05e6a';
+    msgEl.textContent = text;
+  };
+
+  if (!clinicName || !contactName || !phone) {
+    showMsg('치과명, 담당자 이름, 연락처는 필수입니다.', false);
+    return;
+  }
+  if (selectedProducts.length === 0) {
+    showMsg('서비스를 하나 이상 선택해주세요.', false);
+    return;
+  }
+
+  const submitBtn = $('leadSubmitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '제출 중...'; }
+
+  try {
+    const key = localStorage.getItem('opKey') || '';
+    let domain = '';
+    try { domain = new URL(lastUrl).hostname.replace(/^www\./, ''); } catch {}
+    const geoScore = lastScoreRes?.score ?? null;
+    const aiCited = !!(lastCiteRes && lastCiteRes.d && Array.isArray(lastCiteRes.d.perEngine)
+      && lastCiteRes.d.perEngine.some((p) => p.cited));
+
+    const r = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      body: JSON.stringify({ domain, clinicName, contactName, phone, email, selectedProducts, notes, geoScore, aiCited }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok && data.ok) {
+      showMsg('문의가 접수되었습니다. 빠른 시일 내 연락드리겠습니다.', true);
+      if (submitBtn) submitBtn.textContent = '접수 완료';
+      selectedProducts = [];
+      updateProductUI();
+    } else {
+      throw new Error(data.error || 'unknown');
+    }
+  } catch (err) {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '문의 제출'; }
+    showMsg('제출 실패: ' + String(err.message || err).slice(0, 100), false);
+  }
 }
