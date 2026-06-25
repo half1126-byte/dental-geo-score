@@ -153,6 +153,69 @@
   font-family:'SF Mono','Consolas','Courier New',monospace;
 }
 
+/* ── deep competitor compare: preview ── */
+.compare-preview-cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 4px; }
+@media(max-width:720px){ .compare-preview-cols { grid-template-columns:1fr; } }
+.compare-preview-cell { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg-2); }
+.compare-preview-head { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 12px; font-size:.78rem; font-weight:700; }
+.compare-preview-score { font-size:.72rem; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+.compare-mini-badge { font-size:.62rem; font-weight:700; background:rgba(255,255,255,.08); color:var(--text-2); border-radius:5px; padding:2px 6px; }
+.compare-mini-badge.gold { background:var(--gold); color:#000; }
+.compare-preview-stage { position:relative; height:300px; background:#0c0c0c; display:flex; align-items:center; justify-content:center; }
+.compare-preview-frame { width:100%; height:100%; border:0; background:#fff; }
+.compare-preview-fallback { display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; padding:20px; text-align:center; }
+.compare-preview-blocked { font-size:.82rem; color:var(--text-2); line-height:1.5; }
+.compare-preview-blocked span { font-size:.68rem; opacity:.6; }
+
+/* ── deep competitor compare: diff tables ── */
+.compare-diff-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.82rem; }
+.compare-diff-table th { text-align:left; font-size:.72rem; font-weight:700; color:var(--text-2); padding:6px 8px; border-bottom:1px solid var(--border); }
+.compare-diff-table th:nth-child(n+2) { text-align:center; width:104px; }
+.compare-diff-table td { padding:8px; border-bottom:1px solid var(--border); vertical-align:top; }
+.diff-item { color:var(--text-1); }
+.diff-why { font-size:.72rem; color:var(--text-2); margin-top:3px; line-height:1.45; }
+.diff-layer { font-size:.62rem; color:var(--text-2); border:1px solid var(--border); border-radius:4px; padding:0 4px; margin-left:4px; }
+.diff-cell { text-align:center; white-space:nowrap; }
+.diff-cell-l { font-size:.76rem; color:var(--text-2); word-break:break-all; }
+.diff-len { font-size:.64rem; color:var(--text-2); opacity:.6; }
+.diff-none { color:var(--text-2); opacity:.5; font-size:.76rem; }
+.diff-status { display:inline-block; min-width:18px; font-weight:800; }
+.diff-status.ok { color:var(--teal); }
+.diff-status.warn { color:var(--gold); }
+.diff-status.fail { color:#f05e6a; }
+.diff-status.na { color:var(--text-2); opacity:.5; }
+tr.diff-gap { background:rgba(255,184,41,.07); }
+tr.diff-gap .diff-item { color:var(--gold-2); }
+.diff-tag { font-size:.66rem; font-weight:700; border-radius:5px; padding:2px 7px; }
+.diff-tag.gap { background:rgba(255,184,41,.18); color:var(--gold-2); }
+.diff-tag.ahead { background:rgba(128,82,255,.18); color:#b79dff; }
+.diff-tag.same { background:rgba(255,255,255,.06); color:var(--text-2); }
+.diff-types { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:.74rem; color:var(--text-2); margin:6px 0; }
+.diff-types b { color:var(--text-1); }
+@media(max-width:720px){ .diff-types { grid-template-columns:1fr; } }
+
+/* ── deep competitor compare: plan table ── */
+.compare-plan-wrap { overflow-x:auto; margin-top:8px; }
+.compare-plan-table { width:100%; border-collapse:collapse; font-size:.8rem; min-width:640px; }
+.compare-plan-table th { text-align:left; font-size:.7rem; font-weight:700; color:var(--text-2); padding:7px 8px; border-bottom:1px solid var(--border); }
+.compare-plan-table td { padding:9px 8px; border-bottom:1px solid var(--border); vertical-align:top; }
+.plan-pri { font-weight:800; color:var(--gold); width:28px; text-align:center; }
+.plan-item b { color:var(--text-1); }
+.plan-detail { font-size:.72rem; color:var(--text-2); margin-top:3px; line-height:1.4; }
+.plan-now { color:var(--text-2); font-size:.76rem; max-width:150px; }
+.plan-target { color:var(--text-1); font-size:.78rem; max-width:240px; }
+.plan-effect { font-size:.66rem; color:var(--text-2); opacity:.7; margin-top:3px; }
+.plan-badge { font-size:.7rem; font-weight:700; border-radius:5px; padding:2px 8px; white-space:nowrap; }
+.plan-diff-상 { background:rgba(240,94,106,.18); color:#f7949c; }
+.plan-diff-중 { background:rgba(255,184,41,.16); color:var(--gold-2); }
+.plan-diff-하 { background:rgba(128,82,255,.16); color:#b79dff; }
+.plan-prods { display:flex; flex-wrap:wrap; gap:5px; }
+.plan-prod-chip { font-size:.7rem; font-weight:600; background:rgba(128,82,255,.14); color:#b79dff; border:1px solid rgba(128,82,255,.3); border-radius:6px; padding:2px 8px; cursor:pointer; transition:background .12s; }
+.plan-prod-chip:hover { background:rgba(128,82,255,.26); }
+.plan-prod-chip.on { background:var(--plum); color:#fff; }
+.compare-add-btn { width:100%; margin-top:14px; font-size:.9rem; }
+.compare-add-btn.on { opacity:.72; }
+
 /* ── result 2-column grid (below citation) ── */
 .result-2col {
   display:grid;
@@ -371,7 +434,7 @@
   <!-- ① 운영자 패스코드 -->
   <section id="setupSection">
     <div id="keySaved" class="key-saved hidden">
-      <span class="badge">🔑 패스코드 설정됨</span>
+      <span class="badge">🔑 프리미엄 액세스</span>
       <span id="keyMasked" class="muted small"></span>
       <span class="change" id="keyShareBtn" style="margin-left:auto">링크 복사</span>
       <span class="change" id="keyChangeBtn" style="margin-left:8px">변경</span>
@@ -380,16 +443,16 @@
       <div class="step-label">
         <div class="step-num">①</div>
         <div>
-          <div class="step-title">운영자 패스코드 입력</div>
+          <div class="step-title">프리미엄 액세스 — 비밀번호 입력</div>
           <div class="step-sub">처음 한 번만 — 이후 자동 저장</div>
         </div>
       </div>
       <div class="key-note">
-        <b>API 키와 다릅니다.</b> OpenAI·Perplexity API 키를 여기에 넣지 마세요.<br>
-        메디앤메디 서버 <code>.env.local</code>의 <code>OPERATOR_KEY=</code> 뒤 값을 입력합니다.
+        <b>프리미엄 전용 기능입니다.</b> 실측 AI 인용·경쟁사 심층 비교는 발급받은 비밀번호로 잠금 해제됩니다.<br>
+        비밀번호가 없으면 메디앤메디에 문의해 주세요.
       </div>
       <div class="key-input-row">
-        <input type="password" id="opKey" placeholder="운영자 전용 패스코드" autocomplete="off" />
+        <input type="password" id="opKey" placeholder="프리미엄 비밀번호" autocomplete="off" />
         <button type="button" id="keySaveBtn">저장</button>
       </div>
       <p id="keyValidationNote" style="display:none;font-size:.82rem;color:#f05e6a;margin-top:8px"></p>

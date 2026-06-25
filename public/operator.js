@@ -480,138 +480,284 @@ $('opResult').addEventListener('click', (e) => {
   }
 });
 
-function formatSrcHtml(src, domain) {
-  if (!src || src.error) return `(소스 가져오기 실패 — ${esc(domain)})`;
+function formatTeardown(td, domain) {
+  if (!td) return `(소스 가져오기 실패 — ${esc(domain)})`;
   const lines = [];
-  if (src.title) lines.push(`<title>${esc(src.title)}</title>`);
-  if (src.canonical) lines.push(`<link rel="canonical" href="${esc(src.canonical)}">`);
-  const relevantMetas = (src.metas || []).slice(0, 8);
-  for (const m of relevantMetas) lines.push(esc(m));
-  if (src.jsonlds && src.jsonlds.length) {
+  if (td.title) lines.push(`<title>${esc(td.title)}</title>`);
+  for (const m of (td.metas || []).slice(0, 8)) lines.push(esc(m));
+  if (td.jsonlds && td.jsonlds.length) {
     lines.push('');
     lines.push('&lt;!-- ── JSON-LD Schema ── --&gt;');
-    for (const jld of src.jsonlds.slice(0, 3)) {
+    for (const jld of td.jsonlds.slice(0, 3)) {
       lines.push(`&lt;script type="application/ld+json"&gt;\n${esc(jld)}\n&lt;/script&gt;`);
     }
   }
-  if (src.bodyText) {
+  if (td.bodyText) {
     lines.push('');
     lines.push('--- 본문 텍스트 미리보기 ---');
-    lines.push(esc(src.bodyText.slice(0, 700)));
+    lines.push(esc(td.bodyText.slice(0, 700)));
   }
-  return lines.join('\n');
+  return lines.join('\n') || '(추출된 내용 없음)';
+}
+
+// Plan table → inquiry form: add gap-solving products to selectedProducts, reflect checkboxes, scroll.
+function addProductsToInquiry(ids) {
+  for (const id of ids) {
+    if (id && PRODUCTS.some((p) => p.id === id) && !selectedProducts.includes(id)) {
+      selectedProducts = [...selectedProducts, id];
+    }
+  }
+  for (const id of selectedProducts) {
+    const cb = document.querySelector(`[data-prodcheck="${id}"]`);
+    if (cb) cb.checked = true;
+  }
+  updateProductUI();
+  const ps = $('productSection');
+  if (ps) ps.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// compareSection is a SIBLING of #opResult, so its panel needs its own delegation.
+$('compareSection').addEventListener('click', (e) => {
+  const addBtn = e.target.closest('[data-add-products]');
+  if (addBtn) {
+    const ids = (addBtn.getAttribute('data-add-products') || '').split(',').filter(Boolean);
+    addProductsToInquiry(ids);
+    addBtn.textContent = '✓ 문의에 담았습니다';
+    addBtn.classList.add('on');
+    addBtn.disabled = true;
+    return;
+  }
+  const chip = e.target.closest('[data-add-product]');
+  if (chip) {
+    addProductsToInquiry([chip.getAttribute('data-add-product')]);
+    chip.classList.add('on');
+  }
+});
+
+function short(s, n = 18) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+function compCloseBtn() {
+  return `<button type="button" onclick="document.getElementById('compareSection').classList.add('hidden')" class="chip" style="float:right;margin-left:8px">닫기 ✕</button>`;
+}
+
+// iframe graceful fallback: if an embeddable frame doesn't fire load in time, reveal its fallback card.
+function wireComparePreviews(root) {
+  root.querySelectorAll('.compare-preview-frame[data-embed="1"]').forEach((f) => {
+    let done = false;
+    const fb = f.parentElement.querySelector('.compare-preview-fallback');
+    const reveal = () => { if (done) return; f.style.display = 'none'; if (fb) fb.removeAttribute('hidden'); };
+    const t = setTimeout(reveal, 4800);
+    f.addEventListener('load', () => { done = true; clearTimeout(t); });
+    f.addEventListener('error', () => { clearTimeout(t); reveal(); });
+  });
 }
 
 async function loadCompare(compDomain, compUrl) {
-  const userBreakdown = lastScoreRes && lastScoreRes.d && lastScoreRes.d.breakdown;
-  const userSignals = lastScoreRes && lastScoreRes.d && lastScoreRes.d.signals;
-  const userDomain = lastScoreRes && lastScoreRes.d && lastScoreRes.d.domain;
   const sec = $('compareSection');
-  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} 소스·구조 분석 중 (2~5초)...</p></div>`;
+  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} — 양쪽 소스·구조 분석 중 (3~6초)...</p></div>`;
   show('compareSection');
   sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   const key = localStorage.getItem('opKey') || '';
-  const opHeaders = { 'content-type': 'application/json', 'x-operator-key': key };
   const compFullUrl = compUrl || (compDomain.startsWith('http') ? compDomain : `https://${compDomain}`);
+  const userScore = lastScoreRes && lastScoreRes.d ? lastScoreRes.d.score : null;
+  const userCited = !!(lastCiteRes && lastCiteRes.d && Array.isArray(lastCiteRes.d.perEngine)
+    && lastCiteRes.d.perEngine.some((p) => p.cited));
 
-  let compScore = null, userSrc = null, compSrc = null;
+  let pkg = null, errMsg = '';
   try {
-    const [scoreRes, userSrcRes, compSrcRes] = await Promise.allSettled([
-      fetch('/api/score', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ url: compFullUrl }),
-      }).then((r) => r.json().then((d) => ({ ok: r.ok, d }))).catch(() => null),
-      fetch('/api/page-source', {
-        method: 'POST', headers: opHeaders,
-        body: JSON.stringify({ url: lastUrl }),
-      }).then((r) => r.json()).catch(() => null),
-      fetch('/api/page-source', {
-        method: 'POST', headers: opHeaders,
-        body: JSON.stringify({ url: compFullUrl }),
-      }).then((r) => r.json()).catch(() => null),
-    ]);
-    if (scoreRes.status === 'fulfilled' && scoreRes.value?.ok) compScore = scoreRes.value.d;
-    if (userSrcRes.status === 'fulfilled') userSrc = userSrcRes.value;
-    if (compSrcRes.status === 'fulfilled') compSrc = compSrcRes.value;
-  } catch { /* ignore */ }
+    const r = await fetch('/api/compare', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      body: JSON.stringify({ userUrl: lastUrl, compUrl: compFullUrl, userScore, userCited }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok) pkg = data;
+    else errMsg = (data && data.message) ? data.message : `분석 실패 (${r.status})`;
+  } catch {
+    errMsg = '네트워크 오류';
+  }
 
-  sec.innerHTML = renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals, userSrc, compSrc);
+  if (!pkg || !pkg.signalDiff) {
+    sec.innerHTML = `<div class="compare-panel">${compCloseBtn()}<p class="muted">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}</p></div>`;
+    return;
+  }
+  sec.innerHTML = renderCompare(pkg, compDomain);
+  wireComparePreviews(sec);
 }
 
-function renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals, userSrc, compSrc) {
-  const compBreakdown = compScore && compScore.breakdown;
-  const closeBtn = `<button type="button" onclick="document.getElementById('compareSection').classList.add('hidden')" class="chip" style="float:right;margin-left:8px">닫기 ✕</button>`;
-  if (!userBreakdown || !compBreakdown) {
-    return `<div class="compare-panel">${closeBtn}<p class="muted">비교 데이터 없음 (${!userBreakdown ? '측정 대상 재분석 필요' : '경쟁 치과 분석 실패'})</p></div>`;
-  }
-
-  const compMap = Object.fromEntries(compBreakdown.map((c) => [c.label, c]));
-  const gaps = [], same = [], userBetter = [];
-  for (const u of userBreakdown) {
-    const c = compMap[u.label];
-    if (!c) continue;
-    const uOk = u.status === 'ok';
-    const cOk = c.status === 'ok';
-    if (!uOk && cOk) gaps.push({ label: u.label, uNote: u.note, cNote: c.note });
-    else if (uOk && cOk) same.push({ label: u.label });
-    else if (uOk && !cOk) userBetter.push({ label: u.label });
-  }
-
-  const row = (label, uOk, cOk, note) => `<div class="compare-row">
-    <div class="compare-label">${esc(label)}${note ? `<div style="font-size:.75rem;color:var(--text-2);margin-top:2px">${esc(note)}</div>` : ''}</div>
-    <div class="compare-val ${uOk ? 'ok' : 'fail'}">${uOk ? '✓ 있음' : '✗ 없음'}</div>
-    <div class="compare-val ${cOk ? 'ok' : 'fail'}">${cOk ? '✓ 있음' : '✗ 없음'}</div>
-  </div>`;
-
-  const compScoreNum = compScore ? compScore.score : '?';
-  const userScoreNum = lastScoreRes && lastScoreRes.d ? lastScoreRes.d.score : '?';
+function renderCompare(pkg, compDomain) {
+  const userDomain = (pkg.domains && pkg.domains.user) || '측정 대상';
+  const cDomain = compDomain || (pkg.domains && pkg.domains.comp) || '경쟁 치과';
+  const uScore = pkg.scores ? pkg.scores.user : '?';
+  const cScore = pkg.scores ? pkg.scores.comp : '?';
 
   return `<div class="compare-panel">
-    ${closeBtn}
-    <div class="compare-title">📊 비교 분석</div>
-    <div class="compare-domains">
-      <span class="compare-domain-tag compare-tag-user">📍 ${esc(userDomain || '측정 대상')} · ${userScoreNum}점</span>
-      <span style="color:var(--text-2);font-size:.8rem;align-self:center">vs</span>
-      <span class="compare-domain-tag compare-tag-comp">🏆 ${esc(compDomain)} · ${compScoreNum}점</span>
+    ${compCloseBtn()}
+    <div class="compare-title">🔬 심층 경쟁 비교 — ${esc(short(cDomain, 28))}</div>
+    <p class="muted small" style="margin:2px 0 12px">측정 대상과 AI가 인용한 경쟁 치과의 코드·구조를 나란히 분해합니다.</p>
+    ${renderPreviewRow(pkg, userDomain, cDomain, uScore, cScore)}
+    ${renderSignalDiff(pkg.signalDiff, userDomain, cDomain)}
+    ${renderSchemaDiff(pkg.schemaDiff, userDomain, cDomain)}
+    ${renderMetaContentDiff(pkg, userDomain, cDomain)}
+    ${renderPlanTable(pkg)}
+    ${renderTeardown(pkg.teardown, userDomain, cDomain)}
+    <p class="muted small" style="margin-top:14px">기술·구조 비교는 AI 인용과 직접 인과관계가 없는 <b>필요조건·위생 지표</b>입니다. 인용은 외부 언급(블로그·기사·커뮤니티)에 좌우됩니다.</p>
+  </div>`;
+}
+
+function renderPreviewRow(pkg, userDomain, cDomain, uScore, cScore) {
+  const emb = pkg.embeddable || {};
+  const urls = pkg.finalUrls || {};
+  const cell = (domain, score, url, embeddable, tagClass, badge) => {
+    const safeUrl = url || (String(domain).startsWith('http') ? domain : `https://${domain}`);
+    const stage = embeddable
+      ? `<iframe class="compare-preview-frame" data-embed="1" src="${esc(safeUrl)}" loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin"></iframe>
+         <div class="compare-preview-fallback" hidden>
+           <div class="compare-preview-blocked">미리보기를 불러오지 못했습니다</div>
+           <a class="btn p" href="${esc(safeUrl)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+         </div>`
+      : `<div class="compare-preview-fallback">
+           <div class="compare-preview-blocked">⚠ 임베드 차단됨<br><span>X-Frame-Options / CSP</span></div>
+           <a class="btn p" href="${esc(safeUrl)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+         </div>`;
+    return `<div class="compare-preview-cell">
+      <div class="compare-preview-head ${tagClass}"><span>${esc(short(domain, 22))}</span><span class="compare-preview-score">${esc(String(score))}점 ${badge}</span></div>
+      <div class="compare-preview-stage">${stage}</div>
+    </div>`;
+  };
+  return `<div class="compare-preview-cols">
+    ${cell(userDomain, uScore, urls.user, emb.user, 'compare-tag-user', '<span class="compare-mini-badge">측정 대상</span>')}
+    ${cell(cDomain, cScore, urls.comp, emb.comp, 'compare-tag-comp', '<span class="compare-mini-badge gold">🏆 AI 인용</span>')}
+  </div>`;
+}
+
+function statusCellHtml(status) {
+  const map = { ok: ['✓', 'ok'], warn: ['△', 'warn'], fail: ['✗', 'fail'], na: ['—', 'na'] };
+  const [sym, cls] = map[status] || map.na;
+  return `<span class="diff-status ${cls}">${sym}</span>`;
+}
+
+function renderSignalDiff(rows, userDomain, cDomain) {
+  if (!rows || !rows.length) return '';
+  const body = rows.map((r) => `<tr class="${r.verdict === 'gap' ? 'diff-gap' : ''}">
+    <td class="diff-item"><div>${esc(r.label)} <span class="diff-layer">${esc(r.layer)}</span></div>
+      <div class="diff-why">${esc(r.why)}</div></td>
+    <td class="diff-cell">${statusCellHtml(r.userStatus)}</td>
+    <td class="diff-cell">${statusCellHtml(r.compStatus)}</td>
+    <td class="diff-cell">${r.verdict === 'gap' ? '<span class="diff-tag gap">격차</span>' : r.verdict === 'ahead' ? '<span class="diff-tag ahead">우위</span>' : '<span class="diff-tag same">동일</span>'}</td>
+  </tr>`).join('');
+  return `<div class="compare-section-head" style="margin-top:20px">① GEO 신호 비교 (7개)</div>
+  <table class="compare-diff-table">
+    <thead><tr><th>항목</th><th>${esc(short(userDomain))}</th><th>${esc(short(cDomain))}</th><th>판정</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+function renderSchemaDiff(sd, userDomain, cDomain) {
+  if (!sd) return '';
+  const ox = (b) => b ? '<span class="diff-status ok">O</span>' : '<span class="diff-status fail">X</span>';
+  const fieldRows = (sd.fields || []).map((f) => `<tr class="${f.verdict === 'gap' ? 'diff-gap' : ''}">
+    <td class="diff-item">${esc(f.label)}</td>
+    <td class="diff-cell">${ox(f.userHas)}</td>
+    <td class="diff-cell">${ox(f.compHas)}</td>
+  </tr>`).join('');
+  const ar = sd.aggregateRating || {};
+  const arText = (a) => a ? esc(`${a.value || '?'}★ / ${a.count != null ? a.count + '건' : '?'}`) : '<span class="diff-status fail">X</span>';
+  const arLine = (ar.user || ar.comp)
+    ? `<tr><td class="diff-item">별점 스키마 (AggregateRating)</td><td class="diff-cell">${arText(ar.user)}</td><td class="diff-cell">${arText(ar.comp)}</td></tr>`
+    : '';
+  const faq = sd.faqCount || {};
+  const faqLine = (faq.user || faq.comp)
+    ? `<tr><td class="diff-item">FAQ 질문 수</td><td class="diff-cell">${faq.user || 0}</td><td class="diff-cell">${faq.comp || 0}</td></tr>`
+    : '';
+  const typeLine = `<div class="diff-types">
+    <div><b>${esc(short(userDomain))}</b> · ${(sd.userTypes || []).length ? esc((sd.userTypes).slice(0, 8).join(', ')) : '<span class="diff-none">JSON-LD 없음</span>'}</div>
+    <div><b>${esc(short(cDomain))}</b> · ${(sd.compTypes || []).length ? esc((sd.compTypes).slice(0, 8).join(', ')) : '<span class="diff-none">JSON-LD 없음</span>'}</div></div>`;
+  return `<div class="compare-section-head" style="margin-top:20px">② 구조화 데이터(JSON-LD) 필드 비교 — "어떤 코드가 있나"</div>
+    ${typeLine}
+    <table class="compare-diff-table">
+      <thead><tr><th>스키마 필드</th><th>${esc(short(userDomain))}</th><th>${esc(short(cDomain))}</th></tr></thead>
+      <tbody>${fieldRows}${arLine}${faqLine}</tbody>
+    </table>`;
+}
+
+function renderMetaContentDiff(pkg, userDomain, cDomain) {
+  const md = pkg.metaDiff || [];
+  const cd = pkg.contentDiff || [];
+  const trunc = (s, n = 44) => { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
+  const metaRows = md.map((r) => {
+    const val = (v, len) => v ? `${esc(trunc(v))}${len ? ` <span class="diff-len">${len}자</span>` : ''}` : '<span class="diff-none">없음</span>';
+    return `<tr class="${r.verdict === 'gap' ? 'diff-gap' : ''}">
+      <td class="diff-item">${esc(r.label)}</td>
+      <td class="diff-cell-l">${r.warnUser ? '⚠ ' : ''}${val(r.user, r.userLen)}</td>
+      <td class="diff-cell-l">${val(r.comp, r.compLen)}</td>
+    </tr>`;
+  }).join('');
+  const contentRows = cd.map((r) => {
+    const fmt = (v) => r.kind === 'bool' ? (v ? '<span class="diff-status ok">O</span>' : '<span class="diff-status fail">X</span>') : esc(String(v));
+    return `<tr class="${r.verdict === 'gap' ? 'diff-gap' : ''}">
+      <td class="diff-item">${esc(r.label)}</td>
+      <td class="diff-cell">${fmt(r.user)}</td>
+      <td class="diff-cell">${fmt(r.comp)}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="compare-section-head" style="margin-top:20px">③ 메타·본문 구조 비교</div>
+    <table class="compare-diff-table">
+      <thead><tr><th>메타</th><th>${esc(short(userDomain))}</th><th>${esc(short(cDomain))}</th></tr></thead>
+      <tbody>${metaRows}</tbody>
+    </table>
+    <table class="compare-diff-table" style="margin-top:8px">
+      <thead><tr><th>본문·구조</th><th>${esc(short(userDomain))}</th><th>${esc(short(cDomain))}</th></tr></thead>
+      <tbody>${contentRows}</tbody>
+    </table>`;
+}
+
+function renderPlanTable(pkg) {
+  const rows = pkg.planRows || [];
+  if (!rows.length) {
+    return `<div class="compare-section-head" style="margin-top:22px">④ 개선 계획표</div>
+      <p class="muted small">측정 대상이 비교 항목에서 모두 통과했습니다. 외부 언급(블로그·기고) 축적이 다음 단계입니다.</p>`;
+  }
+  const prodName = (id) => { const p = PRODUCTS.find((x) => x.id === id); return p ? p.name : id; };
+  const body = rows.map((r) => {
+    const chips = (r.productIds || []).map((id) => `<span class="plan-prod-chip" data-add-product="${esc(id)}">${esc(prodName(id))}</span>`).join('');
+    return `<tr class="${r.compAhead ? 'diff-gap' : ''}">
+      <td class="plan-pri">${r.priority}</td>
+      <td class="plan-item"><b>${esc(r.item)}</b>${r.detail ? `<div class="plan-detail">${esc(r.detail)}</div>` : ''}</td>
+      <td class="plan-now">${esc(r.current)}</td>
+      <td class="plan-target">${esc(r.target)}<div class="plan-effect">${esc(r.effectLabel)}</div></td>
+      <td><span class="plan-badge plan-diff-${esc(r.difficulty)}">${esc(r.difficulty)}</span></td>
+      <td class="plan-prods">${chips}</td>
+    </tr>`;
+  }).join('');
+  const recIds = pkg.recommendedProductIds || [];
+  const addBtn = recIds.length
+    ? `<button type="button" class="btn p compare-add-btn" data-add-products="${esc(recIds.join(','))}">개선 담당 상품 ${recIds.length}개 문의에 담기</button>`
+    : '';
+  return `<div class="compare-section-head" style="margin-top:22px">④ 개선 계획표 — 우선순위 + 담당 상품</div>
+    <div class="compare-plan-wrap">
+    <table class="compare-plan-table">
+      <thead><tr><th>#</th><th>항목</th><th>현재</th><th>목표 액션</th><th>난이도</th><th>담당 상품</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
     </div>
-    ${gaps.length ? `<div class="compare-section-head">⬆️ 경쟁 치과에 있고 이 치과에 없는 것 (${gaps.length}개)</div>
-    <div style="font-size:.78rem;color:var(--text-2);margin-bottom:6px">이 항목들이 AI 추천 격차의 원인일 수 있습니다</div>
-    <div style="display:flex;font-size:.72rem;color:var(--text-2);padding:0 0 4px;gap:10px"><div style="flex:1"></div><div style="width:60px;text-align:center">${esc(userDomain || '이 치과')}</div><div style="width:60px;text-align:center">${esc(compDomain)}</div></div>
-    ${gaps.map((g) => row(g.label, false, true, g.cNote)).join('')}` : ''}
-    ${same.length ? `<div class="compare-section-head" style="margin-top:14px">✅ 양쪽 모두 통과 (${same.length}개)</div>
-    ${same.map((g) => row(g.label, true, true, '')).join('')}` : ''}
-    ${userBetter.length ? `<div class="compare-section-head" style="margin-top:14px">📌 이 치과만 있는 것 (${userBetter.length}개)</div>
-    ${userBetter.map((g) => row(g.label, true, false, '')).join('')}` : ''}
-    ${(() => {
-      const uS = userSignals || {};
-      const cS = (compScore && compScore.signals) || {};
-      if (uS.hasStatistics === undefined && cS.hasStatistics === undefined) return '';
-      const gSigs = [
-        { label: '수치·통계 ≥2개', uVal: uS.hasStatistics, cVal: cS.hasStatistics },
-        { label: '인용문 (blockquote·따옴표)', uVal: uS.hasQuotations, cVal: cS.hasQuotations },
-        { label: '출처 표기 (cite·[1]·참고문헌)', uVal: uS.hasCitedSources, cVal: cS.hasCitedSources },
-      ];
-      return `<div class="compare-section-head" style="margin-top:14px">📝 콘텐츠 인용성 신호 (참고 지표)</div>
-      <div style="font-size:.78rem;color:var(--text-2);margin-bottom:6px">AI가 인용할 근거 콘텐츠 · 점수 외 참고용</div>
-      ${gSigs.map((g) => row(g.label, g.uVal, g.cVal, '')).join('')}`;
-    })()}
-    <p class="muted small" style="margin-top:12px">기술 점수 비교 — AI 인용과 직접 인과관계 없음 (필요조건·위생 지표)</p>
-    ${(userSrc || compSrc) ? `
-    <div class="compare-section-head" style="margin-top:22px">🔍 HTML 소스 비교 — 메타·스키마·본문</div>
-    <div style="font-size:.76rem;color:var(--text-2);margin-bottom:10px">title·meta·JSON-LD 스키마·본문 텍스트 미리보기. 경쟁 치과가 어떤 구조로 AI 인용을 얻는지 확인하세요.</div>
+    ${addBtn}`;
+}
+
+function renderTeardown(td, userDomain, cDomain) {
+  if (!td || (!td.user && !td.comp)) return '';
+  return `<div class="compare-section-head" style="margin-top:22px">⑤ HTML 원본 분해 — 메타·스키마·본문</div>
     <div class="compare-code-cols">
       <div class="compare-code-box">
-        <div class="compare-code-header compare-tag-user">📍 ${esc(userDomain || '이 치과')}</div>
-        <pre class="compare-pre">${userSrc ? formatSrcHtml(userSrc, userDomain) : '(소스 불러오기 중...)'}</pre>
+        <div class="compare-code-header compare-tag-user">📍 ${esc(short(userDomain))}</div>
+        <pre class="compare-pre">${formatTeardown(td.user, userDomain)}</pre>
       </div>
       <div class="compare-code-box">
-        <div class="compare-code-header compare-tag-comp">🏆 ${esc(compDomain)} (AI 인용됨)</div>
-        <pre class="compare-pre">${compSrc ? formatSrcHtml(compSrc, compDomain) : '(소스 불러오기 중...)'}</pre>
+        <div class="compare-code-header compare-tag-comp">🏆 ${esc(short(cDomain))} (AI 인용됨)</div>
+        <pre class="compare-pre">${formatTeardown(td.comp, cDomain)}</pre>
       </div>
-    </div>` : ''}
-  </div>`;
+    </div>`;
 }
 
 function renderResultHeader(scoreRes, citeRes, q) {

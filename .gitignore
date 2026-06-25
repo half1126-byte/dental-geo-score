@@ -9,3 +9,9 @@ npm-debug.log*
 
 .vercel
 .gstack/
+
+# stray secret/key artifacts — never commit (e.g. .fixclean_OPENAI, .fixclean_PERP)
+.fixclean_*
+*.key
+*.pem
+secrets.*

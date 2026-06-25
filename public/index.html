@@ -340,6 +340,9 @@
       <button class="btn p" type="submit" id="goBtn">진단받기</button>
     </form>
     <p class="hint" style="text-align:center">즉시 결과 · 7가지 신호 · 근거 표시</p>
+    <div style="text-align:center;margin-top:20px">
+      <button type="button" id="advOpen" style="background:none;border:1px solid rgba(255,255,255,.18);color:var(--text-2,rgba(255,255,255,.6));font:inherit;font-size:.82rem;padding:9px 18px;border-radius:9px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--plum,#8052ff)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)';this.style.color='var(--text-2,rgba(255,255,255,.6))'">🔒 고급 분석 (관계자 전용)</button>
+    </div>
   </div>
 </section>
 
@@ -508,6 +511,24 @@
   </div>
 </div>
 
+<!-- ── ADVANCED ANALYSIS GATE MODAL ── -->
+<div id="advModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <p class="kicker" style="text-align:center;margin-bottom:12px">관계자 전용</p>
+    <h3 class="modal-title">고급 분석 접속</h3>
+    <p class="small muted" style="text-align:center;margin-bottom:24px">비밀번호를 입력하면<br/>AI 실측·경쟁사 심층 분석 도구로 이동합니다.</p>
+    <form id="advForm">
+      <div class="modal-field">
+        <label for="advPw">비밀번호</label>
+        <input type="password" id="advPw" placeholder="비밀번호" autocomplete="off" />
+      </div>
+      <p id="advErr" class="hidden" style="color:#f05e6a;font-size:.82rem;text-align:center;margin:4px 0 0">비밀번호가 올바르지 않습니다.</p>
+      <button class="btn p modal-submit" type="submit" id="advSubmit">입장</button>
+    </form>
+    <button class="btn-skip" id="advClose">닫기</button>
+  </div>
+</div>
+
 <script>
 
 /* ── FAQ accordion ── */
@@ -602,6 +623,50 @@ document.querySelectorAll('.faq-q').forEach(function(btn){
       setTimeout(function(){ runChat(demo); }, demo.colDelay);
     });
   }, { threshold:0.15 }).observe(section);
+})();
+
+/* ── 고급 분석 gate — password checked server-side (/api/unlock), key never in page source ── */
+(function(){
+  var openBtn = document.getElementById('advOpen');
+  var modal   = document.getElementById('advModal');
+  if(!openBtn || !modal) return;
+  var form   = document.getElementById('advForm');
+  var pw     = document.getElementById('advPw');
+  var err    = document.getElementById('advErr');
+  var submit = document.getElementById('advSubmit');
+  var closeB = document.getElementById('advClose');
+
+  function open(){ modal.classList.remove('hidden'); err.classList.add('hidden'); pw.value=''; setTimeout(function(){ pw.focus(); }, 60); }
+  function close(){ modal.classList.add('hidden'); }
+
+  openBtn.addEventListener('click', function(e){ e.preventDefault(); open(); });
+  closeB.addEventListener('click', close);
+  modal.addEventListener('click', function(e){ if(e.target===modal) close(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !modal.classList.contains('hidden')) close(); });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    err.classList.add('hidden');
+    submit.disabled = true; submit.textContent = '확인 중...';
+    try {
+      var r = await fetch('/api/unlock', {
+        method:'POST',
+        headers:{ 'content-type':'application/json' },
+        body: JSON.stringify({ password: pw.value })
+      });
+      var data = await r.json().catch(function(){ return {}; });
+      if(r.ok && data.ok && data.key){
+        try { localStorage.setItem('opKey', data.key); } catch(_){}
+        window.location.href = '/operator.html';   /* lands pre-authenticated, no key in URL */
+        return;
+      }
+      throw new Error('invalid');
+    } catch(_){
+      err.classList.remove('hidden');
+      submit.disabled = false; submit.textContent = '입장';
+      pw.value=''; pw.focus();
+    }
+  });
 })();
 
 </script>
