@@ -480,30 +480,67 @@ $('opResult').addEventListener('click', (e) => {
   }
 });
 
+function formatSrcHtml(src, domain) {
+  if (!src || src.error) return `(소스 가져오기 실패 — ${esc(domain)})`;
+  const lines = [];
+  if (src.title) lines.push(`<title>${esc(src.title)}</title>`);
+  if (src.canonical) lines.push(`<link rel="canonical" href="${esc(src.canonical)}">`);
+  const relevantMetas = (src.metas || []).slice(0, 8);
+  for (const m of relevantMetas) lines.push(esc(m));
+  if (src.jsonlds && src.jsonlds.length) {
+    lines.push('');
+    lines.push('&lt;!-- ── JSON-LD Schema ── --&gt;');
+    for (const jld of src.jsonlds.slice(0, 3)) {
+      lines.push(`&lt;script type="application/ld+json"&gt;\n${esc(jld)}\n&lt;/script&gt;`);
+    }
+  }
+  if (src.bodyText) {
+    lines.push('');
+    lines.push('--- 본문 텍스트 미리보기 ---');
+    lines.push(esc(src.bodyText.slice(0, 700)));
+  }
+  return lines.join('\n');
+}
+
 async function loadCompare(compDomain, compUrl) {
   const userBreakdown = lastScoreRes && lastScoreRes.d && lastScoreRes.d.breakdown;
   const userSignals = lastScoreRes && lastScoreRes.d && lastScoreRes.d.signals;
   const userDomain = lastScoreRes && lastScoreRes.d && lastScoreRes.d.domain;
   const sec = $('compareSection');
-  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} 분석 중...</p></div>`;
+  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} 소스·구조 분석 중 (2~5초)...</p></div>`;
   show('compareSection');
   sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  let compScore = null;
+  const key = localStorage.getItem('opKey') || '';
+  const opHeaders = { 'content-type': 'application/json', 'x-operator-key': key };
+  const compFullUrl = compUrl || (compDomain.startsWith('http') ? compDomain : `https://${compDomain}`);
+
+  let compScore = null, userSrc = null, compSrc = null;
   try {
-    const url = compUrl || (compDomain.startsWith('http') ? compDomain : `https://${compDomain}`);
-    const res = await fetch('/api/score', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ url }),
-    }).then((r) => r.json().then((d) => ({ ok: r.ok, d }))).catch(() => null);
-    if (res && res.ok) compScore = res.d;
+    const [scoreRes, userSrcRes, compSrcRes] = await Promise.allSettled([
+      fetch('/api/score', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url: compFullUrl }),
+      }).then((r) => r.json().then((d) => ({ ok: r.ok, d }))).catch(() => null),
+      fetch('/api/page-source', {
+        method: 'POST', headers: opHeaders,
+        body: JSON.stringify({ url: lastUrl }),
+      }).then((r) => r.json()).catch(() => null),
+      fetch('/api/page-source', {
+        method: 'POST', headers: opHeaders,
+        body: JSON.stringify({ url: compFullUrl }),
+      }).then((r) => r.json()).catch(() => null),
+    ]);
+    if (scoreRes.status === 'fulfilled' && scoreRes.value?.ok) compScore = scoreRes.value.d;
+    if (userSrcRes.status === 'fulfilled') userSrc = userSrcRes.value;
+    if (compSrcRes.status === 'fulfilled') compSrc = compSrcRes.value;
   } catch { /* ignore */ }
 
-  sec.innerHTML = renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals);
+  sec.innerHTML = renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals, userSrc, compSrc);
 }
 
-function renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals) {
+function renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals, userSrc, compSrc) {
   const compBreakdown = compScore && compScore.breakdown;
   const closeBtn = `<button type="button" onclick="document.getElementById('compareSection').classList.add('hidden')" class="chip" style="float:right;margin-left:8px">닫기 ✕</button>`;
   if (!userBreakdown || !compBreakdown) {
@@ -561,6 +598,19 @@ function renderCompare(userDomain, userBreakdown, compDomain, compScore, userSig
       ${gSigs.map((g) => row(g.label, g.uVal, g.cVal, '')).join('')}`;
     })()}
     <p class="muted small" style="margin-top:12px">기술 점수 비교 — AI 인용과 직접 인과관계 없음 (필요조건·위생 지표)</p>
+    ${(userSrc || compSrc) ? `
+    <div class="compare-section-head" style="margin-top:22px">🔍 HTML 소스 비교 — 메타·스키마·본문</div>
+    <div style="font-size:.76rem;color:var(--text-2);margin-bottom:10px">title·meta·JSON-LD 스키마·본문 텍스트 미리보기. 경쟁 치과가 어떤 구조로 AI 인용을 얻는지 확인하세요.</div>
+    <div class="compare-code-cols">
+      <div class="compare-code-box">
+        <div class="compare-code-header compare-tag-user">📍 ${esc(userDomain || '이 치과')}</div>
+        <pre class="compare-pre">${userSrc ? formatSrcHtml(userSrc, userDomain) : '(소스 불러오기 중...)'}</pre>
+      </div>
+      <div class="compare-code-box">
+        <div class="compare-code-header compare-tag-comp">🏆 ${esc(compDomain)} (AI 인용됨)</div>
+        <pre class="compare-pre">${compSrc ? formatSrcHtml(compSrc, compDomain) : '(소스 불러오기 중...)'}</pre>
+      </div>
+    </div>` : ''}
   </div>`;
 }
 

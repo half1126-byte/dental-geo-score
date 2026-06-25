@@ -131,6 +131,28 @@
 .compare-val.ok   { color:var(--teal); }
 .compare-val.fail { color:var(--text-2); }
 
+/* ── source code comparison ── */
+.compare-code-cols {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;
+}
+@media(max-width:720px) { .compare-code-cols { grid-template-columns:1fr; } }
+.compare-code-box {
+  display:flex; flex-direction:column; overflow:hidden;
+  border-radius:10px; border:1px solid var(--border);
+}
+.compare-code-header {
+  padding:7px 12px; font-size:.72rem; font-weight:700;
+  border-radius:10px 10px 0 0; letter-spacing:.04em;
+}
+.compare-pre {
+  margin:0; padding:12px 14px;
+  overflow:auto; max-height:340px;
+  font-size:.72rem; line-height:1.6;
+  color:var(--text-2); background:var(--bg-2);
+  white-space:pre-wrap; word-break:break-all;
+  font-family:'SF Mono','Consolas','Courier New',monospace;
+}
+
 /* ── result 2-column grid (below citation) ── */
 .result-2col {
   display:grid;
