@@ -86,6 +86,9 @@ function showError(data) {
   }
   $('errMsg').textContent = msg;
   show('error');
+  requestAnimationFrame(() => {
+    $('error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 function render(d) {
