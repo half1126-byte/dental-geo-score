@@ -1,4 +1,4 @@
-// POST /api/citation { url, region?, procedure?, email? } — real-citation panel.
+// POST /api/citation { url, region?, regions?, procedure?, email?, queries? } — real-citation panel.
 //
 // v1 = INTERNAL OPERATOR TOOL. Gate = `x-operator-key` header (== OPERATOR_KEY env). The operator
 // path returns the FULL private report (named competitors + evidence) via toPrivateReport — that's a
@@ -8,6 +8,10 @@
 // SAFETY: live engine calls run ONLY if CITATION_ENABLED=true AND ≥1 engine key is set. Cost guard =
 // 24h cache (domain|region|procedure) + DAILY_CITATION_CAP global counter (lib/store). The in-memory
 // store is fine for internal/low volume; back it with KV + per-IP limits BEFORE any public path.
+//
+// Multi-region: pass `regions: string[]` (max 5) to run one panel per region in parallel and get
+// a { byRegion: { region: panel } } response. `regions` overrides `region`.
+import { createHash } from 'node:crypto';
 import { runCitationPanel } from '../lib/citation.js';
 import { AUTO_ENGINES } from '../lib/engines.js';
 import { registrableDomain } from '../lib/normalize.js';
@@ -22,19 +26,23 @@ const store = makeStore(); // in-memory v1; pass { kv } (Upstash) before going p
 
 const maskEmail = (e) => String(e || '').replace(/^(.).*(@.*)$/, '$1***$2');
 
+// Stable 16-char hex digest of the raw IP string — never log or expose the raw IP.
+function hashIp(raw) {
+  return createHash('sha256').update(String(raw || 'unknown')).digest('hex').slice(0, 16);
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method-not-allowed' });
     return;
   }
-  const { url, email, region, procedure, queries } = req.body || {};
+  const { url, email, region, regions, procedure, queries } = req.body || {};
 
   // --- operator gate (internal tool) ---
   const operatorKeySet = !!process.env.OPERATOR_KEY;
   const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
   if (operatorKeySet && !isOperator) {
-    // an operator key is configured → this endpoint is internal-only; reject non-operators early.
     res.status(401).json({ error: 'operator-key-required', message: '운영자 키가 필요합니다.' });
     return;
   }
@@ -50,8 +58,18 @@ export default async function handler(req, res) {
     return;
   }
   const domain = registrableDomain(url);
-  const view = (data) => (isOperator ? toPrivateReport(data) : toPublicView(data));
+  const view = (data) => (isOperator ? toPrivateReport(data, url) : toPublicView(data));
+  // Stable IP hash for per-IP rate limiting. Operators bypass all IP limits (ipHash = null).
+  const rawIp = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+  const ipHash = isOperator ? null : hashIp(rawIp);
   console.log('[citation]', isOperator ? 'operator' : maskEmail(email), domain, region || '', procedure || '');
+
+  // Multi-region: `regions` overrides `region`. Clamped to 5, empty strings filtered out.
+  const rawRegions = Array.isArray(regions) && regions.length > 0
+    ? regions.slice(0, 5).map((r) => String(r).trim()).filter(Boolean)
+    : null;
+  const effectiveRegions = rawRegions || (region ? [String(region).trim()] : ['']);
+  const isMulti = effectiveRegions.length > 1;
 
   // which engines have keys configured?
   const keys = {};
@@ -64,6 +82,7 @@ export default async function handler(req, res) {
     res.status(202).json({
       status: 'pending',
       domain,
+      ...(isMulti ? { regions: effectiveRegions } : {}),
       message: isOperator ? '측정 비활성(키/CITATION_ENABLED 필요).' : '신청되었습니다. 실측 결과를 이메일로 보내드리겠습니다.',
     });
     return;
@@ -74,41 +93,115 @@ export default async function handler(req, res) {
     const rawCustom = Array.isArray(queries) && queries.length > 0
       ? queries.slice(0, 3).map((q) => String(q).trim().slice(0, 300)).filter(Boolean)
       : null;
-    // Null-out empty arrays so runCitationPanel falls back to buildPrompts.
     const customPrompts = rawCustom && rawCustom.length > 0 ? rawCustom : null;
-
-    // 24h cache — key includes query fingerprint so different selections don't collide.
     const queryFP = customPrompts ? customPrompts.slice().sort().join('§').slice(0, 120) : '';
-    const cacheKey = `${domain}|${(region || '').trim().toLowerCase()}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
+    const queryCount = customPrompts ? customPrompts.length : 3;
+
+    if (isMulti) {
+      // --- Multi-region path ---
+      const costNote = buildCostNote(effectiveRegions.length, Object.keys(keys).length, queryCount);
+      // Cache key uses sorted region list so order-invariant
+      const cacheKey = `multi|${domain}|${effectiveRegions.slice().sort().join('‖')}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
+      const cached = await store.cacheGet(cacheKey);
+      if (cached) {
+        const byRegion = buildByRegionView(cached.panelsByRegion, effectiveRegions, view);
+        res.status(200).json({ clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion, measuredAt: cached.measuredAt, costNote, view: isOperator ? 'private' : 'public', cached: true });
+        return;
+      }
+
+      // Per-IP + daily global cap — checked after cache miss, before any paid call
+      if (await enforceRateCaps(ipHash, domain, store, res)) return;
+
+      const settlements = await Promise.allSettled(
+        effectiveRegions.map((r) => runCitationPanel({
+          clinicDomain: domain,
+          region: r,
+          procedure: procedure || '',
+          keys,
+          loc: { city: r },
+          repeats: 1,
+          customPrompts,
+        }))
+      );
+
+      const panelsByRegion = {};
+      const measuredAt = new Date().toISOString();
+      for (let i = 0; i < effectiveRegions.length; i++) {
+        const r = effectiveRegions[i];
+        const s = settlements[i];
+        panelsByRegion[r] = s.status === 'fulfilled' ? s.value : { error: String(s.reason?.message || 'unknown') };
+      }
+
+      await store.cacheSet(cacheKey, { type: 'multi', panelsByRegion, measuredAt }, DAY);
+      const byRegion = buildByRegionView(panelsByRegion, effectiveRegions, view);
+      res.status(200).json({ clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion, measuredAt, costNote, view: isOperator ? 'private' : 'public' });
+      return;
+    }
+
+    // --- Single-region path (existing behavior) ---
+    const cacheKey = `${domain}|${(effectiveRegions[0] || '').toLowerCase()}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
     const cached = await store.cacheGet(cacheKey);
     if (cached) {
       res.status(200).json({ ...view(cached), cached: true });
       return;
     }
 
-    // daily global cap — counts only real live measurements (cost guard)
-    const cap = parseInt(process.env.DAILY_CITATION_CAP || '0', 10);
-    if (cap > 0) {
-      const dayKey = new Date().toISOString().slice(0, 10);
-      const n = await store.incrDaily(dayKey);
-      if (n > cap) {
-        res.status(202).json({ status: 'cap-reached', domain, message: '오늘 실측 한도 소진 — 내일 다시 또는 상담.' });
-        return;
-      }
-    }
+    if (await enforceRateCaps(ipHash, domain, store, res)) return;
 
     const result = await runCitationPanel({
       clinicDomain: domain,
-      region: region || '',
+      region: effectiveRegions[0] || '',
       procedure: procedure || '',
       keys,
-      loc: { city: region || '' },
+      loc: { city: effectiveRegions[0] || '' },
       repeats: 1,
       customPrompts,
     });
-    await store.cacheSet(cacheKey, result, DAY); // full panel cached server-side; view() redacts per audience
+    await store.cacheSet(cacheKey, result, DAY);
     res.status(200).json(view(result));
   } catch (e) {
     res.status(500).json({ error: 'internal', message: String(e?.message || e).slice(0, 200) });
   }
+}
+
+// Build byRegion response: apply view() to each raw panel; pass through errors unchanged.
+function buildByRegionView(panelsByRegion, regions, viewFn) {
+  const byRegion = {};
+  for (const r of regions) {
+    const p = panelsByRegion?.[r];
+    byRegion[r] = p && !p.error ? viewFn(p) : (p || { error: 'missing' });
+  }
+  return byRegion;
+}
+
+// Rough cost estimate string shown alongside multi-region results.
+function buildCostNote(nRegions, nEngines, nQueries) {
+  const approx = (nRegions * nEngines * nQueries * 0.06).toFixed(2);
+  return `${nRegions}지역 × ${nEngines}엔진 × ${nQueries}쿼리 ≈ $${approx}`;
+}
+
+// Returns true and sends the 429/202 response if the request should be blocked by rate caps.
+// Returns false if the request should proceed. Used by both multi-region and single-region paths.
+async function enforceRateCaps(ipHash, domain, store, res) {
+  if (ipHash) {
+    const perIpCap = parseInt(process.env.PER_IP_DAILY_CAP || '0', 10);
+    if (perIpCap > 0) {
+      const dayKey = new Date().toISOString().slice(0, 10);
+      const n = await store.incrIpDaily(ipHash, dayKey);
+      if (n > perIpCap) {
+        res.status(429).json({ error: 'rate-limited', message: '하루 측정 한도를 초과했습니다. 내일 다시 시도해주세요.' });
+        return true;
+      }
+    }
+  }
+  const cap = parseInt(process.env.DAILY_CITATION_CAP || '0', 10);
+  if (cap > 0) {
+    const dayKey = new Date().toISOString().slice(0, 10);
+    const n = await store.incrDaily(dayKey);
+    if (n > cap) {
+      res.status(202).json({ status: 'cap-reached', domain, message: '오늘 실측 한도 소진 — 내일 다시 또는 상담.' });
+      return true;
+    }
+  }
+  return false;
 }

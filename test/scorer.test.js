@@ -38,9 +38,28 @@ test('breakdown has 7 items summing to score, clamped 0..100', () => {
   assert.ok(['초기 단계', '개선 여지 큼', '보통', '우수'].includes(r.band));
 });
 
+test('breakdown items all have layer field in SEO|AEO|GEO', () => {
+  const r = scorePage({ robots: { present: false }, signals: extractSignals('<html><body><h1>x</h1></body></html>') });
+  const valid = new Set(['SEO', 'AEO', 'GEO']);
+  for (const item of r.breakdown) {
+    assert.ok(valid.has(item.layer), `"${item.key}" has invalid layer: ${item.layer}`);
+  }
+});
+
 test('AI-bot block is heavily penalized (fatal signal)', () => {
   const sig = extractSignals(fx('haruplant.html'));
   const allowed = scorePage({ robots: { present: true, blocksAny: false, blockedBots: [] }, signals: sig }).score;
   const blocked = scorePage({ robots: { present: true, blocksAny: true, blockedBots: ['OAI-SearchBot'], note: 'blocked' }, signals: sig }).score;
   assert.ok(allowed - blocked >= 13, `block penalty ${allowed - blocked}`);
+});
+
+test('topFixes: each item carries note (x.why) so UI can show specific guidance', () => {
+  // Low-signal HTML → guaranteed to produce topFixes
+  const sig = extractSignals('<html><body><h1>x</h1></body></html>');
+  const r = scorePage({ robots: { present: false, blocksAny: false, blockedBots: [] }, signals: sig });
+  assert.ok(r.topFixes.length > 0, 'expected at least one fix');
+  for (const f of r.topFixes) {
+    assert.ok(typeof f.note === 'string' && f.note.length > 0, `topFix "${f.label}" missing note`);
+    assert.ok(typeof f.gainLabel === 'string', `topFix "${f.label}" missing gainLabel`);
+  }
 });

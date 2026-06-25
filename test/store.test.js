@@ -18,6 +18,16 @@ test('in-memory incrDaily increments per day key', async () => {
   assert.equal(await store.incrDaily('2026-06-24'), 1);
 });
 
+test('incrIpDaily: independent from incrDaily, isolated per ipHash', async () => {
+  const store = makeStore();
+  assert.equal(await store.incrIpDaily('abc123', '2026-06-24'), 1);
+  assert.equal(await store.incrIpDaily('abc123', '2026-06-24'), 2);
+  assert.equal(await store.incrIpDaily('def456', '2026-06-24'), 1, 'different IP hash starts at 1');
+  assert.equal(await store.incrIpDaily('abc123', '2026-06-25'), 1, 'new day resets');
+  // must not share key space with incrDaily
+  assert.equal(await store.incrDaily('2026-06-24'), 1, 'incrDaily unaffected by incrIpDaily');
+});
+
 test('KV-backed path uses injected kv + sets expire once', async () => {
   const data = new Map();
   let expireCalls = 0;

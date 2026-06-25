@@ -22,35 +22,73 @@ const _urlKey = new URLSearchParams(location.search).get('key');
 if (_urlKey) { localStorage.setItem('opKey', _urlKey); history.replaceState(null, '', location.pathname); }
 
 // ── 패스코드 상태 초기화 ────────────────────────────────────────
-function initKeyState() {
+function showKeyEntry(errMsg) {
+  hide('keySaved');
+  $('setupCard').classList.remove('hidden');
+  hide('analyzeSection');
+  hide('confirmSection');
+  const note = $('keyValidationNote');
+  if (note) {
+    if (errMsg) { note.textContent = errMsg; note.style.display = 'block'; }
+    else { note.textContent = ''; note.style.display = 'none'; }
+  }
+}
+
+function showKeyValid(key) {
+  $('keySaved').classList.remove('hidden');
+  hide('setupCard');
+  $('keyMasked').textContent = key.slice(0, 2) + '•'.repeat(Math.max(0, key.length - 2));
+  show('analyzeSection');
+  const note = $('keyValidationNote');
+  if (note) note.style.display = 'none';
+}
+
+async function validateKey(key) {
+  try {
+    const r = await fetch('/api/auth-check', {
+      method: 'POST',
+      headers: { 'x-operator-key': key },
+    });
+    return r.status === 200;
+  } catch {
+    return false;
+  }
+}
+
+async function initKeyState() {
   const saved = localStorage.getItem('opKey') || '';
-  if (saved) {
-    $('keySaved').classList.remove('hidden');
-    hide('setupCard');
-    $('keyMasked').textContent = saved.slice(0, 2) + '•'.repeat(Math.max(0, saved.length - 2));
-    show('analyzeSection');
+  if (!saved) { showKeyEntry(); return; }
+  // Re-validate saved key on every page load — catches key rotation without UI lag
+  const ok = await validateKey(saved);
+  if (ok) {
+    showKeyValid(saved);
   } else {
-    hide('keySaved');
-    $('setupCard').classList.remove('hidden');
-    hide('analyzeSection');
-    hide('confirmSection');
+    localStorage.removeItem('opKey');
+    showKeyEntry('저장된 패스코드가 유효하지 않습니다. 다시 입력해주세요.');
   }
 }
 initKeyState();
 
 // 저장 버튼
-$('keySaveBtn').addEventListener('click', () => {
+$('keySaveBtn').addEventListener('click', async () => {
   const val = $('opKey').value.trim();
   if (!val) return;
+  const btn = $('keySaveBtn');
+  btn.disabled = true; btn.textContent = '확인 중...';
+  const ok = await validateKey(val);
+  btn.disabled = false; btn.textContent = '저장';
+  if (!ok) {
+    showKeyEntry('패스코드가 맞지 않습니다. .env.local의 OPERATOR_KEY 값을 확인하세요.');
+    return;
+  }
   localStorage.setItem('opKey', val);
-  initKeyState();
+  showKeyValid(val);
 });
 $('opKey').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('keySaveBtn').click(); });
 
 // 변경 버튼
 $('keyChangeBtn').addEventListener('click', () => {
-  hide('keySaved');
-  $('setupCard').classList.remove('hidden');
+  showKeyEntry();
   $('opKey').value = localStorage.getItem('opKey') || '';
   $('opKey').focus();
 });
@@ -219,21 +257,98 @@ function showError(msg) { $('opErrMsg').innerHTML = msg; show('opError'); }
 
 function render(scoreRes, citeRes, q) {
   geminiVerdicts = [];
-  const parts = [
-    renderResultHeader(scoreRes, citeRes, q),
-    renderCitation(citeRes),
-    renderGemini(q),
-    renderImprovements(scoreRes),
-    renderHygiene(scoreRes),
-    renderAgentActionability(scoreRes),
-  ];
-  $('opResult').innerHTML = parts.join('');
+
+  const header    = renderResultHeader(scoreRes, citeRes, q);
+  const citation  = renderCitation(citeRes);
+  const hygiene   = renderHygiene(scoreRes);
+  const improve   = renderImprovements(scoreRes);
+  const agent     = renderAgentActionability(scoreRes);
+  const gemini    = renderGemini(q);
+
+  const citeOk = citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine)
+    && citeRes.d.perEngine.some((p) => p.cited);
+  const strategyOrBannerHtml = citeRes && citeRes.d && citeRes.d.perEngine
+    ? (citeOk
+        ? `<div class="insight-banner insight-ok"><b>✅ AI 추천 확인</b> — 현재 ChatGPT·Perplexity에 이 치과가 인용되고 있습니다.</div>`
+        : renderContentStrategy(q))
+    : '';
+
+  $('opResult').innerHTML = `
+    ${header}
+    ${strategyOrBannerHtml}
+    <div class="result-grid">
+      <div>${citation}</div>
+      <div>${improve}${agent}</div>
+    </div>
+    <div class="accordion-wrap" style="margin-top:10px">
+      <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')">
+        <span>📊 GEO 준비도 세부 분석 (7신호 전체)</span><span class="accordion-arrow">▼</span>
+      </button>
+      <div class="accordion-body">${hygiene}</div>
+    </div>
+    <div class="accordion-wrap" style="margin-top:6px">
+      <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')">
+        <span>🔍 Gemini 수동 확인</span><span class="accordion-arrow">▼</span>
+      </button>
+      <div class="accordion-body">${gemini}</div>
+    </div>
+  `;
   show('opResult');
-  // animate score bar
   requestAnimationFrame(() => {
     const bar = document.querySelector('.score-bar-fill');
     if (bar) bar.style.width = bar.dataset.pct + '%';
   });
+}
+
+function renderContentStrategy(q) {
+  const region = (q && q.region) || '지역';
+  const proc   = (q && q.procedure) || '진료';
+  const items = [
+    {
+      num: '01',
+      label: '네이버 블로그 실명 포스팅',
+      desc: `"${region} 치과 ${proc} 후기", "추천 치과 방문기" 등 이 치과 이름이 명시된 블로그 글이 ChatGPT·Perplexity의 핵심 인용 소스입니다. lifeinsightspost.com 같은 헬스 콘텐츠 사이트가 치과를 언급한 기사를 AI가 그대로 인용하는 방식입니다.`,
+    },
+    {
+      num: '02',
+      label: '의료 미디어 기고 · 원장 인터뷰',
+      desc: '헬스조선·코메디닷컴·닥터Q 등 의료 전문 도메인에 원장님 이름·치과명이 함께 실린 기사나 인터뷰. 권위 있는 도메인의 언급은 AI 인용 가중치가 가장 높습니다.',
+    },
+    {
+      num: '03',
+      label: '지역 커뮤니티 자연 언급',
+      desc: `${region} 맘카페·지역 온라인 커뮤니티에서 치과 이름이 자연스럽게 거론될수록 AI가 "${region} 추천 치과"로 학습합니다. 직접 홍보 글보다 자연 언급이 효과적입니다.`,
+    },
+    {
+      num: '04',
+      label: '리뷰 플랫폼 · GBP 축적',
+      desc: '카카오맵·네이버 지도 리뷰 수·평점이 높을수록 AI가 신뢰받는 치과로 인식합니다. Google Business Profile 리뷰도 AI가 "지역 인기 치과"를 판단하는 제3자 신호입니다.',
+    },
+  ];
+
+  return `<div class="strategy-card">
+    <div class="strategy-card-hd">
+      <div class="strategy-card-icon">⚡</div>
+      <div>
+        <div class="strategy-card-title">AI 인용을 얻는 방법</div>
+        <div class="strategy-card-sub">기술 점수와 별개 · 외부 콘텐츠 언급이 핵심입니다</div>
+      </div>
+    </div>
+    <div class="strategy-card-lead">
+      ChatGPT·Perplexity는 치과 홈페이지를 직접 순위화하지 않습니다.<br>
+      <b>제3자 콘텐츠(블로그·기사·리뷰·커뮤니티)가 이 치과를 언급한 횟수</b>와 출처의 권위를 기준으로 추천합니다.<br>
+      기술 점수 89점이어도 외부 언급이 없으면 미인용 — 34점 사이트가 추천되는 이유입니다.
+    </div>
+    <div class="strategy-items">
+      ${items.map((it) => `<div class="strategy-item">
+        <div class="strategy-item-num">${esc(it.num)}</div>
+        <div class="strategy-item-body">
+          <div class="strategy-item-label">${esc(it.label)}</div>
+          <div class="strategy-item-desc">${esc(it.desc)}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
 }
 
 function renderGemini(q) {
@@ -289,6 +404,7 @@ $('opResult').addEventListener('click', (e) => {
 
 async function loadCompare(compDomain, compUrl) {
   const userBreakdown = lastScoreRes && lastScoreRes.d && lastScoreRes.d.breakdown;
+  const userSignals = lastScoreRes && lastScoreRes.d && lastScoreRes.d.signals;
   const userDomain = lastScoreRes && lastScoreRes.d && lastScoreRes.d.domain;
   const sec = $('compareSection');
   sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} 분석 중...</p></div>`;
@@ -306,10 +422,10 @@ async function loadCompare(compDomain, compUrl) {
     if (res && res.ok) compScore = res.d;
   } catch { /* ignore */ }
 
-  sec.innerHTML = renderCompare(userDomain, userBreakdown, compDomain, compScore);
+  sec.innerHTML = renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals);
 }
 
-function renderCompare(userDomain, userBreakdown, compDomain, compScore) {
+function renderCompare(userDomain, userBreakdown, compDomain, compScore, userSignals) {
   const compBreakdown = compScore && compScore.breakdown;
   const closeBtn = `<button type="button" onclick="document.getElementById('compareSection').classList.add('hidden')" class="chip" style="float:right;margin-left:8px">닫기 ✕</button>`;
   if (!userBreakdown || !compBreakdown) {
@@ -353,6 +469,19 @@ function renderCompare(userDomain, userBreakdown, compDomain, compScore) {
     ${same.map((g) => row(g.label, true, true, '')).join('')}` : ''}
     ${userBetter.length ? `<div class="compare-section-head" style="margin-top:14px">📌 이 치과만 있는 것 (${userBetter.length}개)</div>
     ${userBetter.map((g) => row(g.label, true, false, '')).join('')}` : ''}
+    ${(() => {
+      const uS = userSignals || {};
+      const cS = (compScore && compScore.signals) || {};
+      if (uS.hasStatistics === undefined && cS.hasStatistics === undefined) return '';
+      const gSigs = [
+        { label: '수치·통계 ≥2개', uVal: uS.hasStatistics, cVal: cS.hasStatistics },
+        { label: '인용문 (blockquote·따옴표)', uVal: uS.hasQuotations, cVal: cS.hasQuotations },
+        { label: '출처 표기 (cite·[1]·참고문헌)', uVal: uS.hasCitedSources, cVal: cS.hasCitedSources },
+      ];
+      return `<div class="compare-section-head" style="margin-top:14px">📝 콘텐츠 인용성 신호 (참고 지표)</div>
+      <div style="font-size:.78rem;color:var(--text-2);margin-bottom:6px">AI가 인용할 근거 콘텐츠 · 점수 외 참고용</div>
+      ${gSigs.map((g) => row(g.label, g.uVal, g.cVal, '')).join('')}`;
+    })()}
     <p class="muted small" style="margin-top:12px">기술 점수 비교 — AI 인용과 직접 인과관계 없음 (필요조건·위생 지표)</p>
   </div>`;
 }
@@ -360,9 +489,26 @@ function renderCompare(userDomain, userBreakdown, compDomain, compScore) {
 function renderResultHeader(scoreRes, citeRes, q) {
   const d = (citeRes && citeRes.d) || {};
   const domain = d.clinicDomain || lastUrl.replace(/^https?:\/\//,'').split('/')[0];
+  const sd = scoreRes && scoreRes.d;
+  const score = sd ? sd.score : null;
+  const band  = sd ? sd.band : null;
+  const bandColor = sd ? (sd.score >= 70 ? '#1fcec4' : sd.score >= 40 ? '#c9a84c' : '#f05e6a') : 'var(--text-2)';
+
+  const scoreHtml = score != null ? `
+    <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:18px">
+      <div style="text-align:left">
+        <div style="font-size:3.4rem;font-weight:800;line-height:1;letter-spacing:-.03em;background:linear-gradient(120deg,var(--gold-2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent">${score}<small style="font-size:1rem;color:var(--text-2);-webkit-text-fill-color:var(--text-2);font-weight:400">/100</small></div>
+        <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+          <span style="display:inline-block;font-weight:700;font-size:.78rem;padding:3px 10px;border-radius:999px;background:rgba(201,168,76,.13);color:var(--gold-2)">GEO 준비도</span>
+          <span style="font-size:.82rem;font-weight:700;color:${bandColor}">${esc(band)}</span>
+        </div>
+      </div>
+    </div>` : '';
+
   return `<div class="result-header">
     <div class="result-domain">${esc(domain)}</div>
     <div class="result-region">${esc(q.region || '')} ${esc(q.procedure || '')} · AI 추천 실측 리포트</div>
+    ${scoreHtml}
   </div>`;
 }
 
@@ -378,6 +524,8 @@ function renderCitation(citeRes) {
   const d = citeRes.d || {};
   if (d.status === 'pending') return card('AI 실측 — 비활성', `<p class="muted">${esc(d.message || 'CITATION_ENABLED 키 필요.')}</p>`);
   if (d.status === 'cap-reached') return card('AI 실측 — 한도 소진', `<p class="muted">${esc(d.message || '오늘 한도 소진.')}</p>`);
+  // Multi-region response
+  if (d.byRegion && Array.isArray(d.regions)) return renderRegionHitmap(d);
   const eng = Array.isArray(d.perEngine) ? d.perEngine : [];
   if (!eng.length) return card('AI 실측', '<p class="muted">측정 결과 없음.</p>');
 
@@ -410,40 +558,129 @@ function renderCitation(citeRes) {
 
   const logos = eng.map((p) => ENGINE_LOGO[p.engine] || '').filter(Boolean).join('');
   const note = `<p class="muted small" style="margin-top:12px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
+  const urlMatchHtml = d.citedUrlMatch ? renderCitedUrlMatch(d.citedUrlMatch) : '';
   return `<div class="card gate">
     <div class="engine-title-row">
       <div class="engine-title-logos">${logos}</div>
       <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
     </div>
     <div class="engine-grid">${cells}</div>
+    ${urlMatchHtml}
+    ${note}
+  </div>`;
+}
+
+function renderCitedUrlMatch(m) {
+  if (!m) return '';
+  const ICON = { exact: '✅', domain: '⚠️', none: '❌' };
+  const LABEL = {
+    exact: '목표 페이지 직접 인용됨',
+    domain: '홈/다른 페이지 인용 (목표 페이지 아님)',
+    none: '목표 페이지 미인용',
+  };
+  const icon = ICON[m.match] || '—';
+  const label = LABEL[m.match] || esc(m.match);
+  const pathsHtml = m.citedPaths && m.citedPaths.length
+    ? `인용된 경로: <code style="font-size:.75rem">${m.citedPaths.map(esc).join(', ')}</code>`
+    : '';
+  return `<div style="border-top:1px solid var(--border,rgba(255,255,255,.07));margin-top:14px;padding-top:12px;text-align:center">
+    <div style="font-size:.9rem;font-weight:700;margin-bottom:4px">${icon} ${label}</div>
+    <div class="muted" style="font-size:.8rem">입력 경로: <code style="font-size:.75rem">${esc(m.inputPath)}</code>&nbsp;&nbsp;${pathsHtml}</div>
+  </div>`;
+}
+
+function renderRegionHitmap(d) {
+  const regions = d.regions || [];
+  const byRegion = d.byRegion || {};
+  // Collect all engine keys that appear across any region
+  const engineSet = new Set();
+  for (const r of regions) {
+    for (const e of (byRegion[r]?.perEngine || [])) engineSet.add(e.engine);
+  }
+  const engines = [...engineSet];
+
+  const CELL_STYLE = {
+    cited: 'background:rgba(31,206,196,.15);color:#1fcec4',
+    notCited: 'background:rgba(240,94,106,.10);color:#f05e6a',
+    unmeasured: 'background:rgba(255,255,255,.05);color:#8da0bb',
+  };
+
+  const headerCols = engines.map((e) => `<th style="padding:6px 10px;font-size:.78rem;font-weight:600;color:var(--text-2)">${esc(ENGINE_SHORT[e] || e)}</th>`).join('');
+  const rows = regions.map((r) => {
+    const panel = byRegion[r] || {};
+    if (panel.error) {
+      const errCell = `<td colspan="${engines.length}" style="padding:6px 10px;font-size:.8rem;color:#f05e6a">오류: ${esc(panel.error)}</td>`;
+      return `<tr><th style="padding:6px 10px;font-size:.85rem;font-weight:600;white-space:nowrap">${esc(r)}</th>${errCell}</tr>`;
+    }
+    const cells = engines.map((e) => {
+      const ep = (panel.perEngine || []).find((x) => x.engine === e);
+      if (!ep || !ep.measured) {
+        return `<td style="padding:6px 10px;text-align:center;${CELL_STYLE.unmeasured}">—</td>`;
+      }
+      const icon = ep.cited ? '✅' : '❌';
+      const stat = `${ep.citedRuns}/${ep.validRuns}`;
+      const style = ep.cited ? CELL_STYLE.cited : CELL_STYLE.notCited;
+      return `<td style="padding:6px 10px;text-align:center;${style}"><span style="font-size:1rem">${icon}</span><div style="font-size:.7rem;margin-top:2px">${stat}</div></td>`;
+    }).join('');
+    return `<tr><th style="padding:6px 10px;font-size:.85rem;font-weight:600;white-space:nowrap">${esc(r)}</th>${cells}</tr>`;
+  }).join('');
+
+  const table = `<div style="overflow-x:auto;margin-top:10px">
+    <table style="width:100%;border-collapse:collapse;border-spacing:0">
+      <thead><tr><th style="padding:6px 10px;text-align:left;font-size:.78rem;color:var(--text-2)">지역</th>${headerCols}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+
+  const costHtml = d.costNote
+    ? `<p class="muted small" style="margin-top:10px;text-align:right">${esc(d.costNote)}</p>`
+    : '';
+  const note = `<p class="muted small" style="margin-top:6px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
+  return `<div class="card gate">
+    <b style="font-size:1rem">AI 실측 — 지역별 인용 현황 (${regions.length}개 지역)</b>
+    ${table}
+    ${costHtml}
     ${note}
   </div>`;
 }
 
 function renderImprovements(scoreRes) {
   const fixes = (scoreRes && scoreRes.d && scoreRes.d.topFixes) || [];
-  const provenItem = `<li class="action-item">
-    <div class="action-num">1</div>
-    <div class="action-body">
-      <div class="action-title">콘텐츠에 출처·통계·전문의 인용 추가</div>
-      <div class="action-desc">진료 페이지 본문에 "연구에 따르면…", 의료진 자격·경력, 실제 수치를 넣습니다. AI가 신뢰할 수 있는 콘텐츠로 인식합니다.</div>
-      <span class="action-tag tag-proven">인과 입증된 유일 레버</span>
-    </div>
-  </li>`;
-  const hygieneItems = fixes.map((f, i) => `<li class="action-item">
-    <div class="action-num">${i + 2}</div>
-    <div class="action-body">
-      <div class="action-title">${esc(f.fix)}</div>
-      <div class="action-desc">${esc(f.note || '검색엔진·AI 크롤러가 사이트를 더 잘 읽을 수 있게 됩니다.')}</div>
-      <span class="action-tag tag-hygiene">위생 개선 +${f.gain}점</span>
-    </div>
-  </li>`).join('');
-  return `<div class="card">
-    <b style="font-size:1rem">개선 실행 목록</b>
-    <p class="muted small" style="margin:6px 0 12px">우선순위 순서입니다. 1번이 AI 인용에 가장 직접적인 영향을 줍니다.</p>
-    <ul class="action-list">${provenItem}${hygieneItems}</ul>
-    <p class="muted small" style="margin-top:10px">2번 이하 항목은 홈페이지 구조 개선이며 인용을 직접 보장하지 않습니다.</p>
-  </div>`;
+  const TH = 'padding:8px 10px;font-size:.75rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border,rgba(255,255,255,.07));text-align:left;white-space:nowrap';
+  const TD = 'padding:8px 10px;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top';
+
+  const provenRow = `<tr style="background:rgba(31,206,196,.05)">
+    <td style="${TD};text-align:center;font-weight:800;color:var(--teal)">1</td>
+    <td style="${TD}"><span style="font-weight:700">콘텐츠에 출처·통계·전문의 인용 추가</span>
+      <div style="font-size:.78rem;color:var(--text-2);margin-top:3px">진료 페이지 본문에 "연구에 따르면…", 의료진 자격·경력, 실제 수치를 넣습니다</div>
+    </td>
+    <td style="${TD};white-space:nowrap"><span class="action-tag tag-proven">인과 입증 레버</span></td>
+    <td style="${TD};text-align:right;color:var(--teal);font-weight:700">최우선</td>
+  </tr>`;
+
+  const hygieneRows = fixes.map((f, i) => `<tr>
+    <td style="${TD};text-align:center;color:var(--text-2)">${i + 2}</td>
+    <td style="${TD}"><span style="font-weight:600">${esc(f.fix)}</span>
+      <div style="font-size:.78rem;color:var(--text-2);margin-top:3px">${esc(f.note || '검색엔진·AI 크롤러가 사이트를 더 잘 읽을 수 있게 됩니다.')}</div>
+    </td>
+    <td style="${TD};white-space:nowrap"><span class="action-tag tag-hygiene">위생</span></td>
+    <td style="${TD};text-align:right;color:var(--gold-2);font-weight:700">+${f.gain}점</td>
+  </tr>`).join('');
+
+  const table = `<div style="overflow-x:auto;margin-top:10px">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="${TH};text-align:center;width:32px">#</th>
+        <th style="${TH}">실행 항목</th>
+        <th style="${TH}">유형</th>
+        <th style="${TH};text-align:right">효과</th>
+      </tr></thead>
+      <tbody>${provenRow}${hygieneRows}</tbody>
+    </table>
+  </div>
+  <p class="muted small" style="margin-top:8px">1번이 AI 인용에 가장 직접적인 영향을 줍니다. 2번 이하는 홈페이지 구조 개선이며 인용을 직접 보장하지 않습니다.</p>`;
+
+  return `<div class="card"><b style="font-size:1rem">개선 실행 목록</b>${table}</div>`;
 }
 
 function renderAgentActionability(scoreRes) {
@@ -454,49 +691,103 @@ function renderAgentActionability(scoreRes) {
 function renderHygiene(scoreRes) {
   if (!scoreRes || !scoreRes.ok) {
     const reason = scoreRes && scoreRes.d && (scoreRes.d.reason || scoreRes.d.message);
-    return `<details class="card"><summary><b>홈페이지 기술 점수</b> — 측정 불가</summary><p class="muted" style="margin-top:8px">${reason ? esc(reason) : '분석 불가'}</p></details>`;
+    return card('GEO 준비도 분석', `<p class="muted">${reason ? esc(reason) : '분석 불가'}</p>`);
   }
   const d = scoreRes.d;
+  const s = d.signals || {};
+  const j = d.jsonld || {};
   const pctVal = Math.round((d.score / 100) * 100);
   const bandLabel = d.score >= 70 ? '양호' : d.score >= 40 ? '개선 필요' : '시급';
-  const bandColor = d.score >= 70 ? 'var(--teal)' : d.score >= 40 ? 'var(--gold-2)' : 'var(--amber)';
+  const bandColor = d.score >= 70 ? 'var(--teal)' : d.score >= 40 ? 'var(--gold-2)' : '#f05e6a';
 
-  const checks = (d.breakdown || []).map((x) => {
-    const iconCls = x.status === 'ok' ? 'icon-ok' : x.status === 'warn' ? 'icon-warn' : 'icon-fail';
-    const icon = x.status === 'ok' ? '✓' : x.status === 'warn' ? '!' : '✗';
-    return `<div class="check-row">
-      <div class="check-icon ${iconCls}">${icon}</div>
-      <div class="check-text">
-        <span class="check-label">${esc(x.label)}</span>
-        ${x.why ? `<span class="check-why">${esc(x.why)}</span>` : ''}
-      </div>
-      <span class="check-pts">${x.points}/${x.max}</span>
-    </div>`;
-  }).join('');
+  const LAYER_STYLE = {
+    SEO: 'background:#1a3a5c;color:#7ab8f5',
+    AEO: 'background:#0f3a35;color:#1fcec4',
+    GEO: 'background:#3a2a00;color:#c9a84c',
+  };
+  const badge = (layer) => {
+    const s = layer && LAYER_STYLE[layer] ? LAYER_STYLE[layer] : '';
+    return s ? `<span style="display:inline-block;font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:3px;${s}">${esc(layer)}</span>` : '';
+  };
 
-  const metaItems = [
-    { label: 'llms.txt 파일', val: d.hasLlmsTxt, note: 'AI 전용 색인 파일 있음' },
-    { label: 'Google Maps', val: d.hasMapEmbed, note: '지도 삽입 있음' },
-    { label: '비급여 가격 안내', val: d.hasPriceInfo, note: '가격 키워드 감지됨' },
-  ].map((m) => `<div class="check-row">
-    <div class="check-icon ${m.val ? 'icon-ok' : 'icon-fail'}">${m.val ? '✓' : '○'}</div>
-    <div class="check-text"><span class="check-label">${esc(m.label)}</span>${m.val ? `<span class="check-why">${esc(m.note)}</span>` : ''}</div>
-    <span class="check-pts" style="color:var(--text-2);font-size:.75rem">참고</span>
-  </div>`).join('');
+  const TH = 'padding:8px 10px;font-size:.75rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border,rgba(255,255,255,.07));text-align:left;white-space:nowrap';
+  const TD = 'padding:8px 10px;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top';
+  const statusCell = (ok, warn) => {
+    if (ok)   return `<td style="${TD};color:#1fcec4;font-weight:700;text-align:center">✓</td>`;
+    if (warn) return `<td style="${TD};color:#c9a84c;font-weight:700;text-align:center">!</td>`;
+    return           `<td style="${TD};color:#f05e6a;font-weight:700;text-align:center">✗</td>`;
+  };
 
-  const body = `<div class="score-visual">
+  // ── Section 1: 기술 위생 ──────────────────────────────────────
+  const hygieneRows = (d.breakdown || []).map((x) => `<tr>
+    <td style="${TD}">${esc(x.label)} ${badge(x.layer)}</td>
+    ${statusCell(x.status === 'ok', x.status === 'warn')}
+    <td style="${TD};text-align:right;color:var(--text-2);white-space:nowrap">${x.points}/${x.max}</td>
+    <td style="${TD};color:var(--text-2);font-size:.78rem">${x.why ? esc(x.why) : ''}</td>
+  </tr>`).join('');
+
+  // ── Section 2: 콘텐츠 인용성 신호 ───────────────────────────
+  const geoSigs = [
+    { val: s.hasStatistics,      label: '수치·통계 ≥2개',               layer: 'GEO', note: 'AI 인용 +33% (KDD 2024)' },
+    { val: s.hasQuotations,      label: '인용문 (blockquote·따옴표)',    layer: 'GEO', note: 'AI 인용 +41% (KDD 2024)' },
+    { val: s.hasCitedSources,    label: '출처 표기 (cite·[1]·참고문헌)', layer: 'GEO', note: 'AI 인용 +27% (KDD 2024)' },
+    { val: j.hasSameAsAuthority, label: 'SameAs 권위 URL',               layer: 'AEO', note: 'Wikidata·건강보험공단·의협' },
+    { val: j.hasAggregateRating, label: 'AggregateRating 스키마',        layer: 'AEO', note: '리뷰 점수 구조화' },
+    { val: j.hasMedicalWebPage,  label: 'MedicalWebPage 스키마',         layer: 'AEO', note: '의료 페이지 타입 명시' },
+  ];
+  const geoRows = geoSigs.map((x) => `<tr>
+    <td style="${TD}">${esc(x.label)} ${badge(x.layer)}</td>
+    ${statusCell(x.val, false)}
+    <td style="${TD};text-align:right;color:var(--text-2);font-size:.75rem;white-space:nowrap">참고</td>
+    <td style="${TD};color:var(--text-2);font-size:.78rem">${esc(x.note)}</td>
+  </tr>`).join('');
+
+  // ── Section 3: 추가 메타 ─────────────────────────────────────
+  const metaSigs = [
+    { val: d.hasLlmsTxt,    label: 'llms.txt',        layer: 'GEO', note: 'AI 전용 색인 파일' },
+    { val: d.hasMapEmbed,   label: 'Google Maps 삽입', layer: 'SEO', note: '위치 신호 강화' },
+    { val: d.hasPriceInfo,  label: '비급여 가격 안내', layer: 'AEO', note: '가격 키워드 감지' },
+  ];
+  const metaRows = metaSigs.map((x) => `<tr>
+    <td style="${TD}">${esc(x.label)} ${badge(x.layer)}</td>
+    ${statusCell(x.val, false)}
+    <td style="${TD};text-align:right;color:var(--text-2);font-size:.75rem;white-space:nowrap">참고</td>
+    <td style="${TD};color:var(--text-2);font-size:.78rem">${esc(x.note)}</td>
+  </tr>`).join('');
+
+  const sectionHead = (text) =>
+    `<tr><td colspan="4" style="padding:10px 10px 4px;font-size:.72rem;font-weight:700;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border,rgba(255,255,255,.07))">${text}</td></tr>`;
+
+  const table = `<div style="overflow-x:auto;margin-top:14px">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="${TH}">항목</th>
+        <th style="${TH};text-align:center">상태</th>
+        <th style="${TH};text-align:right">점수</th>
+        <th style="${TH}">설명</th>
+      </tr></thead>
+      <tbody>
+        ${sectionHead('기술 위생 (크롤러·AI 접근성)')}
+        ${hygieneRows}
+        ${sectionHead('콘텐츠 인용성 신호')}
+        ${geoRows}
+        ${sectionHead('추가 메타')}
+        ${metaRows}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small" style="margin-top:8px">기술 점수 = 위생 합계. GEO·AEO 행은 점수에 포함되지 않는 참고 지표입니다.</p>`;
+
+  const scoreBar = `<div class="score-visual" style="margin-bottom:0">
     <div class="score-big">${d.score}<small>/100</small></div>
     <div class="score-meaning">
       <span style="font-weight:700;color:${bandColor}">${bandLabel}</span>
       <div class="score-bar-wrap"><div class="score-bar-fill" data-pct="${pctVal}" style="width:0%"></div></div>
       <div class="muted small" style="margin-top:4px">AI가 이 사이트를 읽고 추출할 수 있는 준비 수준</div>
     </div>
-  </div>
-  ${checks}
-  <p class="muted small" style="margin:10px 0 4px;text-align:center">─ 추가 확인 항목 ─</p>
-  ${metaItems}`;
+  </div>`;
 
-  return `<details class="card"><summary><b style="font-size:.95rem">홈페이지 기술 점수 ${d.score}/100</b> <span class="muted small">(클릭해서 세부 항목 보기)</span></summary><div style="margin-top:14px">${body}</div></details>`;
+  return `<div class="card">${scoreBar}${table}</div>`;
 }
 
 function card(title, bodyHtml, cls) {

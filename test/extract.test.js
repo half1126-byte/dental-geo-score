@@ -166,3 +166,69 @@ test('procedureGuess detects + ranks by frequency (RICH → 임플란트 top)', 
   assert.equal(p[0].q, '임플란트');
   assert.ok(p[0].hits >= 2);
 });
+
+// GEO content citability signals (KDD 2024: statistics +33%, quotations +41%, citations +27%)
+
+test('hasStatistics: ≥2 numeric measurements in p/li text → true', () => {
+  const html = `<html><body>${PAD}
+    <p>임플란트 10년 생존율은 98%이며 성공 사례는 3,200례 이상입니다.</p>
+    <p>평균 수술 시간 45분, 보조금 지원 최대 350만 원.</p>
+  </body></html>`;
+  assert.equal(extractSignals(html).hasStatistics, true);
+});
+
+test('hasStatistics: single numeric measurement → false', () => {
+  const html = `<html><body>${PAD}<p>임플란트 수술 일반 안내입니다. 자세한 사항은 상담을 통해 확인하세요.</p></body></html>`;
+  assert.equal(extractSignals(html).hasStatistics, false);
+});
+
+test('hasQuotations: <blockquote> present → true', () => {
+  const html = `<html><body>${PAD}<blockquote>임플란트는 현대 치과의 가장 중요한 치료법 중 하나입니다.</blockquote></body></html>`;
+  assert.equal(extractSignals(html).hasQuotations, true);
+});
+
+test('hasQuotations: corner-bracket quoted text ≥20 chars → true', () => {
+  const html = `<html><body>${PAD}<p>원장이 말했다: 「임플란트 치료는 전문의와 충분한 상담 후 결정하는 것이 중요합니다」</p></body></html>`;
+  assert.equal(extractSignals(html).hasQuotations, true);
+});
+
+test('hasQuotations: no blockquote, no curly/corner quotes → false', () => {
+  const html = `<html><body>${PAD}<p>임플란트 안내 페이지입니다. 자세한 내용은 상담을 통해 확인하세요.</p></body></html>`;
+  assert.equal(extractSignals(html).hasQuotations, false);
+});
+
+test('hasCitedSources: <cite> tag → true', () => {
+  const html = `<html><body>${PAD}<p>임플란트 연구 결과 (<cite>대한치과의사협회, 2024</cite>)</p></body></html>`;
+  assert.equal(extractSignals(html).hasCitedSources, true);
+});
+
+test('hasCitedSources: [1] footnote marker → true', () => {
+  const html = `<html><body>${PAD}<p>임플란트 10년 성공률은 95% 이상입니다[1]. 국내 통계 기준.</p></body></html>`;
+  assert.equal(extractSignals(html).hasCitedSources, true);
+});
+
+test('hasCitedSources: 참고문헌 heading → true', () => {
+  const html = `<html><body>${PAD}<h3>참고문헌</h3><p>대한치과의사협회 가이드라인 2024</p></body></html>`;
+  assert.equal(extractSignals(html).hasCitedSources, true);
+});
+
+test('hasCitedSources: no cite/marker/heading → false', () => {
+  const html = `<html><body>${PAD}<p>임플란트 치료에 대한 일반적인 안내입니다.</p></body></html>`;
+  assert.equal(extractSignals(html).hasCitedSources, false);
+});
+
+test('hasSameAsAuthority: JSON-LD sameAs wikidata.org → true', () => {
+  const html = `<html><head><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Dentist","name":"테스트치과",
+     "sameAs":"https://www.wikidata.org/wiki/Q12345678"}
+  </script></head><body>${PAD}</body></html>`;
+  assert.equal(extractSignals(html).jsonld.hasSameAsAuthority, true);
+});
+
+test('hasSameAsAuthority: sameAs non-authority domain → false', () => {
+  const html = `<html><head><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Dentist","name":"테스트치과",
+     "sameAs":"https://example-clinic.co.kr/about"}
+  </script></head><body>${PAD}</body></html>`;
+  assert.equal(extractSignals(html).jsonld.hasSameAsAuthority, false);
+});

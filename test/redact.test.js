@@ -92,3 +92,34 @@ test('wilson: 5/5 high bound is 1, low < 1 (not false certainty)', () => {
   assert.equal(ci.high, 1);
   assert.ok(ci.low < 1, 'lower bound must be < 1 for small n');
 });
+
+// --- citedUrlMatch path comparison ---
+
+test('citedUrlMatch: exact path match → match "exact"', () => {
+  const priv = toPrivateReport(panel, 'https://myclinic.co.kr/implant');
+  assert.equal(priv.citedUrlMatch.match, 'exact');
+  assert.equal(priv.citedUrlMatch.inputPath, '/implant');
+  assert.ok(priv.citedUrlMatch.citedPaths.includes('/implant'));
+});
+
+test('citedUrlMatch: homepage cited when target is /implant → match "domain"', () => {
+  const homePanel = {
+    ...panel,
+    perEngine: [{ ...panel.perEngine[0], evidence: [{ engine: 'chatgpt', prompt: '...', matchedUrls: ['https://myclinic.co.kr/'], measuredAt: 't' }] }],
+  };
+  const priv = toPrivateReport(homePanel, 'https://myclinic.co.kr/implant');
+  assert.equal(priv.citedUrlMatch.match, 'domain');
+  assert.equal(priv.citedUrlMatch.inputPath, '/implant');
+});
+
+test('citedUrlMatch: no matchedUrls anywhere → match "none"', () => {
+  const noMatchPanel = { ...panel, perEngine: [{ ...panel.perEngine[0], evidence: [] }] };
+  const priv = toPrivateReport(noMatchPanel, 'https://myclinic.co.kr/implant');
+  assert.equal(priv.citedUrlMatch.match, 'none');
+  assert.deepEqual(priv.citedUrlMatch.citedPaths, []);
+});
+
+test('citedUrlMatch: no inputUrl → field absent (backward compat)', () => {
+  const priv = toPrivateReport(panel);
+  assert.equal('citedUrlMatch' in priv, false);
+});

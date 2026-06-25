@@ -65,6 +65,20 @@ test('malformed response never throws', () => {
   assert.deepEqual(extractCitedUrls('perplexity', { search_results: 'bad' }), []);
 });
 
+test('allCitedDomains uses eTLD+1 (consistent with isClinicCited match logic)', () => {
+  // www.example.co.kr and example.co.kr/page should collapse to the same registrable domain
+  const resp = { output: [{ type: 'message', content: [{ type: 'output_text', annotations: [
+    { type: 'url_citation', url: 'https://www.haruplant.co.kr/implant' },
+    { type: 'url_citation', url: 'https://haruplant.co.kr/' },
+    { type: 'url_citation', url: 'https://other-clinic.co.kr/about' },
+  ] }] }] };
+  const result = isClinicCited('chatgpt', resp, 'haruplant.co.kr');
+  // haruplant.co.kr appears twice but deduped to one registrable domain
+  assert.equal(result.allCitedDomains.filter((d) => d === 'haruplant.co.kr').length, 1,
+    'www.haruplant.co.kr and haruplant.co.kr should collapse to single eTLD+1 entry');
+  assert.equal(result.allCitedDomains.length, 2, 'haruplant.co.kr + other-clinic.co.kr = 2 distinct domains');
+});
+
 test('checklists: GBP + Place present with required fields', () => {
   assert.equal(CHECKLISTS.length, 2);
   for (const cl of [GBP_CHECKLIST, PLACE_CHECKLIST]) {

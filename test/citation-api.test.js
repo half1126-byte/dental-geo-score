@@ -107,6 +107,84 @@ test('queries param: valid array → cache key changes (different from no-querie
   assert.equal(out.json.status, 'pending');
 });
 
+// --- Multi-region ---
+
+test('regions[] overrides region; not-enabled → 202 with regions echoed', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  const { req, res, out } = mk('POST', { url: 'https://x.co.kr', regions: ['강남', '서초', '송파'] }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  assert.equal(out.status, 202);
+  assert.equal(out.json.status, 'pending');
+  assert.deepEqual(out.json.regions, ['강남', '서초', '송파']);
+});
+
+test('regions[] clamped to 5; not-enabled → 202', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  const { req, res, out } = mk('POST', { url: 'https://x.co.kr', regions: ['강남', '서초', '송파', '강서', '마포', '영등포'] }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  assert.equal(out.status, 202);
+  // 6 regions → clamped to 5 (echoed in json)
+  assert.equal((out.json.regions || []).length, 5, 'clamped to max 5');
+});
+
+test('regions: empty strings filtered out; single valid → single-region path (no .regions in 202)', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  const { req, res, out } = mk('POST', { url: 'https://x.co.kr', regions: ['  ', '', '강남'] }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  assert.equal(out.status, 202);
+  // Only 1 non-empty → single-region path → .regions NOT echoed
+  assert.equal(out.json.regions, undefined, 'single region → no regions field');
+});
+
+test('regions: all empty strings → single-region fallback (no .regions in 202)', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  const { req, res, out } = mk('POST', { url: 'https://x.co.kr', regions: ['  ', ''] }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  assert.equal(out.status, 202);
+  assert.equal(out.json.regions, undefined);
+});
+
+// --- per-IP rate limiting ---
+
+test('per-IP cap: 429 after exceeding PER_IP_DAILY_CAP (public path, unique IPs per domain)', async () => {
+  clearEnv();
+  process.env.CITATION_ENABLED = 'true';
+  process.env.OPENAI_API_KEY = 'x';
+  process.env.PER_IP_DAILY_CAP = '1';
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+
+  // Use unique IP + unique domains to avoid cache hits between requests in this test
+  const ip = '10.99.77.1'; // unique to this test — not used elsewhere
+  const { req: r1, res: s1, out: o1 } = mk('POST', { url: 'https://ip-test-a.co.kr', email: 'a@b.co' }, { 'x-forwarded-for': ip });
+  await handler(r1, s1);
+  // First request: live path (fetch fails → 200 or 500, per-IP counter = 1)
+  assert.ok([200, 500].includes(o1.status), `first req: ${o1.status}`);
+
+  // Second request from SAME IP, DIFFERENT domain → cache miss → per-IP counter = 2 > 1 → 429
+  const { req: r2, res: s2, out: o2 } = mk('POST', { url: 'https://ip-test-b.co.kr', email: 'a@b.co' }, { 'x-forwarded-for': ip });
+  await handler(r2, s2);
+  assert.equal(o2.status, 429, 'second unique-domain request should be rate-limited');
+  assert.equal(o2.json.error, 'rate-limited');
+
+  global.fetch = origFetch;
+});
+
+test('per-IP cap: operator bypasses IP limit regardless of PER_IP_DAILY_CAP', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  process.env.PER_IP_DAILY_CAP = '0'; // cap=0 means disabled, operators always bypass anyway
+  const { req, res, out } = mk('POST', { url: 'https://x.co.kr' }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  // Not enabled → 202 pending (NOT 429)
+  assert.equal(out.status, 202);
+  assert.equal(out.json.status, 'pending');
+});
+
 // Cache-hit path: inject a store with a pre-populated cache entry so runCitationPanel is never reached.
 test('cache hit returns 200 with cached:true (no live call)', async () => {
   clearEnv();
@@ -127,5 +205,85 @@ test('cache hit returns 200 with cached:true (no live call)', async () => {
   await handler(req, res);
   // With a failed fetch stub, runCitationPanel returns all-error perEngine → 200 private view
   assert.ok(out.status === 200 || out.status === 500, `expected 200 or 500, got ${out.status}`);
+  global.fetch = origFetch;
+});
+
+// --- DAILY_CITATION_CAP ---
+
+test('DAILY_CITATION_CAP: second request over cap returns 202 cap-reached', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  process.env.CITATION_ENABLED = 'true';
+  process.env.OPENAI_API_KEY = 'x';
+  process.env.DAILY_CITATION_CAP = '1';
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+
+  // First request (unique domain): daily counter → 1 == cap; runs live panel → 200/500
+  const { req: r1, res: s1, out: o1 } = mk('POST', { url: 'https://daycap-a.co.kr', region: '강남' }, { 'x-operator-key': 'k' });
+  await handler(r1, s1);
+  assert.ok([200, 500].includes(o1.status), `first req: ${o1.status}`);
+
+  // Second request (different domain → cache miss): daily counter → 2 > 1 → 202 cap-reached
+  const { req: r2, res: s2, out: o2 } = mk('POST', { url: 'https://daycap-b.co.kr', region: '강남' }, { 'x-operator-key': 'k' });
+  await handler(r2, s2);
+  assert.equal(o2.status, 202, `second request should be cap-reached 202, got ${o2.status}`);
+  assert.equal(o2.json.status, 'cap-reached');
+
+  global.fetch = origFetch;
+});
+
+// --- multi-region cache hit ---
+
+test('multi-region: second identical request returns cached:true (200)', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  process.env.CITATION_ENABLED = 'true';
+  process.env.OPENAI_API_KEY = 'x';
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+
+  // unique domain + regions — avoids cache pollution from other tests
+  const body = { url: 'https://multiregion-cachetest.co.kr', regions: ['마포', '은평'] };
+  const hdr = { 'x-operator-key': 'k' };
+
+  // First request: cache miss → runCitationPanel (stubbed 503 → error panels, not a throw) → 200 cached
+  const { req: r1, res: s1, out: o1 } = mk('POST', body, hdr);
+  await handler(r1, s1);
+  assert.equal(o1.status, 200, `first request must be 200; got ${o1.status}`);
+  assert.equal(o1.json.cached, undefined, 'first request is live, not a cache hit');
+
+  // Second identical request: cache hit → 200 with cached:true
+  const { req: r2, res: s2, out: o2 } = mk('POST', body, hdr);
+  await handler(r2, s2);
+  assert.equal(o2.status, 200);
+  assert.equal(o2.json.cached, true, 'second identical multi-region request must be a cache hit');
+
+  global.fetch = origFetch;
+});
+
+// --- buildCostNote (via multi-region response) ---
+
+test('buildCostNote: multi-region response costNote shows region × engine × query format', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  process.env.CITATION_ENABLED = 'true';
+  process.env.OPENAI_API_KEY = 'x';
+  // Only OPENAI key → 1 engine; default 3 queries; 3 regions → $3×1×3×0.06=$0.54
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+
+  const { req, res, out } = mk('POST', {
+    url: 'https://costnote-test.co.kr',
+    regions: ['강남', '서초', '송파'],
+  }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+
+  assert.equal(out.status, 200, `expected 200, got ${out.status}`);
+  assert.ok(typeof out.json.costNote === 'string', 'costNote must be a string');
+  assert.ok(out.json.costNote.includes('3지역'), `costNote: ${out.json.costNote}`);
+  assert.ok(out.json.costNote.includes('엔진'), `costNote: ${out.json.costNote}`);
+  assert.ok(out.json.costNote.includes('$'), `costNote: ${out.json.costNote}`);
+
   global.fetch = origFetch;
 });
