@@ -14,6 +14,7 @@ let lastUrl = '';
 let selectedProcedure = '';
 let geminiVerdicts = [];
 let selectedQueries = []; // strings selected by operator for measurement (max 3)
+let selectedRegions = []; // for multi-region sweep (max 5)
 
 $('regionList').innerHTML = REGION_TERMS.map((r) => `<option value="${esc(r)}">`).join('');
 
@@ -128,6 +129,8 @@ $('opBtn').addEventListener('click', async () => {
 });
 
 function populateConfirm(d) {
+  selectedRegions = []; // reset on new URL
+  renderRegionChips();
   const g = d.locationGuess;
   $('opRegion').value = (g && g.region) || '';
   const hint = $('opRegionHint');
@@ -175,9 +178,40 @@ $('opProcAdd').addEventListener('keydown', (e) => {
 });
 
 $('opRegion').addEventListener('input', updateQueryChips);
+$('opRegion').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addRegionChip(); } });
+$('opRegionAddBtn').addEventListener('click', addRegionChip);
+
+function addRegionChip() {
+  const v = $('opRegion').value.trim();
+  if (!v || selectedRegions.includes(v)) return;
+  if (selectedRegions.length >= 5) return;
+  selectedRegions = [...selectedRegions, v];
+  renderRegionChips();
+  updateQueryChips();
+}
+
+function removeRegionChip(r) {
+  selectedRegions = selectedRegions.filter((x) => x !== r);
+  renderRegionChips();
+  updateQueryChips();
+}
+
+function renderRegionChips() {
+  const wrap = $('opRegionChips');
+  if (!wrap) return;
+  if (!selectedRegions.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = selectedRegions.map((r) =>
+    `<span class="chip on" style="gap:6px">${esc(r)}<button type="button" data-rmregion="${esc(r)}" style="background:none;border:none;cursor:pointer;color:inherit;font-size:.8rem;padding:0;line-height:1">✕</button></span>`
+  ).join('');
+}
+
+$('opRegionChips') && document.body.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-rmregion]'); if (!btn) return;
+  removeRegionChip(btn.getAttribute('data-rmregion'));
+});
 
 function updateQueryChips() {
-  const region = $('opRegion').value.trim();
+  const region = selectedRegions.length ? selectedRegions[0] : $('opRegion').value.trim();
   const variants = allQueryVariants({ district: region, procedure: selectedProcedure });
   // default: first 3 selected (reset on region/procedure change)
   selectedQueries = variants.slice(0, 3);
@@ -223,18 +257,29 @@ $('opMeasureBtn').addEventListener('click', async () => {
   const key = localStorage.getItem('opKey') || '';
   const region = $('opRegion').value.trim();
   const procedure = selectedProcedure;
-  if (!region && !procedure) { showError('지역 또는 진료를 입력해주세요.'); return; }
+  const isMultiRegion = selectedRegions.length > 1;
+  const effectiveRegion = selectedRegions.length === 1 ? selectedRegions[0] : region;
+  if (!effectiveRegion && !selectedRegions.length && !procedure) { showError('지역 또는 진료를 입력해주세요.'); return; }
 
   hide('opError'); hide('opResult');
-  $('opLoadMsg').textContent = 'ChatGPT·Perplexity에 실제 질의 중 (최대 1~2분)...';
+  if (isMultiRegion) {
+    const nEng = 2; const nQ = selectedQueries.length || 3;
+    const approx = (selectedRegions.length * nEng * nQ * 0.06).toFixed(2);
+    $('opLoadMsg').textContent = `${selectedRegions.length}개 지역 × ${nEng}엔진 × ${nQ}쿼리 ≈ $${approx} — 측정 중...`;
+  } else {
+    $('opLoadMsg').textContent = 'ChatGPT·Perplexity에 실제 질의 중 (최대 1~2분)...';
+  }
   show('opLoading');
   $('opMeasureBtn').disabled = true; $('opMeasureBtn').textContent = '측정 중...';
   try {
     const headers = { 'content-type': 'application/json', 'x-operator-key': key };
     const queriesToSend = selectedQueries.length > 0 ? selectedQueries : undefined;
+    const body = isMultiRegion
+      ? { url: lastUrl, regions: selectedRegions, procedure, queries: queriesToSend }
+      : { url: lastUrl, region: effectiveRegion, procedure, queries: queriesToSend };
     const citeRes = await fetch('/api/citation', {
       method: 'POST', headers,
-      body: JSON.stringify({ url: lastUrl, region, procedure, queries: queriesToSend }),
+      body: JSON.stringify(body),
     }).then((r) => r.json().then((d) => ({ ok: r.ok, status: r.status, d }))).catch(() => null);
     hide('opLoading');
     if (citeRes && citeRes.status === 401) {
@@ -245,7 +290,7 @@ $('opMeasureBtn').addEventListener('click', async () => {
       showError('패스코드가 맞지 않습니다. ① 패스코드를 다시 입력해주세요.<br><small style="color:var(--text-2)">.env.local의 <code>OPERATOR_KEY=</code> 값을 확인하세요 (OpenAI/Perplexity API 키가 아닙니다)</small>');
       return;
     }
-    render(lastScoreRes, citeRes, { region, procedure });
+    render(lastScoreRes, citeRes, { region: isMultiRegion ? selectedRegions.join('·') : (effectiveRegion || region), procedure });
   } catch {
     hide('opLoading'); showError('네트워크 오류. 잠시 후 다시.');
   } finally {

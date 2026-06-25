@@ -400,10 +400,14 @@
         </div>
       </div>
 
-      <label>측정 지역</label>
-      <input type="text" id="opRegion" list="regionList" placeholder="예: 강남, 서초, 마포" />
+      <label>측정 지역 <span class="muted" style="font-weight:400;font-size:.78rem">— 여러 지역을 추가하면 지역별 비교 히트맵을 봅니다 (최대 5개)</span></label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="opRegion" list="regionList" placeholder="예: 강남" style="flex:1" />
+        <button type="button" id="opRegionAddBtn" class="btn" style="padding:10px 14px;font-size:.84rem;white-space:nowrap">추가</button>
+      </div>
       <datalist id="regionList"></datalist>
       <div class="region-hint" id="opRegionHint"></div>
+      <div class="chip-wrap" id="opRegionChips" style="margin-top:8px"></div>
 
       <label>진료 과목</label>
       <div class="chip-wrap" id="opProcChips"><span class="muted small">감지 중...</span></div>
