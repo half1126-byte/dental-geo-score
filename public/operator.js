@@ -574,6 +574,23 @@ const ENGINE_LOGO = {
 };
 const ENGINE_SHORT = { chatgpt: 'ChatGPT', perplexity: 'Perplexity', claude: 'Claude' };
 
+function renderNaverLocal(d) {
+  const nl = d && d.naverLocal;
+  if (!nl) return '';
+  const icon = nl.cited ? '✅' : '❌';
+  const label = nl.cited
+    ? `Naver 지역 검색 ${nl.rank}위 (상위 5개 내 노출)`
+    : `Naver 지역 검색 상위 5개 미노출`;
+  const color = nl.cited ? '#1fcec4' : 'var(--text-2)';
+  return `<div style="margin-top:14px;padding:12px 16px;background:rgba(3,199,90,.05);border:1px solid rgba(3,199,90,.15);border-radius:10px;display:flex;gap:10px;align-items:center">
+    <span style="font-size:1.1rem">${icon}</span>
+    <div>
+      <div style="font-size:.88rem;font-weight:700;color:${color}">${label}</div>
+      <div class="muted small">검색어: "${esc(nl.query)}" · Naver 로컬 검색 (AI 브리핑/CUE: 아님)</div>
+    </div>
+  </div>`;
+}
+
 function renderCitation(citeRes) {
   if (!citeRes) return card('AI 실측', '<p class="muted">인용 측정에 실패했습니다.</p>');
   const d = citeRes.d || {};
@@ -656,6 +673,7 @@ function renderCitation(citeRes) {
       <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
     </div>
     ${table}
+    ${renderNaverLocal(d)}
     ${urlMatchHtml}
     ${note}
   </div>`;

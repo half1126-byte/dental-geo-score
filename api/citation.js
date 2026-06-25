@@ -14,6 +14,7 @@
 import { createHash } from 'node:crypto';
 import { runCitationPanel } from '../lib/citation.js';
 import { AUTO_ENGINES } from '../lib/engines.js';
+import { checkNaverLocal, naverApiAvailable } from '../lib/naver.js';
 import { registrableDomain } from '../lib/normalize.js';
 import { toPublicView, toPrivateReport } from '../lib/redact.js';
 import { makeStore } from '../lib/store.js';
@@ -158,7 +159,20 @@ export default async function handler(req, res) {
       repeats: 1,
       customPrompts,
     });
-    await store.cacheSet(cacheKey, result, DAY);
+    // Naver Local API check (non-blocking, parallel with cache write)
+    let naverResult = null;
+    if (naverApiAvailable()) {
+      naverResult = await checkNaverLocal({
+        clinicDomain: domain,
+        region: effectiveRegions[0] || '',
+        procedure: procedure || '',
+        clientId:     process.env.NAVER_CLIENT_ID,
+        clientSecret: process.env.NAVER_CLIENT_SECRET,
+      }).catch(() => null);
+    }
+
+    const enriched = naverResult ? { ...result, naverLocal: naverResult } : result;
+    await store.cacheSet(cacheKey, enriched, DAY);
 
     // Persist citation history (non-blocking — never fail the response on KV errors)
     const histRecord = {
@@ -174,7 +188,7 @@ export default async function handler(req, res) {
     };
     store.histAppend(`c:${domain}`, histRecord).catch(() => {});
 
-    res.status(200).json(view(result));
+    res.status(200).json(view(enriched));
   } catch (e) {
     res.status(500).json({ error: 'internal', message: String(e?.message || e).slice(0, 200) });
   }
