@@ -1128,3 +1128,63 @@ footer.site-footer {
   text-align:center; font-family:inherit;
 }
 .btn-skip:hover { color:rgba(255,255,255,.6); }
+
+/* ════════════════════════════════════════
+   ZONE BACKGROUNDS — AI시대 신뢰감 레이어
+   ════════════════════════════════════════ */
+
+/* ── Demo zone: 라이브 데이터 느낌 (dot-grid + 상단 plum fade) ──
+   ai-demo::before 는 이미 dot-grid 정의됨 → 여기서 top-glow 보강 */
+.ai-demo {
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(128,82,255,.06) 0%, transparent 65%);
+}
+
+/* ── Education zone: 심도감 (paradigm·why-now·pain) ── */
+.paradigm {
+  background:
+    radial-gradient(ellipse 100% 50% at 50% 0%,  rgba(128,82,255,.055) 0%, transparent 60%),
+    radial-gradient(ellipse 60%  40% at 50% 100%, rgba(128,82,255,.03)  0%, transparent 55%);
+}
+.why-now {
+  background:
+    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(255,184,41,.045) 0%, transparent 60%);
+}
+.pain-section {
+  background:
+    radial-gradient(ellipse 80% 45% at 50% 50%, rgba(128,82,255,.04) 0%, transparent 65%);
+}
+
+/* ── Data zone: 정밀·기술 (hiw·signals) — CSS 1px grid ── */
+.hiw, .signals {
+  background-image:
+    linear-gradient(rgba(128,82,255,.038) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(128,82,255,.038) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+/* grid fade — 섹션 경계에서 자연스럽게 흐려짐 */
+.hiw {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+.signals {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+}
+
+/* ── 섹션 경계 glow line — education → data zone 전환 ── */
+.hiw::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(128,82,255,.18) 30%, rgba(128,82,255,.22) 50%, rgba(128,82,255,.18) 70%, transparent 100%);
+  position: relative;
+  top: 0;
+}
+.signals::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(128,82,255,.12) 30%, rgba(128,82,255,.16) 50%, rgba(128,82,255,.12) 70%, transparent 100%);
+}
