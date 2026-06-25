@@ -3,6 +3,8 @@ const $ = (id) => document.getElementById(id);
 const show = (id) => $(id).classList.remove('hidden');
 const hide = (id) => $(id).classList.add('hidden');
 
+let lastScoreData = null;
+
 $('scoreForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   let url = $('urlInput').value.trim();
@@ -55,8 +57,9 @@ function showError(data) {
 }
 
 function render(d) {
+  lastScoreData = d;
   // score meter
-  $('scoreNum').innerHTML = `${d.score}<small>/100</small>`;
+  $('scoreNum').innerHTML = `${d.score}<small style="font-size:.45em;color:var(--text-2);font-weight:400">/100</small>`;
   $('bandLabel').textContent = d.band;
   $('verdict').textContent = verdictLine(d);
   show('result');
@@ -134,12 +137,109 @@ $('leadForm').addEventListener('submit', async (e) => {
   } catch (_) { /* non-blocking */ }
   hide('leadForm');
   if (data && Array.isArray(data.perEngine) && data.perEngine.length) {
-    $('leadOk').innerHTML = renderCitation(data);
+    const citationHtml = renderCitation(data);
+    $('citationPanel').innerHTML = citationHtml;
+    show('citationPanel');
+    $('leadOk').textContent = '';
+    show('leadOk');
   } else {
     $('leadOk').textContent = (data && data.message) || '신청되었습니다. 실측 인용 결과를 이메일로 보내드리겠습니다.';
+    show('leadOk');
   }
-  show('leadOk');
 });
+
+// ── 경쟁 치과 비교 분석 ──────────────────────────────────────────
+$('compareForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  let compUrl = $('compareUrl').value.trim();
+  if (!compUrl) return;
+  if (!/^https?:\/\//i.test(compUrl)) compUrl = 'https://' + compUrl;
+
+  const btn = $('compareBtn');
+  btn.disabled = true; btn.textContent = '분석 중...';
+  $('compareResult').innerHTML = '';
+  show('compareLoading');
+
+  try {
+    const res = await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ url: compUrl }),
+    });
+    const compData = await res.json();
+    hide('compareLoading');
+    if (!res.ok) {
+      $('compareResult').innerHTML = `<div class="err"><b>분석 실패</b> — ${esc(compData.message || 'URL을 확인해주세요.')}</div>`;
+    } else {
+      $('compareResult').innerHTML = renderComparePanel(compData);
+      requestAnimationFrame(() => {
+        const bar = $('compareResult').querySelector('.cmp-score-bar-fill');
+        if (bar) bar.style.width = bar.dataset.pct + '%';
+      });
+    }
+  } catch {
+    hide('compareLoading');
+    $('compareResult').innerHTML = `<div class="err"><b>네트워크 오류</b> — 잠시 후 다시 시도해주세요.</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = '비교 분석';
+  }
+});
+
+function renderComparePanel(compData) {
+  if (!lastScoreData || !compData) return '<p class="muted small" style="padding:12px">비교 데이터를 불러올 수 없습니다.</p>';
+
+  const uD = lastScoreData;
+  const cD = compData;
+  const uBreakdown = uD.breakdown || [];
+  const cBreakdown = cD.breakdown || [];
+  const uDomain = uD.domain || '이 치과';
+  const cDomain = cD.domain || '비교 치과';
+
+  const compMap = Object.fromEntries(cBreakdown.map((c) => [c.label, c]));
+  const gaps = [], same = [], uBetter = [];
+  for (const u of uBreakdown) {
+    const c = compMap[u.label];
+    if (!c) continue;
+    const uOk = u.status === 'ok';
+    const cOk = c.status === 'ok';
+    if (!uOk && cOk) gaps.push({ label: u.label, note: c.note });
+    else if (uOk && cOk) same.push({ label: u.label });
+    else if (uOk && !cOk) uBetter.push({ label: u.label });
+  }
+
+  const row = (label, uOk, cOk) => `<div class="cmp-row">
+    <div class="cmp-label">${esc(label)}</div>
+    <div class="cmp-val ${uOk ? 'ok' : 'fail'}">${uOk ? '✓' : '✗'}</div>
+    <div class="cmp-val ${cOk ? 'ok' : 'fail'}">${cOk ? '✓' : '✗'}</div>
+  </div>`;
+
+  const secHead = (text) => `<div class="cmp-section-head">${text}</div>`;
+
+  return `<div class="card cmp-result-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <b>📊 GEO 신호 비교</b>
+      <button type="button" onclick="document.getElementById('compareResult').innerHTML=''" class="btn s" style="padding:6px 12px;font-size:.75rem">닫기</button>
+    </div>
+    <div class="cmp-domains">
+      <div class="cmp-domain-chip user-chip">
+        <div class="cmp-chip-label">📍 ${esc(uDomain)}</div>
+        <div class="cmp-chip-score">${uD.score}<small>/100</small></div>
+      </div>
+      <div class="cmp-vs-text">vs</div>
+      <div class="cmp-domain-chip comp-chip">
+        <div class="cmp-chip-label">🔍 ${esc(cDomain)}</div>
+        <div class="cmp-chip-score">${cD.score}<small>/100</small></div>
+        <div class="cmp-score-bar-wrap"><div class="cmp-score-bar-fill" data-pct="${cD.score}" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:var(--text-2);margin-bottom:4px;text-align:right">${esc(uDomain)} · ${esc(cDomain)}</div>
+    ${gaps.length ? secHead(`⬆️ 경쟁 치과에 있고 이 치과에 없는 항목 (${gaps.length}개)`) + `<div class="cmp-note">이 항목들이 AI 추천 격차의 구조적 원인일 수 있습니다</div>` + gaps.map((g) => row(g.label, false, true)).join('') : ''}
+    ${same.length ? secHead(`✅ 양쪽 모두 통과 (${same.length}개)`) + same.map((g) => row(g.label, true, true)).join('') : ''}
+    ${uBetter.length ? secHead(`📌 이 치과만 통과 (${uBetter.length}개)`) + uBetter.map((g) => row(g.label, true, false)).join('') : ''}
+    ${!gaps.length && !same.length && !uBetter.length ? '<p class="muted small" style="margin-top:8px">비교 가능한 신호 데이터가 없습니다.</p>' : ''}
+    <p class="small muted" style="margin-top:12px;font-size:.73rem">기술 점수 비교 — AI 추천과 직접 인과관계 없음 (구조 위생 지표)</p>
+  </div>`;
+}
 
 // 4 honest states. Never a bare "측정 안 됨"=0; never a CI/upper-bound next to 0 cited (의료광고법 A-2).
 function renderCitation(d) {

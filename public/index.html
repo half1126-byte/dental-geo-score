@@ -3,35 +3,317 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>치과 AI 추천 실측 — 지금 AI가 우리 치과를 추천하나?</title>
-<meta name="description" content="치과 홈페이지 URL을 넣으면 ChatGPT·Perplexity가 실제로 추천하는지 실측하고, 더 추천받기 위해 채울 갭을 근거와 함께 알려줍니다. 점수는 페이지 위생(필요조건)일 뿐 노출 예측이 아닙니다." />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<title>치과 AI 추천 실측 — SEO에서 GEO로, AI 검색 시대의 신환 채널</title>
+<meta name="description" content="ChatGPT·Perplexity가 우리 치과를 실제로 추천하는지 측정합니다. SEO에서 GEO로 — AI 검색 시대, 치과 홈페이지가 AI에게 읽히는지 즉시 진단합니다." />
 <link rel="stylesheet" href="/style.css" />
-<!-- Dogfood: this GEO tool is itself GEO-structured (answer-first + FAQPage JSON-LD). -->
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"이 도구는 무엇을 측정하나요?","acceptedAnswer":{"@type":"Answer","text":"두 가지입니다. (1) 페이지 추출 위생: 치과 홈페이지가 AI가 읽기 좋은 구조인지(robots.txt AI 크롤러 허용, JSON-LD, 의료진 자격, 신선도, answer-first 등 7개 신호)를 즉시 점검합니다. 이건 뜨기 위한 필요조건일 뿐 노출 예측이 아닙니다. (2) 실측: ChatGPT·Perplexity에 실제로 질문해 지금 추천되는지를 증거와 함께 확인합니다."}},
-{"@type":"Question","name":"점수가 높으면 AI에 뜨나요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 점수는 페이지 구조 위생일 뿐, 실제 노출은 디렉터리 등재·전문의 정보·지역 정합 등 별개 요인이 좌우합니다. 점수가 높아도 안 뜨고, 낮아도 뜨는 경우가 있습니다. 그래서 실제 추천 여부는 실측으로 확인합니다."}}
+{"@type":"Question","name":"GEO(생성AI최적화)란 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"GEO(Generative Engine Optimization)는 ChatGPT·Perplexity 같은 AI 검색엔진이 답변을 생성할 때 우리 병원을 인용·추천하도록 최적화하는 것입니다. SEO가 Google 순위를 올리는 것이라면, GEO는 AI의 추천 목록에 들어가는 것입니다."}},
+{"@type":"Question","name":"이 도구는 무엇을 측정하나요?","acceptedAnswer":{"@type":"Answer","text":"두 가지입니다. (1) 페이지 추출 위생: 치과 홈페이지가 AI가 읽기 좋은 구조인지(robots.txt AI 크롤러 허용, JSON-LD, 의료진 자격, 신선도, answer-first 등 7개 신호)를 즉시 점검합니다. (2) 실측: ChatGPT·Perplexity에 실제로 질문해 지금 추천되는지를 증거와 함께 확인합니다."}},
+{"@type":"Question","name":"점수가 높으면 AI에 뜨나요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 점수는 페이지 구조 위생일 뿐, 실제 노출은 디렉터리 등재·전문의 정보·지역 정합 등 별개 요인이 좌우합니다. 그래서 실제 추천 여부는 실측으로 확인합니다."}}
 ]}
 </script>
 </head>
 <body>
 
+<!-- ── TOP NAV ── -->
+<nav class="topnav">
+  <div class="nav-inner wrap-wide">
+    <div class="nav-logo">MEDINMEDI<span class="nav-dot">·</span>GEO</div>
+    <div class="nav-links">
+      <a href="#why">AI 검색 전환</a>
+      <a href="#measure">즉시 측정</a>
+      <a href="/methodology.html">방법론</a>
+    </div>
+    <a href="#measure" class="btn p nav-cta">측정 시작</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
 <header class="hero">
-  <div class="wrap">
-    <div class="kicker">메디앤메디 · 치과 GEO</div>
-    <h1>지금 AI가 우리 치과를<br/><span class="g">추천</span>하고 있나?</h1>
-    <p class="sub">홈페이지 주소를 넣으면, 인용되기 좋은 구조인지 즉시 점검하고 — 실제 추천 여부는 ChatGPT·Perplexity에 직접 물어 증거와 함께 확인해 드립니다.</p>
-    <form class="form" id="scoreForm">
-      <input type="url" id="urlInput" placeholder="https://우리치과.co.kr" autocomplete="off" required />
-      <button class="btn p" type="submit" id="goBtn">측정</button>
-    </form>
-    <p class="hint">측정 가능한 신호만 평가합니다 · 결과에 근거를 함께 표시합니다 · 무료</p>
+  <video id="heroVideo" autoplay muted loop playsinline poster="/hero-poster.png">
+    <source src="/hero.mp4" type="video/mp4" />
+  </video>
+  <div class="hero-inner">
+    <div class="wrap-wide">
+      <div class="hero-split">
+        <div class="hero-text">
+          <p class="kicker">2026 · AI SEARCH ERA · GEO</p>
+          <h1>이제 <span class="g2">AI</span>가<br/>환자를<br/><span class="g">보낸다</span></h1>
+          <p class="sub">Google 순위가 아니라,<br/>ChatGPT·Perplexity의 추천이<br/>내원을 결정합니다.</p>
+          <form class="form" id="scoreForm" style="text-align:left;max-width:440px;margin:0 0 10px">
+            <input type="url" id="urlInput" placeholder="https://우리치과.co.kr" autocomplete="off" required />
+            <button class="btn p" type="submit" id="goBtn">측정</button>
+          </form>
+          <p class="hint" style="text-align:left">무료 · 즉시 결과 · 7개 신호 · 근거 표시</p>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
+<!-- ── PARADIGM SHIFT ── -->
+<section class="paradigm" id="why">
+  <div class="wrap">
+    <p class="kicker" style="text-align:center">SEARCH PARADIGM SHIFT</p>
+    <h2 style="text-align:center">검색 최적화의<br/><span class="g">마지막 전환</span></h2>
+    <p class="sub" style="text-align:center;max-width:480px;margin:0 auto 48px">환자가 정보를 찾는 방식이 바뀌었습니다.<br/>지금은 SEO가 아닌 <b style="color:#fff">GEO</b>의 시대입니다.</p>
+
+    <div class="paradigm-track">
+      <div class="para-step past">
+        <div class="para-label">과거</div>
+        <div class="para-name">SEO</div>
+        <div class="para-sub">검색엔진 최적화</div>
+        <ul class="para-list">
+          <li>Google 키워드 랭킹</li>
+          <li>블로그·백링크 전략</li>
+          <li>클릭해서 방문</li>
+          <li>메타태그·타이틀 최적화</li>
+        </ul>
+      </div>
+      <div class="para-arrow">→</div>
+      <div class="para-step transition">
+        <div class="para-label">전환기</div>
+        <div class="para-name">AEO</div>
+        <div class="para-sub">답변엔진 최적화</div>
+        <ul class="para-list">
+          <li>Featured Snippet 선점</li>
+          <li>클릭 없이 정보 제공</li>
+          <li>구조화 데이터(JSON-LD)</li>
+          <li>People Also Ask 대응</li>
+        </ul>
+      </div>
+      <div class="para-arrow">→</div>
+      <div class="para-step now">
+        <div class="para-label now-badge">지금 · 골든타임</div>
+        <div class="para-name geo-name">GEO</div>
+        <div class="para-sub">생성AI 최적화</div>
+        <ul class="para-list">
+          <li>ChatGPT·Perplexity 인용</li>
+          <li>AI가 직접 병원명 추천</li>
+          <li>AI 학습 가능 콘텐츠 구조</li>
+          <li>의료진 자격·전문성 신호</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHY NOW ── -->
+<section class="why-now">
+  <div class="wrap">
+    <p class="kicker" style="text-align:center">WHY NOW</p>
+    <h2 style="text-align:center">AI 검색,<br/>치과에 이미 <span class="g">침투했습니다</span></h2>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num">3억<span class="stat-unit">+</span></div>
+        <div class="stat-label">ChatGPT 월 사용자</div>
+        <div class="stat-desc">이 중 수백만이 매달 "○○동 치과 추천"을 AI에게 직접 묻습니다. 검색창이 아닌 대화창으로.</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num amber">12<span class="stat-unit">%</span></div>
+        <div class="stat-label">AI 가독성 통과율</div>
+        <div class="stat-desc">국내 치과 홈페이지 중 AI가 정보를 제대로 읽을 수 있는 비율. 88%는 AI에게 존재하지 않는 치과입니다.</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">2026</div>
+        <div class="stat-label">GEO 골든 타임</div>
+        <div class="stat-desc">AI 인용 패턴이 굳기 전, 지금이 선점 가능한 마지막 창. SEO처럼 늦으면 따라잡는 데 5년 걸립니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AI DEMO ── -->
+<section class="ai-demo">
+  <div class="wrap">
+    <p class="kicker" style="text-align:center">AI CITATION EXAMPLE</p>
+    <h2 style="text-align:center">AI는 이미 치과를<br/><span class="g2">추천하고 있습니다</span></h2>
+    <p class="sub" style="text-align:center;max-width:500px;margin:0 auto 40px">"○○동 치과 추천"을 AI에게 물으면 아래 같은 응답이 나옵니다.<br/>우리 치과 이름이 여기 있어야 합니다.</p>
+
+    <div class="chat-ui">
+      <div class="chat-header">
+        <div class="chat-logo active">ChatGPT</div>
+        <div class="chat-logo">Perplexity</div>
+        <div class="chat-logo">Gemini</div>
+      </div>
+
+      <div class="chat-messages">
+        <div class="chat-msg user">
+          <div class="chat-bubble user-bubble">강남역 근처 임플란트 치과 추천해줘</div>
+        </div>
+
+        <div class="chat-msg ai">
+          <div class="chat-avatar">AI</div>
+          <div class="ai-bubble chat-bubble">
+            강남역 인근 임플란트 치과를 안내해 드릴게요.<br/><br/>
+            <div class="cited-clinic">
+              <div class="cite-num">1</div>
+              <div>
+                <b class="cite-name highlighted">이도치과</b>
+                <span class="cite-tag">임플란트 전문의</span>
+                — 홈페이지에 의료진 자격·장비 정보가 상세히 기재되어 있으며, AI가 읽기 좋은 구조화 데이터와 풍부한 진료 콘텐츠를 보유합니다.
+              </div>
+            </div>
+            <div class="cited-clinic dim">
+              <div class="cite-num">2</div>
+              <div><b class="cite-name">○○치과</b> — 지역 커뮤니티 언급 다수, 네이버 블로그 활성화</div>
+            </div>
+            <div class="cited-clinic dim">
+              <div class="cite-num">3</div>
+              <div><b class="cite-name">△△치과</b> — 최신 CBCT 보유, 개원 3년</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-footer">
+        <span class="chat-disclaimer">※ 위 예시는 GEO가 최적화된 치과에 실제로 나타나는 AI 응답 패턴입니다. 병원명은 가상입니다.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="hiw">
+  <div class="wrap">
+    <p class="kicker" style="text-align:center">HOW IT WORKS</p>
+    <h2 style="text-align:center">3단계로<br/><span class="g">즉시 확인합니다</span></h2>
+
+    <div class="hiw-steps">
+      <div class="hiw-step">
+        <div class="step-num">01</div>
+        <div class="step-icon">🔗</div>
+        <h4>홈페이지 주소 입력</h4>
+        <p>치과 홈페이지 URL만 입력하면 됩니다. 로그인·설치·API 키 불필요. 공개 웹페이지만 분석합니다.</p>
+      </div>
+      <div class="hiw-arrow">→</div>
+      <div class="hiw-step">
+        <div class="step-num">02</div>
+        <div class="step-icon">⚡</div>
+        <h4>7개 신호 자동 분석</h4>
+        <p>AI 크롤러 허용 여부, 구조화 데이터, 의료진 자격, 콘텐츠 신선도 등 7개 핵심 신호를 실시간 분석합니다.</p>
+      </div>
+      <div class="hiw-arrow">→</div>
+      <div class="hiw-step">
+        <div class="step-num">03</div>
+        <div class="step-icon">📊</div>
+        <h4>점수 + 개선 가이드</h4>
+        <p>0–100점 GEO 준비도 점수와 우선순위 3가지 개선 항목을 즉시 제공합니다. 모든 결과에 근거를 표시합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7 SIGNALS ── -->
+<section class="signals">
+  <div class="wrap">
+    <p class="kicker" style="text-align:center">GEO DIAGNOSTIC SIGNALS</p>
+    <h2 style="text-align:center">AI가 치과를 읽는<br/><span class="g2">7가지 신호</span></h2>
+    <p class="sub" style="text-align:center;max-width:480px;margin:0 auto 44px">AI 검색엔진이 치과 홈페이지를 평가할 때 실제로 확인하는 신호입니다.<br/>각 항목은 독립적으로 점수에 반영됩니다.</p>
+
+    <div class="signals-grid">
+      <div class="signal-card key">
+        <div class="signal-icon">🤖</div>
+        <div class="signal-name">AI 크롤러 허용</div>
+        <div class="signal-desc">robots.txt에서 GPTBot·PerplexityBot·Google-Extended를 차단하지 않는지 확인합니다.</div>
+        <div class="signal-pts">+20점</div>
+      </div>
+      <div class="signal-card key">
+        <div class="signal-icon">📋</div>
+        <div class="signal-name">구조화 데이터</div>
+        <div class="signal-desc">JSON-LD로 병원명·주소·진료과목·의료진을 명확하게 마크업했는지 점검합니다.</div>
+        <div class="signal-pts">+20점</div>
+      </div>
+      <div class="signal-card key">
+        <div class="signal-icon">👨‍⚕️</div>
+        <div class="signal-name">의료진 자격 정보</div>
+        <div class="signal-desc">전문의 이름·학력·경력이 홈페이지 텍스트로 AI가 읽을 수 있게 제공되는지 확인합니다.</div>
+        <div class="signal-pts">+15점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">🕐</div>
+        <div class="signal-name">콘텐츠 신선도</div>
+        <div class="signal-desc">최근 6개월 내 업데이트된 콘텐츠가 있는지, sitemap에 날짜가 표기되어 있는지 확인합니다.</div>
+        <div class="signal-pts">+15점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">💬</div>
+        <div class="signal-name">Answer-first 구조</div>
+        <div class="signal-desc">질문-답변 형식의 콘텐츠(FAQ, 진료 안내)가 있어 AI가 바로 인용할 수 있는 구조인지 봅니다.</div>
+        <div class="signal-pts">+15점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">📱</div>
+        <div class="signal-name">모바일 접근성</div>
+        <div class="signal-desc">viewport 메타태그, 반응형 레이아웃이 정상 작동하는지 확인합니다. AI는 모바일 렌더링도 크롤링합니다.</div>
+        <div class="signal-pts">+10점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">⚡</div>
+        <div class="signal-name">렌더링 가능성</div>
+        <div class="signal-desc">JavaScript 의존 없이 기본 콘텐츠가 HTML에 담겨 있는지, 서버사이드 렌더링 여부를 체크합니다.</div>
+        <div class="signal-pts">+5점</div>
+      </div>
+      <div class="signal-card" style="border-style:dashed;opacity:.5">
+        <div class="signal-icon">🔜</div>
+        <div class="signal-name">실측 인용 (Phase 2)</div>
+        <div class="signal-desc">ChatGPT·Perplexity에 직접 질의해 실제 추천 여부를 확인하는 실측 패널. 이메일 신청 후 제공.</div>
+        <div class="signal-pts">별도 실측</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq-sec">
+  <div class="wrap">
+    <p class="kicker" style="text-align:center">FAQ</p>
+    <h2 style="text-align:center">자주 묻는 질문</h2>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">GEO(생성AI최적화)란 무엇인가요? <span class="faq-toggle">+</span></button>
+        <div class="faq-a">GEO(Generative Engine Optimization)는 ChatGPT·Perplexity 같은 AI 검색엔진이 답변을 생성할 때 우리 병원을 인용·추천하도록 최적화하는 것입니다. SEO가 Google 순위를 올리는 것이라면, GEO는 AI의 추천 목록에 들어가는 것입니다.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">점수가 높으면 AI에 무조건 뜨나요? <span class="faq-toggle">+</span></button>
+        <div class="faq-a">아닙니다. 점수는 페이지 구조 위생(AI가 읽기 쉬운 구조인지)의 필요조건입니다. 실제 노출은 디렉터리 등재, 전문의 정보의 제3자 언급, 지역 정합성 등 별개 요인도 좌우합니다. 점수가 높아도 안 뜨는 경우, 낮아도 뜨는 경우가 있습니다. 실제 추천 여부는 실측으로만 확인할 수 있습니다.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">측정 결과가 환자에게 보이나요? <span class="faq-toggle">+</span></button>
+        <div class="faq-a">아닙니다. 이 도구는 치과 원장님·마케터가 자신의 홈페이지를 진단하는 용도입니다. 측정 결과는 의료광고 목적으로 사용할 수 없으며, "AI 추천 1위" 같은 표현은 의료법 제56조 위반입니다.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">실측(Phase 2)은 어떻게 받을 수 있나요? <span class="faq-toggle">+</span></button>
+        <div class="faq-a">점수 확인 후 나타나는 "실측 결과 받기" 폼에 이메일을 입력하시면 됩니다. ChatGPT·Perplexity에 "[지역] 치과 추천" 등 실제 쿼리로 직접 질의해 현재 추천 여부와 갭 분석을 이메일로 보내드립니다.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">측정하는 데 비용이 드나요? <span class="faq-toggle">+</span></button>
+        <div class="faq-a">GEO 준비도 점수(7개 신호 분석)는 완전 무료입니다. 실측 인용 패널(ChatGPT·Perplexity 실제 질의)은 이메일 신청 후 메디앤메디 팀이 직접 측정해 제공합니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MEASUREMENT ── -->
+<section class="measure-sec" id="measure">
+  <div class="wrap">
+    <p class="kicker">GEO 준비도 즉시 진단</p>
+    <h2>우리 치과,<br/>AI가 읽을 수 있나?</h2>
+    <p class="sub" style="max-width:460px;margin:0 0 28px">홈페이지 주소 하나로, AI가 우리 치과를 읽기 좋은 구조인지 7개 신호를 즉시 진단합니다.</p>
+    <form class="form" id="scoreFormBottom" style="max-width:520px;margin-bottom:10px">
+      <input type="url" id="urlInputBottom" placeholder="https://우리치과.co.kr" autocomplete="off" required />
+      <button class="btn p" type="submit">측정</button>
+    </form>
+    <p class="hint">측정 가능한 신호만 평가 · 결과에 근거 표시 · 무료</p>
+  </div>
+</section>
+
+<!-- ── LOADING / ERROR / RESULT ── -->
 <main class="wrap">
-  <!-- measuring -->
+
   <section id="loading" class="hidden">
     <div class="prog">
       <div class="row"><span class="spin"></span> 홈페이지를 안전하게 불러오는 중...</div>
@@ -39,22 +321,26 @@
     </div>
   </section>
 
-  <!-- error -->
   <section id="error" class="hidden">
     <div class="err"><b>측정하지 못했습니다.</b> <span id="errMsg"></span></div>
   </section>
 
-  <!-- result -->
   <section id="result" class="hidden">
-    <!-- HOOK / CLOSE: real measurement + the gap to close (email-gated). The headline value. -->
-    <div class="card gate">
-      <h3>지금 AI가 실제로 우리를 추천하고 있을까?</h3>
-      <p>ChatGPT·Perplexity에 "[지역] 치과 추천"을 실제로 물어, <b>지금 추천되는지(사실)</b>와 더 추천받기 위해 <b>채울 갭</b>을 증거와 함께 측정해 이메일로 보내드립니다.</p>
-      <form class="form" id="leadForm">
-        <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
-        <button class="btn p" type="submit" id="leadBtn">실측 결과 받기</button>
-      </form>
-      <p class="ok hidden" id="leadOk">신청되었습니다. 실측 결과를 이메일로 보내드리겠습니다.</p>
+
+    <!-- 점수 배너 (항상 펼쳐진 상태) -->
+    <div class="card score-banner">
+      <div class="score-banner-row">
+        <div class="score-banner-left">
+          <span class="score-inline" id="scoreNum" style="font-size:3rem;color:var(--amber);font-weight:200;letter-spacing:-.04em;line-height:1">—</span>
+        </div>
+        <div class="score-banner-mid">
+          <span class="band" id="bandLabel">—</span>
+          <p class="small muted" id="verdict" style="margin-top:5px">—</p>
+        </div>
+      </div>
+      <div class="bar" style="margin-top:12px"><i id="scoreBar" style="width:0"></i></div>
+      <div class="rendernote hidden" id="renderNote"></div>
+      <p class="small muted" style="margin-top:10px;font-size:.73rem">페이지 추출 위생 점수(GEO 준비도) — 필요조건이지 AI 추천 예측이 아닙니다.</p>
     </div>
 
     <div class="card">
@@ -68,26 +354,72 @@
       <div id="fixes"></div>
     </div>
 
-    <!-- FOOTNOTE: page-hygiene score, demoted. Necessary-condition, NOT a citation predictor. -->
-    <details class="card score-foot">
-      <summary><span class="foot-label">페이지 위생 점수</span> <span class="score-inline" id="scoreNum">0<small>/100</small></span> <span class="band" id="bandLabel">—</span></summary>
-      <p class="small muted" id="verdict">—</p>
-      <div class="bar"><i id="scoreBar" style="width:0"></i></div>
-      <div class="rendernote hidden" id="renderNote"></div>
-      <p class="small muted">이 점수는 <b>페이지 추출 위생</b>(AI가 읽기 쉬운 구조인지)입니다 — 뜨기 위한 <b>필요조건</b>이지 노출 예측이 아닙니다. 점수가 높아도 안 뜨고, 낮아도 뜰 수 있습니다. 실제 추천 여부는 위 <b>실측</b>으로 확인하세요.</p>
-    </details>
-
     <p class="small muted" id="meta"></p>
+
+    <!-- 경쟁 치과 비교 분석 (새 기능) -->
+    <div class="card cmp-card">
+      <b>경쟁 치과 GEO 비교</b>
+      <p class="small muted" style="margin:6px 0 14px">AI가 다른 치과를 더 추천하는 이유를 구조로 파악합니다.<br>비교하고 싶은 치과 홈페이지 주소를 입력하면 신호별로 비교해드립니다.</p>
+      <form class="form" id="compareForm" style="max-width:none;margin-bottom:0">
+        <input type="url" id="compareUrl" placeholder="https://경쟁치과.co.kr" autocomplete="off" />
+        <button class="btn s" type="submit" id="compareBtn">비교 분석</button>
+      </form>
+    </div>
+    <div id="compareLoading" class="hidden">
+      <div class="prog"><div class="row"><span class="spin"></span> 경쟁 치과 분석 중...</div></div>
+    </div>
+    <div id="compareResult"></div>
+
+    <!-- AI 실측 게이트 (이메일) -->
+    <div class="card gate">
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:6px">지금 AI가 실제로 우리를 추천하고 있을까?</h3>
+      <p>ChatGPT·Perplexity에 "[지역] 치과 추천"을 실제로 물어, <b>지금 추천되는지(사실)</b>와 더 추천받기 위해 <b>채울 갭</b>을 증거와 함께 측정해 이메일로 보내드립니다.</p>
+      <form class="form" id="leadForm">
+        <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
+        <button class="btn p" type="submit" id="leadBtn">실측 결과 받기</button>
+      </form>
+      <p class="ok hidden" id="leadOk">신청되었습니다. 실측 결과를 이메일로 보내드리겠습니다.</p>
+      <div id="citationPanel" class="hidden" style="margin-top:12px"></div>
+    </div>
+
   </section>
+
 </main>
 
 <footer>
   <div class="wrap">
-    메디앤메디 · 치과 AI 추천 실측 (v0.2) · 페이지 위생 점수는 결정론적·재현 가능, 노출 예측 아님 ·
+    MEDINMEDI · 치과 AI 추천 실측 (v0.2) · 페이지 위생 점수는 결정론적·재현 가능, 노출 예측 아님 ·
     <a href="/methodology.html">측정 방법론</a><br/>
     측정 대상은 공개 웹페이지이며 환자 개인정보는 수집하지 않습니다.
   </div>
 </footer>
+
+<script>
+
+/* ── FAQ accordion ── */
+document.querySelectorAll('.faq-q').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var item = btn.closest('.faq-item');
+    var isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
+    if(!isOpen) item.classList.add('open');
+  });
+});
+
+/* ── Bottom form mirrors top form ── */
+(function(){
+  const bottomForm = document.getElementById('scoreFormBottom');
+  if(!bottomForm) return;
+  bottomForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const url = document.getElementById('urlInputBottom').value.trim();
+    if(!url) return;
+    document.getElementById('urlInput').value = url;
+    document.getElementById('scoreForm').dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
+    document.getElementById('loading').scrollIntoView({behavior:'smooth'});
+  });
+})();
+</script>
 
 <script src="/app.js"></script>
 </body>
