@@ -1013,3 +1013,59 @@ footer.site-footer {
 .footer-policy a:hover { color:rgba(255,255,255,.6); }
 .footer-info { font-size:.7rem; color:rgba(255,255,255,.2); line-height:2; }
 .footer-copy { font-size:.67rem; color:rgba(255,255,255,.15); margin-top:10px; }
+
+/* ── MID-PAGE CTA ── */
+.mid-cta {
+  padding:28px 0;
+  background:linear-gradient(90deg,rgba(128,82,255,.06) 0%,rgba(128,82,255,.13) 50%,rgba(128,82,255,.06) 100%);
+  border-top:1px solid rgba(128,82,255,.18);
+  border-bottom:1px solid rgba(128,82,255,.18);
+  text-align:center;
+}
+.mid-cta .wrap { display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap; }
+.mid-cta-text { font-size:1rem; font-weight:600; color:rgba(255,255,255,.7); }
+.btn-cta-mid {
+  display:inline-block; background:var(--plum); color:#fff;
+  border-radius:999px; padding:12px 32px; font-size:.92rem; font-weight:700;
+  text-decoration:none; transition:opacity .15s, transform .15s; white-space:nowrap;
+}
+.btn-cta-mid:hover { opacity:.85; transform:translateY(-1px); }
+
+/* ── PAIN POINT ── */
+.pain-section { padding:90px 0; border-top:1px solid var(--border); }
+.pain-section h2 { text-align:center; margin-bottom:48px; }
+.pain-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+@media(max-width:720px){ .pain-grid { grid-template-columns:1fr; } }
+.pain-card {
+  border:1px solid rgba(240,94,106,.18);
+  background:rgba(240,94,106,.04);
+  border-radius:16px; padding:28px 24px;
+}
+.pain-num {
+  font-size:2.5rem; font-weight:200; color:rgba(240,94,106,.5);
+  letter-spacing:-.04em; line-height:1; margin-bottom:16px;
+}
+.pain-card h4 { font-size:1rem; font-weight:700; margin-bottom:10px; color:#fff; }
+.pain-card p { font-size:.82rem; color:rgba(255,255,255,.45); line-height:1.65; }
+
+/* ── SERVICES ── */
+.services-section { padding:90px 0; border-top:1px solid var(--border); }
+.services-section h2 { text-align:center; margin-bottom:16px; }
+.svc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:40px; }
+@media(max-width:900px){ .svc-grid { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:480px){ .svc-grid { grid-template-columns:1fr; } }
+.svc-card {
+  border:1px solid rgba(128,82,255,.22);
+  background:rgba(128,82,255,.04);
+  border-radius:16px; padding:24px 20px;
+  transition:border-color .2s, transform .2s;
+}
+.svc-card:hover { border-color:rgba(128,82,255,.55); transform:translateY(-2px); }
+.svc-icon { font-size:1.8rem; margin-bottom:14px; }
+.svc-card h4 { font-size:.95rem; font-weight:700; margin-bottom:8px; color:#fff; }
+.svc-card p { font-size:.78rem; color:rgba(255,255,255,.45); line-height:1.6; margin-bottom:14px; }
+.svc-badge {
+  display:inline-block; font-size:.68rem; font-weight:700;
+  padding:3px 10px; border-radius:999px;
+  background:var(--plum-dim); color:var(--plum); letter-spacing:.04em;
+}
