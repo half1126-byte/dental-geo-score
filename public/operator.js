@@ -279,17 +279,12 @@ function render(scoreRes, citeRes, q) {
   $('opResult').innerHTML = `
     ${header}
     ${strategyOrBannerHtml}
-    <div class="result-grid">
+    <div class="result-3col">
       <div>${citation}</div>
       <div>${improve}${agent}</div>
+      <div>${hygiene}</div>
     </div>
-    <div class="accordion-wrap" style="margin-top:10px">
-      <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')">
-        <span>📊 GEO 준비도 세부 분석 (7신호 전체)</span><span class="accordion-arrow">▼</span>
-      </button>
-      <div class="accordion-body">${hygiene}</div>
-    </div>
-    <div class="accordion-wrap" style="margin-top:6px">
+    <div class="accordion-wrap" style="margin-top:12px">
       <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')">
         <span>🔍 Gemini 수동 확인</span><span class="accordion-arrow">▼</span>
       </button>
@@ -497,21 +492,30 @@ function renderResultHeader(scoreRes, citeRes, q) {
   const band  = sd ? sd.band : null;
   const bandColor = sd ? (sd.score >= 70 ? '#1fcec4' : sd.score >= 40 ? '#c9a84c' : '#f05e6a') : 'var(--text-2)';
 
-  const scoreHtml = score != null ? `
-    <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:18px">
-      <div style="text-align:left">
-        <div style="font-size:3.4rem;font-weight:800;line-height:1;letter-spacing:-.03em;background:linear-gradient(120deg,var(--gold-2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent">${score}<small style="font-size:1rem;color:var(--text-2);-webkit-text-fill-color:var(--text-2);font-weight:400">/100</small></div>
-        <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
-          <span style="display:inline-block;font-weight:700;font-size:.78rem;padding:3px 10px;border-radius:999px;background:rgba(201,168,76,.13);color:var(--gold-2)">GEO 준비도</span>
-          <span style="font-size:.82rem;font-weight:700;color:${bandColor}">${esc(band)}</span>
-        </div>
-      </div>
+  const scoreBlock = score != null ? `
+    <div class="result-dash-score">
+      <div class="result-dash-score-num">${score}</div>
+      <div style="font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-top:3px">GEO 준비도</div>
+      <div style="font-size:.9rem;font-weight:700;color:${bandColor};margin-top:6px">${esc(band)}</div>
     </div>` : '';
 
-  return `<div class="result-header">
-    <div class="result-domain">${esc(domain)}</div>
-    <div class="result-region">${esc(q.region || '')} ${esc(q.procedure || '')} · AI 추천 실측 리포트</div>
-    ${scoreHtml}
+  const engRows = Array.isArray(d.perEngine) ? d.perEngine.map((p) => {
+    const logo = ENGINE_LOGO[p.engine] || '';
+    const name = ENGINE_SHORT[p.engine] || p.engine;
+    if (!p.measured) return `<div class="result-dash-engine-row">${logo}<span class="rdname">${esc(name)}</span><span style="color:var(--text-2);font-size:.8rem">—</span></div>`;
+    const color = p.cited ? 'var(--teal)' : 'var(--text-2)';
+    const icon  = p.cited ? '✅' : '❌';
+    const stat  = p.cited ? `${p.citedRuns}/${p.validRuns}회` : '미인용';
+    return `<div class="result-dash-engine-row">${logo}<span class="rdname">${esc(name)}</span><span style="font-weight:700;color:${color};font-size:.82rem">${icon} ${esc(stat)}</span></div>`;
+  }).join('') : '';
+
+  return `<div class="result-dash">
+    ${scoreBlock}
+    <div class="result-dash-info">
+      <div class="result-dash-domain">${esc(domain)}</div>
+      <div class="result-dash-region">${esc(q.region || '')} · ${esc(q.procedure || '')} · AI 추천 실측</div>
+    </div>
+    ${engRows ? `<div class="result-dash-engines">${engRows}</div>` : ''}
   </div>`;
 }
 
@@ -781,16 +785,12 @@ function renderHygiene(scoreRes) {
   </div>
   <p class="muted small" style="margin-top:8px">기술 점수 = 위생 합계. GEO·AEO 행은 점수에 포함되지 않는 참고 지표입니다.</p>`;
 
-  const scoreBar = `<div class="score-visual" style="margin-bottom:0">
-    <div class="score-big">${d.score}<small>/100</small></div>
-    <div class="score-meaning">
-      <span style="font-weight:700;color:${bandColor}">${bandLabel}</span>
-      <div class="score-bar-wrap"><div class="score-bar-fill" data-pct="${pctVal}" style="width:0%"></div></div>
-      <div class="muted small" style="margin-top:4px">AI가 이 사이트를 읽고 추출할 수 있는 준비 수준</div>
-    </div>
+  const scoreBar = `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 14px">
+    <div class="score-bar-wrap" style="flex:1"><div class="score-bar-fill" data-pct="${pctVal}" style="width:0%"></div></div>
+    <span style="font-size:.8rem;font-weight:700;color:${bandColor};flex-shrink:0">${d.score}pt · ${bandLabel}</span>
   </div>`;
 
-  return `<div class="card">${scoreBar}${table}</div>`;
+  return `<div class="card"><b style="font-size:1rem">GEO 준비도 세부 분석</b>${scoreBar}${table}</div>`;
 }
 
 function card(title, bodyHtml, cls) {
