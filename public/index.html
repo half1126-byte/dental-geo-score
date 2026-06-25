@@ -140,7 +140,8 @@
           <span class="ai-engine-badge gpt">ChatGPT</span>
         </div>
         <div class="ai-col-body">
-          <div class="ai-user-q">강남역 근처 임플란트 치과 추천해줘</div>
+          <div class="ai-user-q" id="demo-gpt-q">강남역 근처 임플란트 치과 추천해줘</div>
+          <div class="typing-dots" id="demo-gpt-dots"><span></span><span></span><span></span></div>
           <div class="ai-response" id="demo-gpt"></div>
         </div>
         <div class="ai-col-foot">※ AI 응답 시뮬레이션 · 병원명 가상</div>
@@ -152,7 +153,8 @@
           <span class="ai-engine-badge ppl">Perplexity</span>
         </div>
         <div class="ai-col-body">
-          <div class="ai-user-q">송파구 교정 잘 하는 치과 알려줘</div>
+          <div class="ai-user-q" id="demo-ppl-q">송파구 교정 잘 하는 치과 알려줘</div>
+          <div class="typing-dots" id="demo-ppl-dots"><span></span><span></span><span></span></div>
           <div class="ai-response" id="demo-ppl"></div>
         </div>
         <div class="ai-col-foot">※ AI 응답 시뮬레이션 · 병원명 가상</div>
@@ -164,7 +166,8 @@
           <span class="ai-engine-badge gem">Gemini</span>
         </div>
         <div class="ai-col-body">
-          <div class="ai-user-q">분당 스케일링 잘 하는 치과 어디야?</div>
+          <div class="ai-user-q" id="demo-gem-q">분당 스케일링 잘 하는 치과 어디야?</div>
+          <div class="typing-dots" id="demo-gem-dots"><span></span><span></span><span></span></div>
           <div class="ai-response" id="demo-gem"></div>
         </div>
         <div class="ai-col-foot">※ AI 응답 시뮬레이션 · 병원명 가상</div>
@@ -419,78 +422,78 @@ document.querySelectorAll('.faq-q').forEach(function(btn){
   document.querySelectorAll('.fade-up').forEach(function(el){ obs.observe(el); });
 })();
 
-/* ── AI demo typing animation ── */
+/* ── AI demo — real chat animation ── */
 (function(){
   var DEMOS = [
     {
-      id: 'demo-gpt',
-      text: '강남역 임플란트 치과를 안내해 드릴게요.\n\n① 서울스마일치과\n임플란트 전문의 2인, 의료진 자격·장비 정보가 홈페이지에 체계적으로 기재되어 AI가 쉽게 읽을 수 있는 구조입니다.\n\n② ○○치과 — 지역 커뮤니티 언급 다수\n\n③ △△치과 — 최신 CBCT 보유, 개원 5년',
-      hi:   '서울스마일치과',
-      cite: '참고: 서울스마일치과 홈페이지',
-      delay: 0
+      qId:'demo-gpt-q', dotsId:'demo-gpt-dots', respId:'demo-gpt',
+      text:'강남역 임플란트 치과를 안내해 드릴게요.\n\n① 서울스마일치과\n임플란트 전문의 2인, 의료진 자격·장비 정보가 홈페이지에 체계적으로 기재되어 AI가 쉽게 읽을 수 있는 구조입니다.\n\n② ○○치과 — 지역 커뮤니티 언급 다수\n\n③ △△치과 — 최신 CBCT 보유, 개원 5년',
+      hi:'서울스마일치과', cite:'참고: 서울스마일치과 홈페이지', colDelay:0
     },
     {
-      id: 'demo-ppl',
-      text: '송파구 교정 치과 추천입니다.\n\n① 잠실교정치과\n교정 전문의 3인, FAQ 구조의 진료 안내와 치료 사례 콘텐츠가 AI 인용에 최적화되어 있습니다.\n\n② ○○치과 — 온라인 커뮤니티 평점 양호\n\n③ △△치과 — 인비절라인 공인 의원',
-      hi:   '잠실교정치과',
-      cite: '참고: 잠실교정치과 홈페이지',
-      delay: 400
+      qId:'demo-ppl-q', dotsId:'demo-ppl-dots', respId:'demo-ppl',
+      text:'송파구 교정 치과 추천입니다.\n\n① 잠실교정치과\n교정 전문의 3인, FAQ 구조의 진료 안내와 치료 사례 콘텐츠가 AI 인용에 최적화되어 있습니다.\n\n② ○○치과 — 온라인 커뮤니티 평점 양호\n\n③ △△치과 — 인비절라인 공인 의원',
+      hi:'잠실교정치과', cite:'참고: 잠실교정치과 홈페이지', colDelay:500
     },
     {
-      id: 'demo-gem',
-      text: '분당 스케일링 치과를 안내해 드릴게요.\n\n① 분당미소치과\n정기 스케일링 안내가 FAQ 형태로 정비되어 있으며 의료진 약력이 텍스트로 명시되어 AI가 직접 인용할 수 있습니다.\n\n② ○○치과 — 보험 스케일링 관련 블로그 다수\n\n③ △△치과 — 판교 인근, 접근 편리',
-      hi:   '분당미소치과',
-      cite: '참고: 분당미소치과 홈페이지',
-      delay: 800
+      qId:'demo-gem-q', dotsId:'demo-gem-dots', respId:'demo-gem',
+      text:'분당 스케일링 치과를 안내해 드릴게요.\n\n① 분당미소치과\n정기 스케일링 안내가 FAQ 형태로 정비되어 있으며 의료진 약력이 텍스트로 명시되어 AI가 직접 인용할 수 있습니다.\n\n② ○○치과 — 보험 스케일링 관련 블로그 다수\n\n③ △△치과 — 판교 인근, 접근 편리',
+      hi:'분당미소치과', cite:'참고: 분당미소치과 홈페이지', colDelay:1000
     }
   ];
 
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
-  function buildHtml(text, hi, citeStr, done){
-    var safe = esc(text).replace(/\n/g,'<br>');
+  function buildHtml(chunk, hi, cite, done){
+    var safe = esc(chunk).replace(/\n/g,'<br>');
     var hiSafe = esc(hi);
-    safe = safe.replace(new RegExp(hiSafe,'g'), '<span class="clinic-hi">'+hiSafe+'</span>');
-    if(done){
-      safe += '<br><br><span class="cite-ref">🔗 '+esc(citeStr)+'</span>';
-    }
+    safe = safe.replace(new RegExp(hiSafe,'g'),'<span class="clinic-hi">'+hiSafe+'</span>');
+    if(done) safe += '<br><br><span class="cite-ref">🔗 '+esc(cite)+'</span>';
     return safe;
   }
 
-  function typeInto(el, demo){
-    var text = demo.text;
-    var i = 0;
-    el.innerHTML = '<span class="ai-cursor"></span>';
-    var iv = setInterval(function(){
-      i = Math.min(i + 3, text.length);
-      var chunk = text.slice(0, i);
-      var done = (i >= text.length);
-      el.innerHTML = buildHtml(chunk, demo.hi, demo.cite, done) +
-        (done ? '' : '<span class="ai-cursor"></span>');
-      if(done) clearInterval(iv);
-    }, 20);
+  function runChat(demo){
+    /* step 1: user bubble slides in */
+    var qEl = document.getElementById(demo.qId);
+    var dotsEl = document.getElementById(demo.dotsId);
+    var rEl = document.getElementById(demo.respId);
+    if(!qEl||!dotsEl||!rEl) return;
+
+    qEl.classList.add('chat-in');
+
+    /* step 2: AI typing dots appear */
+    setTimeout(function(){
+      dotsEl.classList.add('show');
+    }, 500);
+
+    /* step 3: dots hide, response starts typing */
+    setTimeout(function(){
+      dotsEl.classList.remove('show');
+      rEl.classList.add('show');
+      rEl.innerHTML = '<span class="ai-cursor"></span>';
+      var text = demo.text;
+      var i = 0;
+      var iv = setInterval(function(){
+        i = Math.min(i + 4, text.length);
+        var done = (i >= text.length);
+        rEl.innerHTML = buildHtml(text.slice(0,i), demo.hi, demo.cite, done) +
+          (done ? '' : '<span class="ai-cursor"></span>');
+        if(done) clearInterval(iv);
+      }, 22);
+    }, 2000);
   }
 
   var triggered = false;
   var section = document.querySelector('.ai-demo');
   if(!section) return;
-
-  var obs = new IntersectionObserver(function(entries){
+  new IntersectionObserver(function(entries){
     if(triggered) return;
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        triggered = true;
-        obs.disconnect();
-        DEMOS.forEach(function(demo){
-          setTimeout(function(){
-            var el = document.getElementById(demo.id);
-            if(el) typeInto(el, demo);
-          }, demo.delay);
-        });
-      }
+    if(!entries[0].isIntersecting) return;
+    triggered = true;
+    DEMOS.forEach(function(demo){
+      setTimeout(function(){ runChat(demo); }, demo.colDelay);
     });
-  }, { threshold: 0.2 });
-  obs.observe(section);
+  }, { threshold:0.15 }).observe(section);
 })();
 
 </script>
