@@ -12,16 +12,43 @@ let lastScoredUrl = '';
   if (k) { localStorage.setItem('opKey', k); history.replaceState(null, '', location.pathname); }
 })();
 
-$('scoreForm').addEventListener('submit', async (e) => {
+// scoreForm submit → URL 검증 후 팝업 표시
+$('scoreForm').addEventListener('submit', (e) => {
   e.preventDefault();
   let url = $('urlInput').value.trim();
   if (!url) return;
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  $('urlInput').value = url;
   lastScoredUrl = url;
+  document.getElementById('leadModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('modalClinic').focus(), 80);
+});
 
+// 팝업 제출 — DB 정보 저장 후 진단 실행
+document.getElementById('leadModalForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const clinicName = document.getElementById('modalClinic').value.trim();
+  const contact    = document.getElementById('modalContact').value.trim();
+  const phone      = document.getElementById('modalPhone').value.trim();
+  if (clinicName || contact || phone) {
+    sessionStorage.setItem('leadInfo', JSON.stringify({ clinicName, contact, phone }));
+  }
+  document.getElementById('leadModal').classList.add('hidden');
+  runScan();
+});
+
+// 넘어가기 — 내부 테스트용
+document.getElementById('modalSkip').addEventListener('click', () => {
+  document.getElementById('leadModal').classList.add('hidden');
+  runScan();
+});
+
+// 실제 진단 실행
+async function runScan() {
+  const url = lastScoredUrl;
+  if (!url) return;
   hide('result'); hide('error'); show('loading');
-  $('goBtn').disabled = true; $('goBtn').textContent = '측정 중...';
-
+  $('goBtn').disabled = true; $('goBtn').textContent = '진단 중...';
   try {
     const res = await fetch('/api/score', {
       method: 'POST',
@@ -30,10 +57,7 @@ $('scoreForm').addEventListener('submit', async (e) => {
     });
     const data = await res.json();
     hide('loading');
-    if (!res.ok) {
-      showError(data);
-      return;
-    }
+    if (!res.ok) { showError(data); return; }
     render(data);
   } catch (err) {
     hide('loading');
@@ -41,7 +65,7 @@ $('scoreForm').addEventListener('submit', async (e) => {
   } finally {
     $('goBtn').disabled = false; $('goBtn').textContent = '진단받기';
   }
-});
+}
 
 // Unmeasurable != failure != score 0 (AD-17). Distinguish the reason so a citable site that we
 // simply couldn't read (expired cert, block, timeout) reads as "측정 불가 + 고칠 거리", not "낙제".

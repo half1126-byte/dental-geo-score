@@ -1094,3 +1094,37 @@ footer.site-footer {
   padding:3px 10px; border-radius:999px;
   background:var(--plum-dim); color:var(--plum); letter-spacing:.04em;
 }
+
+/* ── LEAD MODAL ── */
+.modal-overlay {
+  display:flex; position:fixed; inset:0;
+  background:rgba(0,0,0,.72); backdrop-filter:blur(4px);
+  z-index:1000; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.hidden { display:none; }
+.modal-box {
+  background:#111; border:1px solid rgba(128,82,255,.3);
+  border-radius:20px; padding:40px 36px; width:100%; max-width:420px;
+}
+.modal-title {
+  text-align:center; font-size:1.3rem; font-weight:700; margin-bottom:8px; line-height:1.35;
+}
+.modal-field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.modal-field label {
+  font-size:.72rem; font-weight:600; color:rgba(255,255,255,.45);
+  text-transform:uppercase; letter-spacing:.07em;
+}
+.modal-field input {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; color:#fff; font-size:.9rem; padding:11px 14px;
+  outline:none; transition:border-color .15s; font-family:inherit;
+}
+.modal-field input:focus { border-color:rgba(128,82,255,.55); }
+.modal-submit { width:100%; margin-top:8px; }
+.btn-skip {
+  display:block; width:100%; margin-top:12px;
+  background:none; border:none; color:rgba(255,255,255,.28);
+  font-size:.78rem; cursor:pointer; padding:8px; transition:color .15s;
+  text-align:center; font-family:inherit;
+}
+.btn-skip:hover { color:rgba(255,255,255,.6); }
