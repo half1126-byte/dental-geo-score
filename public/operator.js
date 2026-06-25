@@ -269,7 +269,10 @@ function render(scoreRes, citeRes, q) {
     && citeRes.d.perEngine.some((p) => p.cited);
   const strategyOrBannerHtml = citeRes && citeRes.d && citeRes.d.perEngine
     ? (citeOk
-        ? `<div class="insight-banner insight-ok"><b>✅ AI 추천 확인</b> — 현재 ChatGPT·Perplexity에 이 치과가 인용되고 있습니다.</div>`
+        ? (() => {
+            const cited = citeRes.d.perEngine.filter((p) => p.cited).map((p) => ENGINE_SHORT[p.engine] || p.engine);
+            return `<div class="insight-banner insight-ok"><b>✅ AI 추천 확인</b> — 현재 ${esc(cited.join('·'))}에 이 치과가 인용되고 있습니다.</div>`;
+          })()
         : renderContentStrategy(q))
     : '';
 
