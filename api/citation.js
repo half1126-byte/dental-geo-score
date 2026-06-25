@@ -17,12 +17,13 @@ import { AUTO_ENGINES } from '../lib/engines.js';
 import { registrableDomain } from '../lib/normalize.js';
 import { toPublicView, toPrivateReport } from '../lib/redact.js';
 import { makeStore } from '../lib/store.js';
+import { kv } from '../lib/kv.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 120 };
 
 const ENV_KEYS = { chatgpt: 'OPENAI_API_KEY', perplexity: 'PERPLEXITY_API_KEY', claude: 'ANTHROPIC_API_KEY' };
 const DAY = 86_400_000;
-const store = makeStore(); // in-memory v1; pass { kv } (Upstash) before going public
+const store = makeStore({ kv }); // kv = Upstash when KV_REST_API_URL+TOKEN set, else in-memory
 
 const maskEmail = (e) => String(e || '').replace(/^(.).*(@.*)$/, '$1***$2');
 
@@ -158,6 +159,21 @@ export default async function handler(req, res) {
       customPrompts,
     });
     await store.cacheSet(cacheKey, result, DAY);
+
+    // Persist citation history (non-blocking — never fail the response on KV errors)
+    const histRecord = {
+      ts: new Date().toISOString(),
+      region: effectiveRegions[0] || '',
+      procedure: procedure || '',
+      engines: (result.perEngine || []).map((p) => ({
+        engine: p.engine,
+        cited: p.cited,
+        citedRuns: p.citedRuns ?? 0,
+        validRuns: p.validRuns ?? 0,
+      })),
+    };
+    store.histAppend(`c:${domain}`, histRecord).catch(() => {});
+
     res.status(200).json(view(result));
   } catch (e) {
     res.status(500).json({ error: 'internal', message: String(e?.message || e).slice(0, 200) });

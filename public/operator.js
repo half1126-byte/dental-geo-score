@@ -296,6 +296,9 @@ function render(scoreRes, citeRes, q) {
     const bar = document.querySelector('.score-bar-fill');
     if (bar) bar.style.width = bar.dataset.pct + '%';
   });
+  // 이력 비동기 로드 (메인 렌더를 블록하지 않음)
+  hide('historySection');
+  fetchAndRenderHistory(lastUrl);
 }
 
 function renderContentStrategy(q) {
@@ -831,4 +834,107 @@ function renderHygiene(scoreRes) {
 
 function card(title, bodyHtml, cls) {
   return `<div class="card ${cls || ''}"><b style="font-size:1rem">${esc(title)}</b><div style="margin-top:8px">${bodyHtml}</div></div>`;
+}
+
+// ── 측정 이력 ────────────────────────────────────────────────────
+async function fetchAndRenderHistory(url) {
+  try {
+    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+    const key = localStorage.getItem('opKey') || '';
+    const r = await fetch(`/api/history?domain=${encodeURIComponent(domain)}`, {
+      headers: { 'x-operator-key': key },
+    });
+    if (!r.ok) return;
+    const data = await r.json();
+    const { scoreHistory = [], citationHistory = [], backedByKv } = data;
+    if (!scoreHistory.length && !citationHistory.length) return;
+    const sec = $('historySection');
+    if (!sec) return;
+    sec.innerHTML = renderHistorySection(scoreHistory, citationHistory, backedByKv);
+    show('historySection');
+  } catch { /* 이력 없으면 조용히 스킵 */ }
+}
+
+function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
+  const fmt = (ts) => {
+    try {
+      const d = new Date(ts);
+      return `${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    } catch { return ts || '—'; }
+  };
+
+  const TH = 'padding:8px 12px;font-size:.74rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap';
+  const TD = 'padding:8px 12px;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top';
+
+  // Score history table
+  const scoreTable = scoreHistory.length ? `
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="${TH}">날짜</th>
+          <th style="${TH};text-align:right">GEO 점수</th>
+          <th style="${TH}">등급</th>
+        </tr></thead>
+        <tbody>
+          ${scoreHistory.map((r) => {
+            const bandColor = r.score >= 70 ? '#1fcec4' : r.score >= 40 ? '#c9a84c' : '#f05e6a';
+            return `<tr>
+              <td style="${TD};color:var(--text-2)">${fmt(r.ts)}</td>
+              <td style="${TD};text-align:right;font-weight:700;color:${bandColor}">${r.score ?? '—'}pt</td>
+              <td style="${TD};color:${bandColor}">${esc(r.band || '—')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>` : '<p class="muted small">점수 이력 없음</p>';
+
+  // Citation history table — engines from first record
+  let citationTable = '<p class="muted small">인용 이력 없음</p>';
+  if (citationHistory.length) {
+    const allEngines = [...new Set(citationHistory.flatMap((r) => (r.engines || []).map((e) => e.engine)))];
+    const engHead = allEngines.map((e) => `<th style="${TH};text-align:center">${esc(ENGINE_SHORT[e] || e)}</th>`).join('');
+    const rows = citationHistory.map((r) => {
+      const engMap = Object.fromEntries((r.engines || []).map((e) => [e.engine, e]));
+      const engCells = allEngines.map((e) => {
+        const p = engMap[e];
+        if (!p) return `<td style="${TD};text-align:center;color:var(--text-2)">—</td>`;
+        const color = p.cited ? '#1fcec4' : 'var(--text-2)';
+        return `<td style="${TD};text-align:center;color:${color};font-weight:${p.cited ? 700 : 400}">${p.cited ? '✅' : '❌'} ${p.citedRuns}/${p.validRuns}</td>`;
+      }).join('');
+      return `<tr>
+        <td style="${TD};color:var(--text-2)">${fmt(r.ts)}</td>
+        <td style="${TD};font-size:.78rem;color:var(--text-2)">${esc(r.region || '—')} / ${esc(r.procedure || '—')}</td>
+        ${engCells}
+      </tr>`;
+    }).join('');
+    citationTable = `<div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="${TH}">날짜</th>
+          <th style="${TH}">지역/진료</th>
+          ${engHead}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }
+
+  const kvNote = backedByKv
+    ? ''
+    : '<p class="muted small" style="margin-top:6px">⚠️ KV 미연결 — 이력은 서버 재시작 시 초기화됩니다. Vercel KV를 연결하면 영구 저장됩니다.</p>';
+
+  return `<div style="background:var(--bg-3);border:1px solid var(--border);border-radius:18px;padding:22px">
+    <b style="font-size:1rem">📈 측정 이력</b>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;margin-top:14px;align-items:start">
+      <div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">GEO 점수 추이</div>
+        ${scoreTable}
+      </div>
+      <div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">AI 인용 추이</div>
+        ${citationTable}
+      </div>
+    </div>
+    ${kvNote}
+  </div>`;
 }

@@ -28,6 +28,39 @@ test('incrIpDaily: independent from incrDaily, isolated per ipHash', async () =>
   assert.equal(await store.incrDaily('2026-06-24'), 1, 'incrDaily unaffected by incrIpDaily');
 });
 
+test('histAppend: prepends newest-first, caps at HIST_MAX=30', async () => {
+  const store = makeStore();
+  for (let i = 1; i <= 32; i++) {
+    await store.histAppend('s:example.co.kr', { ts: `2026-06-${String(i).padStart(2,'0')}`, score: i });
+  }
+  const hist = await store.histGet('s:example.co.kr');
+  assert.equal(hist.length, 30, 'capped at 30');
+  assert.equal(hist[0].score, 32, 'newest first');
+  assert.equal(hist[29].score, 3, 'oldest kept is #3');
+});
+
+test('histGet: returns [] when key missing', async () => {
+  const store = makeStore();
+  assert.deepEqual(await store.histGet('s:nobody.com'), []);
+});
+
+test('histAppend KV-backed: persists via JSON serialize/deserialize', async () => {
+  const data = new Map();
+  const kv = {
+    async get(k) { return data.get(k) ?? null; },
+    async set(k, v) { data.set(k, v); },
+    async incr() { return 1; },
+    async expire() {},
+  };
+  const store = makeStore({ kv });
+  await store.histAppend('c:clinic.co.kr', { ts: 'ts1', engines: [{ engine: 'chatgpt', cited: false }] });
+  await store.histAppend('c:clinic.co.kr', { ts: 'ts2', engines: [{ engine: 'chatgpt', cited: true }] });
+  const hist = await store.histGet('c:clinic.co.kr');
+  assert.equal(hist.length, 2);
+  assert.equal(hist[0].ts, 'ts2', 'newest first via KV');
+  assert.equal(hist[1].ts, 'ts1');
+});
+
 test('KV-backed path uses injected kv + sets expire once', async () => {
   const data = new Map();
   let expireCalls = 0;

@@ -1,8 +1,13 @@
 // POST /api/score { url }  → heuristic GEO readiness score (free, no AI keys).
 // SSRF-safe (lib/fetcher), deterministic, returns evidence/breakdown for the frontend.
 import { auditUrl, FetchBlockedError } from '../lib/audit.js';
+import { makeStore } from '../lib/store.js';
+import { kv } from '../lib/kv.js';
+import { registrableDomain } from '../lib/normalize.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 20 };
+
+const store = makeStore({ kv });
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
@@ -21,6 +26,15 @@ export default async function handler(req, res) {
   try {
     const result = await auditUrl(url, { timeoutMs: 8000 });
     result.measuredAt = new Date().toISOString();
+
+    // Persist score history (non-blocking)
+    const domain = registrableDomain(url);
+    store.histAppend(`s:${domain}`, {
+      ts:    result.measuredAt,
+      score: result.score,
+      band:  result.band,
+    }).catch(() => {});
+
     res.status(200).json(result);
   } catch (e) {
     if (e instanceof FetchBlockedError) {
