@@ -216,6 +216,24 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .compare-add-btn { width:100%; margin-top:14px; font-size:.9rem; }
 .compare-add-btn.on { opacity:.72; }
 
+/* ── compare invite (citation panel: 추천 홈페이지 클릭 유도) ── */
+.compare-invite { margin-top:14px; padding:16px 18px; background:linear-gradient(135deg,rgba(128,82,255,.1),rgba(128,82,255,.03)); border:1px solid rgba(128,82,255,.28); border-radius:14px; }
+.compare-invite-head { font-size:1rem; font-weight:700; color:var(--text-1); }
+.compare-invite-sub { font-size:.84rem; color:var(--text-2); line-height:1.55; margin:6px 0 12px; }
+.compare-invite-list { display:flex; flex-direction:column; gap:8px; }
+.compare-invite-item { display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--bg-2); border:1px solid var(--border); border-radius:10px; text-decoration:none; transition:border-color .15s,background .15s; }
+.compare-invite-item:hover { border-color:var(--plum); background:rgba(128,82,255,.08); }
+.ci-rank { flex-shrink:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center; background:var(--plum); color:#fff; border-radius:50%; font-size:.78rem; font-weight:700; }
+.ci-domain { flex:1; min-width:0; font-size:.86rem; font-weight:600; color:var(--text-1); word-break:break-all; }
+.ci-cta { flex-shrink:0; font-size:.78rem; font-weight:700; color:var(--plum); white-space:nowrap; }
+
+/* ── solution CTA (compare panel: 구매 유도) ── */
+.solution-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; margin-top:8px; }
+.solution-card { display:flex; flex-direction:column; justify-content:space-between; gap:12px; padding:15px 16px; background:linear-gradient(135deg,var(--bg-3),rgba(201,168,76,.05)); border:1.5px solid var(--gold); border-radius:14px; }
+.solution-name { font-size:.95rem; font-weight:700; color:var(--text-1); }
+.solution-desc { font-size:.8rem; color:var(--text-2); line-height:1.5; margin-top:5px; }
+.solution-cta { width:100%; font-size:.86rem; }
+
 /* ── result 2-column grid (below citation) ── */
 .result-2col {
   display:grid;

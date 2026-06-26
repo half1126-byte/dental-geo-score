@@ -601,6 +601,7 @@ function renderCompare(pkg, compDomain) {
     ${renderSchemaDiff(pkg.schemaDiff, userDomain, cDomain)}
     ${renderMetaContentDiff(pkg, userDomain, cDomain)}
     ${renderPlanTable(pkg)}
+    ${renderSolutionCTA(pkg)}
     ${renderTeardown(pkg.teardown, userDomain, cDomain)}
     <p class="muted small" style="margin-top:14px">기술·구조 비교는 AI 인용과 직접 인과관계가 없는 <b>필요조건·위생 지표</b>입니다. 인용은 외부 언급(블로그·기사·커뮤니티)에 좌우됩니다.</p>
   </div>`;
@@ -745,6 +746,26 @@ function renderPlanTable(pkg) {
     ${addBtn}`;
 }
 
+// 비교 격차 기반 솔루션 추천 + 구매 유도 CTA (클릭 → 문의에 담김)
+function renderSolutionCTA(pkg) {
+  const gapKeys = new Set((pkg.planRows || []).map((r) => r.key));
+  let recs = SOLUTIONS.filter((s) => s.keys.some((k) => gapKeys.has(k)));
+  if (!recs.length) recs = SOLUTIONS; // 격차 없으면 전체 노출
+  const cards = recs.map((s) => {
+    const p = PRODUCTS.find((x) => x.id === s.id) || { name: s.id, desc: '' };
+    return `<div class="solution-card">
+      <div class="solution-body">
+        <div class="solution-name">${esc(p.name)}</div>
+        <div class="solution-desc">${esc(p.desc)}</div>
+      </div>
+      <button type="button" class="btn p solution-cta" data-add-products="${esc(s.id)}">상담 신청 →</button>
+    </div>`;
+  }).join('');
+  return `<div class="compare-section-head" style="margin-top:24px">💎 추천 솔루션 — 이렇게 해결하세요</div>
+    <p class="muted small" style="margin:0 0 10px">발견된 격차를 메우는 메디앤메디 솔루션입니다. 구조 위생 개선 · AI 인용 예측 아님.</p>
+    <div class="solution-grid">${cards}</div>`;
+}
+
 function renderTeardown(td, userDomain, cDomain) {
   if (!td || (!td.user && !td.comp)) return '';
   return `<div class="compare-section-head" style="margin-top:22px">⑤ HTML 원본 분해 — 메타·스키마·본문</div>
@@ -859,17 +880,31 @@ function renderCitation(citeRes) {
     </td>`;
   }).join('');
 
-  // Row 2 — 대신 인용된 경쟁 도메인
+  // Row 2 — 대신 추천된 경쟁 도메인 (클릭 → 심층 비교: 무엇이 부족한지)
   const compCells = eng.map((p) => {
     const comp = (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain);
     if (!p.measured || !comp.length) return `<td style="padding:14px 20px;text-align:center;color:rgba(255,255,255,.2);font-size:.82rem">—</td>`;
     const links = comp.slice(0, 6).map((x) => {
       const href = /^https?:\/\//.test(x) ? x : `https://${x}`;
       return `<a class="comp-link" href="${esc(href)}" target="_blank" rel="noopener" data-compare="${esc(x)}"
-        style="display:block;margin-bottom:5px;word-break:break-all">${esc(x)}</a>`;
+        style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px;word-break:break-all"><span>${esc(x)}</span><span style="color:var(--plum);font-weight:700;white-space:nowrap;font-size:.72rem">비교 →</span></a>`;
     }).join('');
     return `<td style="padding:14px 20px;vertical-align:top">${links}</td>`;
   }).join('');
+
+  // narrative: not recommended → THESE 3 homepages WERE → friendly invite to compare
+  const anyNotCited = eng.some((p) => p.measured && !p.cited);
+  const recHomes = [...new Set(eng.flatMap((p) => (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain)))].slice(0, 3);
+  const qLabel = [d.region, d.procedure].filter(Boolean).join(' ');
+  const compareHint = (recHomes.length && anyNotCited)
+    ? `<div class="compare-invite">
+        <div class="compare-invite-head">🔍 경쟁 병원 홈페이지, 비교해보시겠어요?</div>
+        <p class="compare-invite-sub">AI가 ${qLabel ? `"${esc(qLabel)} 치과 추천"` : '이 검색'}에서 <b>실제로 추천한 홈페이지 ${recHomes.length}곳</b>입니다. 클릭하면 우리 홈페이지를 나란히 띄우고 코드를 뜯어 <b>무엇이 다른지</b> 한눈에 보여드립니다.</p>
+        <div class="compare-invite-list">
+          ${recHomes.map((x, i) => { const href = /^https?:\/\//.test(x) ? x : `https://${x}`; return `<a class="compare-invite-item" href="${esc(href)}" target="_blank" rel="noopener" data-compare="${esc(x)}"><span class="ci-rank">${i + 1}</span><span class="ci-domain">${esc(x)}</span><span class="ci-cta">비교 분석 →</span></a>`; }).join('')}
+        </div>
+      </div>`
+    : '';
 
   const colgroup = `<colgroup><col style="width:72px">${eng.map(() => '<col>').join('')}</colgroup>`;
 
@@ -888,7 +923,7 @@ function renderCitation(citeRes) {
           ${resultCells}
         </tr>
         <tr>
-          <td style="${TD_LABEL}">대신<br>인용됨</td>
+          <td style="${TD_LABEL}">대신<br>추천됨</td>
           ${compCells}
         </tr>
       </tbody>
@@ -901,9 +936,41 @@ function renderCitation(citeRes) {
       <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
     </div>
     ${table}
+    ${compareHint}
+    ${renderCitationAnswers(eng, d.clinicDomain)}
     ${renderNaverLocal(d)}
     ${urlMatchHtml}
     ${note}
+  </div>`;
+}
+
+// Operator-only: show the ACTUAL ChatGPT/Perplexity answer text per query (collapsible).
+function renderCitationAnswers(eng, clinicDomain) {
+  const withAnswers = (eng || []).filter((p) => Array.isArray(p.sampleAnswers) && p.sampleAnswers.length);
+  if (!withAnswers.length) return '';
+  const blocks = withAnswers.map((p) => {
+    const name = ENGINE_SHORT[p.engine] || p.engine;
+    const logo = ENGINE_LOGO[p.engine] || '';
+    const items = p.sampleAnswers.map((a) => {
+      const badge = a.cited
+        ? '<span style="color:#1fcec4;font-weight:700">✅ 이 치과 언급됨</span>'
+        : '<span style="color:var(--text-2)">이 치과 미언급</span>';
+      return `<div style="margin-bottom:14px">
+        <div style="font-size:.78rem;color:var(--text-2);margin-bottom:5px">💬 "${esc(a.prompt)}" · ${badge}</div>
+        <div style="font-size:.82rem;line-height:1.65;color:var(--text-1);white-space:pre-wrap;word-break:break-word;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;max-height:320px;overflow:auto">${esc(a.answer || '(빈 응답)')}</div>
+      </div>`;
+    }).join('');
+    return `<div class="accordion-wrap" style="margin-top:8px">
+      <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')">
+        <span>${logo} ${esc(name)} — 실제 답변 보기 (${p.sampleAnswers.length}개 질의)</span><span class="accordion-arrow">▼</span>
+      </button>
+      <div class="accordion-body">${items}</div>
+    </div>`;
+  }).join('');
+  return `<div style="margin-top:16px">
+    <div class="compare-section-head" style="margin-bottom:4px">🔎 AI 답변 원문 — 실제로 무엇을 추천했나</div>
+    <p class="muted small" style="margin:0 0 8px">ChatGPT·Perplexity가 각 질의에 실제로 생성한 답변입니다(운영자 전용). 환자 광고에 인용 금지 — 의료광고법.</p>
+    ${blocks}
   </div>`;
 }
 
@@ -1257,7 +1324,7 @@ const PRODUCTS = [
   {
     id: 'media-feature',
     name: '의료 미디어 기고',
-    desc: '헬스조선·코메디닷컴 등 권위 도메인 기고 — AI 인용 가중치 최고',
+    desc: '헬스조선·코메디닷컴 등 권위 도메인 기고 — AI 인용 가중치 높음',
     how: '건당 기획·작성·게재',
     trigger: (cited) => !cited,
   },
@@ -1275,6 +1342,35 @@ const PRODUCTS = [
     how: '30일 집중 구축',
     trigger: (cited) => !cited,
   },
+  // ── 비교 패널 솔루션(구매 유도) 상품 ──
+  {
+    id: 'geo-renewal',
+    name: 'GEO 홈페이지 리뉴얼',
+    desc: 'AI가 읽는 구조로 홈페이지 재구축 — JSON-LD 스키마·메타·answer-first 정비',
+    how: '1회 구축',
+    trigger: (cited, score) => !cited || score < 70,
+  },
+  {
+    id: 'ai-column',
+    name: 'AI 검색 인용 칼럼(GEO)',
+    desc: 'AI가 학습하는 제3자 인용 콘텐츠 — 권위 도메인 칼럼·기고 발행',
+    how: '월 정기',
+    trigger: (cited) => !cited,
+  },
+  {
+    id: 'shortform',
+    name: '주의사항 숏폼영상',
+    desc: '진료 주의사항 숏폼으로 자연 언급·검색 노출 확대',
+    how: '건당 제작',
+    trigger: (cited) => !cited,
+  },
+];
+
+// 비교에서 발견된 격차(planRows key) → 추천 솔루션 매핑 (구매 유도용)
+const SOLUTIONS = [
+  { id: 'geo-renewal', keys: ['schema', 'meta', 'answer', 'extract', 'local', 'crawl'] },
+  { id: 'ai-column',   keys: ['notcited', 'citability', 'eeat', 'fresh'] },
+  { id: 'shortform',   keys: ['notcited', 'citability'] },
 ];
 
 function renderProductRecommend(citeRes, scoreRes) {
