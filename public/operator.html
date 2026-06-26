@@ -234,6 +234,18 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .solution-desc { font-size:.8rem; color:var(--text-2); line-height:1.5; margin-top:5px; }
 .solution-cta { width:100%; font-size:.86rem; }
 
+/* ── result IA: 섹션 라벨 + 결론 hero verdict ── */
+.result-section-label { display:flex; align-items:center; gap:9px; margin:26px 0 10px; font-size:1.04rem; font-weight:700; color:var(--text-1); }
+.result-section-label.dim { color:var(--text-2); font-size:.92rem; margin-top:22px; }
+.rsl-num { flex-shrink:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--plum); color:#fff; border-radius:8px; font-size:.8rem; font-weight:800; }
+.result-section-label.dim .rsl-num { background:rgba(255,255,255,.12); color:var(--text-2); }
+.result-verdict { display:flex; align-items:center; gap:13px; padding:15px 18px; border-radius:14px; margin-bottom:10px; }
+.result-verdict.ok { background:rgba(31,206,196,.1); border:1px solid rgba(31,206,196,.32); }
+.result-verdict.bad { background:rgba(240,94,106,.1); border:1px solid rgba(240,94,106,.32); }
+.rv-icon { font-size:1.6rem; flex-shrink:0; line-height:1; }
+.rv-text { font-size:.92rem; color:var(--text-1); line-height:1.45; }
+.rv-text b { font-size:1.08rem; font-weight:700; }
+
 /* ── result 2-column grid (below citation) ── */
 .result-2col {
   display:grid;

@@ -328,30 +328,32 @@ function render(scoreRes, citeRes, q) {
 
   const citeOk = citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine)
     && citeRes.d.perEngine.some((p) => p.cited);
-  const strategyOrBannerHtml = citeRes && citeRes.d && citeRes.d.perEngine
-    ? (citeOk
-        ? (() => {
-            const cited = citeRes.d.perEngine.filter((p) => p.cited).map((p) => ENGINE_SHORT[p.engine] || p.engine);
-            return `<div class="insight-banner insight-ok"><b>✅ AI 추천 확인</b> — 현재 ${esc(cited.join('·'))}에 이 치과가 인용되고 있습니다.</div>`;
-          })()
-        : renderContentStrategy(q))
-    : '';
+  // 미추천 시 '인용 얻는 법' 전략 카드 → 결과 위가 아니라 부가(접기)로 이동
+  const strategy = (citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine) && citeRes.d.perEngine.length && !citeOk)
+    ? renderContentStrategy(q) : '';
 
+  const acc = (title, body) => `<div class="accordion-wrap" style="margin-top:8px">
+    <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')"><span>${title}</span><span class="accordion-arrow">▼</span></button>
+    <div class="accordion-body">${body}</div>
+  </div>`;
+  const label = (n, text, dim) => `<div class="result-section-label${dim ? ' dim' : ''}"><span class="rsl-num">${n}</span> ${text}</div>`;
+
+  // IA: 결론(hero) → ① 실측 → ② 진단 → ③ 솔루션 → ④ 부가(접기)
   $('opResult').innerHTML = `
     ${header}
-    ${strategyOrBannerHtml}
+    ${label('①', 'AI 실측 — 실제로 추천하나요?')}
     ${citation}
-    ${recommend}
+    ${label('②', '진단 — 무엇이 부족한가')}
     <div class="result-2col">
-      <div>${improve}${agent}</div>
+      <div>${improve}</div>
       <div>${hygiene}</div>
     </div>
-    <div class="accordion-wrap" style="margin-top:12px">
-      <button type="button" class="accordion-btn" onclick="this.closest('.accordion-wrap').classList.toggle('open')">
-        <span>🔍 Gemini 수동 확인</span><span class="accordion-arrow">▼</span>
-      </button>
-      <div class="accordion-body">${gemini}</div>
-    </div>
+    ${label('③', '솔루션 — 이렇게 해결하세요')}
+    ${recommend}
+    ${label('④', '부가 분석 (펼쳐서 보기)', true)}
+    ${acc('🤖 에이전트 액션 가능성', agent)}
+    ${acc('🔍 Gemini 수동 확인', gemini)}
+    ${strategy ? acc('⚡ AI 인용을 얻는 방법', strategy) : ''}
   `;
   show('opResult');
   requestAnimationFrame(() => {
@@ -806,7 +808,17 @@ function renderResultHeader(scoreRes, citeRes, q) {
     return `<div class="result-dash-engine-row">${logo}<span class="rdname">${esc(name)}</span><span style="font-weight:700;color:${color};font-size:.82rem">${icon} ${esc(stat)}</span></div>`;
   }).join('') : '';
 
-  return `<div class="result-dash">
+  // ── 강한 결론 한 줄 (hero) ──
+  const eng = Array.isArray(d.perEngine) ? d.perEngine : [];
+  const measuredAny = eng.some((p) => p.measured);
+  const citedNames = eng.filter((p) => p.cited).map((p) => ENGINE_SHORT[p.engine] || p.engine);
+  const verdictLine = (eng.length && measuredAny)
+    ? (citedNames.length
+        ? `<div class="result-verdict ok"><span class="rv-icon">✅</span><span class="rv-text"><b>AI 추천됨</b> — ${esc(citedNames.join('·'))}에 이 치과가 인용되고 있습니다.</span></div>`
+        : `<div class="result-verdict bad"><span class="rv-icon">❌</span><span class="rv-text"><b>AI 미추천</b> — ChatGPT·Perplexity 추천 목록에 이 치과가 없습니다. 아래 ‘② 진단’에서 무엇이 부족한지 확인하세요.</span></div>`)
+    : '';
+
+  return `${verdictLine}<div class="result-dash">
     ${scoreBlock}
     <div class="result-dash-info">
       <div class="result-dash-domain">${esc(domain)}</div>
