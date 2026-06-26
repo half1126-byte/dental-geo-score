@@ -171,9 +171,12 @@ html { scroll-behavior:smooth; }
 .compare-preview-score { font-size:.72rem; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
 .compare-mini-badge { font-size:.62rem; font-weight:700; background:rgba(255,255,255,.08); color:var(--text-2); border-radius:5px; padding:2px 6px; }
 .compare-mini-badge.gold { background:var(--gold); color:#000; }
-.compare-preview-stage { position:relative; height:300px; background:#0c0c0c; display:flex; align-items:center; justify-content:center; }
-.compare-preview-frame { width:100%; height:100%; border:0; background:#fff; }
-.compare-preview-fallback { display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; padding:20px; text-align:center; }
+.compare-preview-stage { position:relative; height:440px; background:#fff; overflow:hidden; }
+@media(max-width:720px){ .compare-preview-stage { height:380px; } }
+.compare-preview-frame { position:absolute; top:0; left:0; border:0; background:#fff; } /* width·height·transform = JS (scale-to-fit) */
+.compare-preview-fallback { position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; padding:20px; text-align:center; background:#0c0c0c; }
+.cp-open { color:inherit; text-decoration:none; opacity:.65; margin-left:5px; font-weight:700; }
+.cp-open:hover { opacity:1; }
 .compare-preview-blocked { font-size:.82rem; color:var(--text-2); line-height:1.5; }
 .compare-preview-blocked span { font-size:.68rem; opacity:.6; }
 

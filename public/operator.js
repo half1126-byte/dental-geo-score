@@ -521,6 +521,11 @@ function addProductsToInquiry(ids) {
 
 // compareSection is a SIBLING of #opResult, so its panel needs its own delegation.
 $('compareSection').addEventListener('click', (e) => {
+  const retry = e.target.closest('[data-compare-retry]');
+  if (retry) {
+    loadCompare(retry.getAttribute('data-retry-domain'), retry.getAttribute('data-retry-url'));
+    return;
+  }
   const addBtn = e.target.closest('[data-add-products]');
   if (addBtn) {
     const ids = (addBtn.getAttribute('data-add-products') || '').split(',').filter(Boolean);
@@ -543,21 +548,50 @@ function compCloseBtn() {
   return `<button type="button" onclick="document.getElementById('compareSection').classList.add('hidden')" class="chip" style="float:right;margin-left:8px">닫기 ✕</button>`;
 }
 
-// iframe graceful fallback: if an embeddable frame doesn't fire load in time, reveal its fallback card.
+// Scale-to-fit: render each preview iframe at desktop width (1200) then shrink to the cell — shows the
+// whole homepage as a thumbnail instead of a cropped top-left corner.
+function applyPreviewScale(root) {
+  const BASE = 1200;
+  root.querySelectorAll('.compare-preview-frame[data-embed="1"]').forEach((f) => {
+    if (f.style.display === 'none') return; // fell back to card
+    const stage = f.parentElement;
+    const w = stage.clientWidth, h = stage.clientHeight || 440;
+    if (!w) return;
+    const scale = w / BASE;
+    f.style.width = BASE + 'px';
+    f.style.height = Math.round(h / scale) + 'px';
+    f.style.transformOrigin = '0 0';
+    f.style.transform = `scale(${scale})`;
+  });
+}
+
+// iframe graceful fallback + scale-to-fit sizing.
 function wireComparePreviews(root) {
+  applyPreviewScale(root);
+  requestAnimationFrame(() => applyPreviewScale(root));
   root.querySelectorAll('.compare-preview-frame[data-embed="1"]').forEach((f) => {
     let done = false;
     const fb = f.parentElement.querySelector('.compare-preview-fallback');
     const reveal = () => { if (done) return; f.style.display = 'none'; if (fb) fb.removeAttribute('hidden'); };
     const t = setTimeout(reveal, 4800);
-    f.addEventListener('load', () => { done = true; clearTimeout(t); });
+    f.addEventListener('load', () => { done = true; clearTimeout(t); applyPreviewScale(root); });
     f.addEventListener('error', () => { clearTimeout(t); reveal(); });
   });
 }
 
+// re-scale previews on window resize (panel is responsive)
+let _cmpResizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(_cmpResizeT);
+  _cmpResizeT = setTimeout(() => {
+    const sec = document.getElementById('compareSection');
+    if (sec && !sec.classList.contains('hidden')) applyPreviewScale(sec);
+  }, 150);
+});
+
 async function loadCompare(compDomain, compUrl) {
   const sec = $('compareSection');
-  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} — 양쪽 소스·구조 분석 중 (3~6초)...</p></div>`;
+  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} — 양쪽 소스·구조 분석 중 (최대 20초, 느린 사이트는 재시도)...</p></div>`;
   show('compareSection');
   sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -582,7 +616,9 @@ async function loadCompare(compDomain, compUrl) {
   }
 
   if (!pkg || !pkg.signalDiff) {
-    sec.innerHTML = `<div class="compare-panel">${compCloseBtn()}<p class="muted">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}</p></div>`;
+    sec.innerHTML = `<div class="compare-panel">${compCloseBtn()}
+      <p class="muted" style="margin-bottom:14px">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}</p>
+      <button type="button" class="btn p" data-compare-retry data-retry-domain="${esc(compDomain)}" data-retry-url="${esc(compFullUrl)}" style="min-width:120px">🔄 다시 시도</button></div>`;
     return;
   }
   sec.innerHTML = renderCompare(pkg, compDomain);
@@ -627,7 +663,7 @@ function renderPreviewRow(pkg, userDomain, cDomain, uScore, cScore) {
            <a class="btn p" href="${esc(safeUrl)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
          </div>`;
     return `<div class="compare-preview-cell">
-      <div class="compare-preview-head ${tagClass}"><span>${esc(short(domain, 22))}</span><span class="compare-preview-score">${esc(String(score))}점 ${badge}</span></div>
+      <div class="compare-preview-head ${tagClass}"><span>${esc(short(domain, 20))}</span><span class="compare-preview-score">${esc(String(score))}점 ${badge}<a href="${esc(safeUrl)}" target="_blank" rel="noopener" class="cp-open" title="전체 보기">↗</a></span></div>
       <div class="compare-preview-stage">${stage}</div>
     </div>`;
   };

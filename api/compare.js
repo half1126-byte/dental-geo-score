@@ -9,14 +9,33 @@ import { scorePage } from '../lib/scorer.js';
 import { registrableDomain } from '../lib/normalize.js';
 import { buildComparePackage, embeddableFromHeaders } from '../lib/compare.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 25 };
+export const config = { runtime: 'nodejs', maxDuration: 40 };
+
+// Real-browser UA + retry: re-fetching an already-measured page is fragile (slow sites, transient
+// drops, per-IP rate-limit on repeat hits). A browser UA + one retry on TRANSIENT errors makes it
+// resilient. Hard SSRF blocks (blocked-ip/bad-scheme/…) are NEVER retried — security stays intact.
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+const HARD_BLOCK = /blocked-ip|bad-scheme|bad-port|invalid-url|userinfo|too-many-redirects|body-too-large/;
+
+async function fetchResilient(url, opts) {
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await safeFetch(url, opts);
+    } catch (e) {
+      lastErr = e;
+      if (e instanceof FetchBlockedError && HARD_BLOCK.test(e.reason || '')) throw e; // don't retry hard SSRF blocks
+    }
+  }
+  throw lastErr;
+}
 
 async function buildProfile(url, hintedScore) {
-  const page = await safeFetch(url, { timeoutMs: 8000, maxBytes: 1_500_000 });
+  const page = await fetchResilient(url, { timeoutMs: 11000, maxBytes: 1_500_000, userAgent: BROWSER_UA });
 
   let robots = { present: false, parseable: false, blocksAny: false, blockedBots: [], sitemap: null };
   try {
-    const r = await safeFetch(new URL('/robots.txt', page.finalUrl).href, { timeoutMs: 5000, maxBytes: 300_000 });
+    const r = await safeFetch(new URL('/robots.txt', page.finalUrl).href, { timeoutMs: 4000, maxBytes: 300_000, userAgent: BROWSER_UA });
     robots = analyzeRobots(r);
   } catch {
     // robots.txt optional — absence is informational, not an error
@@ -94,7 +113,9 @@ export default async function handler(req, res) {
         error: blocked ? 'fetch-blocked' : 'fetch-failed',
         side: failed,
         reason: err.reason || null,
-        message: failed === 'user' ? '측정 대상 URL을 가져올 수 없습니다.' : '경쟁 치과 URL을 가져올 수 없습니다.',
+        message: failed === 'user'
+          ? '측정 대상 사이트를 다시 불러오지 못했습니다 (느리거나 일시적 차단). 잠시 후 다시 시도해 주세요.'
+          : '경쟁 치과 사이트를 불러오지 못했습니다 (느리거나 일시적 차단). 잠시 후 다시 시도해 주세요.',
       });
       return;
     }
