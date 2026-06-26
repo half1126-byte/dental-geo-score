@@ -601,12 +601,22 @@ async function loadCompare(compDomain, compUrl) {
   const userCited = !!(lastCiteRes && lastCiteRes.d && Array.isArray(lastCiteRes.d.perEngine)
     && lastCiteRes.d.perEngine.some((p) => p.cited));
 
+  // Reuse the already-measured user data → server skips the fragile re-fetch of the user's own site.
+  const sd = lastScoreRes && lastScoreRes.d;
+  const cp = sd && sd.compareProfile;
+  const userProfile = (cp && sd.breakdown) ? {
+    domain: sd.domain, finalUrl: cp.finalUrl, score: sd.score,
+    breakdown: sd.breakdown, signals: sd.signals,
+    schema: cp.schema, meta: cp.meta, content: cp.content,
+    teardown: cp.teardown, embeddable: cp.embeddable,
+  } : null;
+
   let pkg = null, errMsg = '';
   try {
     const r = await fetch('/api/compare', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-operator-key': key },
-      body: JSON.stringify({ userUrl: lastUrl, compUrl: compFullUrl, userScore, userCited }),
+      body: JSON.stringify({ userUrl: lastUrl, compUrl: compFullUrl, userScore, userCited, userProfile }),
     });
     const data = await r.json().catch(() => ({}));
     if (r.ok) pkg = data;

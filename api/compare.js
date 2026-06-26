@@ -93,15 +93,22 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { userUrl, compUrl, userScore, compScore, userCited } = req.body || {};
-  if (!userUrl || typeof userUrl !== 'string' || !compUrl || typeof compUrl !== 'string') {
-    res.status(400).json({ error: 'missing-url', message: 'userUrl·compUrl 필드가 필요합니다.' });
+  const { userUrl, compUrl, userScore, compScore, userCited, userProfile } = req.body || {};
+  if (!compUrl || typeof compUrl !== 'string') {
+    res.status(400).json({ error: 'missing-url', message: 'compUrl 필드가 필요합니다.' });
+    return;
+  }
+  // Prefer the client-provided user profile (from /api/score) → skip the fragile re-fetch of the
+  // user's OWN site (the failure the operator hit). Live-fetch fallback only if no valid profile.
+  const haveUserProfile = userProfile && Array.isArray(userProfile.breakdown) && userProfile.breakdown.length > 0;
+  if (!haveUserProfile && (!userUrl || typeof userUrl !== 'string')) {
+    res.status(400).json({ error: 'missing-url', message: 'userUrl 또는 userProfile이 필요합니다.' });
     return;
   }
 
   try {
     const [userRes, compRes] = await Promise.allSettled([
-      buildProfile(userUrl, userScore),
+      haveUserProfile ? Promise.resolve(userProfile) : buildProfile(userUrl, userScore),
       buildProfile(compUrl, compScore),
     ]);
 
