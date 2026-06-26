@@ -356,6 +356,7 @@ function render(scoreRes, citeRes, q) {
     ${strategy ? acc('⚡ AI 인용을 얻는 방법', strategy) : ''}
   `;
   show('opResult');
+  { const _r = $('opResult'); _r.classList.remove('reveal'); void _r.offsetWidth; _r.classList.add('reveal'); }
   requestAnimationFrame(() => {
     const bar = document.querySelector('.score-bar-fill');
     if (bar) bar.style.width = bar.dataset.pct + '%';
@@ -585,6 +586,7 @@ async function loadCompare(compDomain, compUrl) {
     return;
   }
   sec.innerHTML = renderCompare(pkg, compDomain);
+  sec.classList.remove('reveal'); void sec.offsetWidth; sec.classList.add('reveal');
   wireComparePreviews(sec);
 }
 
