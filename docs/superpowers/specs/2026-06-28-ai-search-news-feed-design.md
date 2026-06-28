@@ -1,166 +1,124 @@
-# P1 — AI검색 동향 뉴스 피드 (authority content) 설계
+# P1 (개정) — AI검색 "필드노트" + 자체 벤치마크 (린 온웨지)
 
-작성일: 2026-06-28
+작성일: 2026-06-28 · 개정: 2026-06-28 (autoplan CEO 게이트 결과 반영)
 브랜치: realmeasurement-live
-스펙 범위: **P1만**. P2(리포지션 카피·브랜딩), P3(엔진 업종 일반화)는 별도 스펙.
+스펙 범위: **린 버전 P1만.** 전업종 리포지션(구 P2)·엔진 일반화(구 P3)는 **보류**(수요 검증 전).
 
-## 0. 맥락 / 리포지션
+## 0. 개정 이유 (autoplan Phase 1 결과)
 
-dental-geo-score를 "치과 GEO 점수"에서 **"AI검색 마케팅(GEO) 진단 + 동향 허브"**로 전면 리포지션한다.
-치과는 여러 업종 중 하나의 쇼케이스가 된다. 이 리포지션은 3페이즈로 분해한다:
+Claude 독립 서브에이전트 + Codex가 독립적으로 **만장일치**로 원안(매일 자동 뉴스집계 + 전업종 리포지션)을 반려.
+레포 자체 문서가 그 결론을 뒷받침:
+- [docs/validation/heuristic-vs-citation-2026-06.md](../../validation/heuristic-vs-citation-2026-06.md): 점수 ↔ 실제 인용 **역상관**. "실측이 1급, 점수는 보조" 이미 결정.
+- [docs/redesign-realmeasurement-first.md](../../redesign-realmeasurement-first.md): 딜 클로징하는 라이브 인용 데모에 **미해결 CRITICAL 블로커**(AD-13 비동기·예산 / AD-14 비용가드·KV / AD-15 존재 인덱스).
 
-| 페이즈 | 내용 | 위험 | 엔진 손댐 |
-|---|---|---|---|
-| **P1 (이 스펙)** | AI검색 동향 뉴스 피드 — 화이트리스트 RSS + 웹검색 보강 → 매일 크론 → 한국어 한줄요약 → 서빙 | 낮음 | ❌ |
-| P2 | 리포지션 카피·브랜딩 (치과 하드코딩 92곳 → 범용) | 낮음 | ❌ |
-| P3 | 엔진 업종 일반화 (업종 자동감지 + 편집가능 키워드 질의) | 중간 | ✅ |
+만장일치 반려 사유: (1) 뉴스피드는 전환을 못 움직임, (2) 전업종화=비치헤드 희석, (3) 수요검증 전 인프라=순서 역전, (4) AI뉴스 집계는 복제 가능(방어 0), (5) 멈춘 "권위" 피드는 무피드보다 신뢰 더 깎음(비대칭 리스크), (6) 스펙이 전환이 아닌 "배포 위생"을 최적화.
 
-순서: **P1 → P2 → P3.** P1은 "권위 허브" 기둥을 세우고 본질적으로 업종 무관이라 리포지션을 견인한다. 엔진 0 위험.
+**사용자 결정(User Challenge 게이트):** 린 온웨지 버전. 아래가 그 설계.
 
-## 1. 확정된 결정 (사용자)
+## 1. 무엇으로 바뀌나 (원안 → 린)
 
-1. 확장 강도 = **전면 리포지션** (치과 = 쇼케이스 업종 하나).
-2. 뉴스 소스 = **화이트리스트 RSS 주축 + 웹검색 보강**.
-3. 뉴스 가공 = **한국어 한줄 요약 + '왜 중요' 태그 + 출처 링크** (크론에서 소형 LLM 요약).
-4. (P3 예고) 실측 질의 = **자동감지 + 편집가능**.
-5. UI 배치 = **홈 티저 섹션 + 전용 `/news.html` 페이지 둘 다**.
+| 항목 | 원안 (반려) | 린 (확정) |
+|---|---|---|
+| 포지셔닝 | 전 마케팅 AI검색 허브 | **치과·로컬 마케터** 비치헤드 유지 |
+| 갱신 | 매일 06:00 크론 자동 | **주간, 사람이 큐레이션** (커밋·배포) |
+| 가공 | 크론에서 LLM 자동요약·자동발행 | **사람이 검토 후 발행** (자동발행 0) |
+| 신선도 약속 | "매일 06:00 갱신" 트러스트줄 | **약속 제거** + "최근 검토: YYYY-MM-DD" + **72h… 아니 stale-hide(아래)** |
+| 저장/인프라 | KV + 크론 + dedupe + 폴백 | **레포 커밋 JSON 1개** (크론·KV·LLM-in-request 0) |
+| UI | 독립 `/news.html` + 홈 | **진단 결과/홈에 종속 섹션**, CTA 1개로 진단 복귀 |
+| 콘텐츠 | 3자 헤드라인 집계(복제가능) | 헤드라인 + **자체 측정 기반 벤치마크**(방어가능) |
 
-## 2. 핵심 원칙
+## 2. 콘텐츠 모델 (2종)
 
-- **요청 시점엔 LLM·외부호출 0.** 사용자 GET은 미리 만들어둔 KV JSON만 반환 → 빠르고 공짜·안전.
-- 무거운 일(fetch·요약)은 **하루 한 번 크론에서만**.
-- **신규 항목만 요약** (저장본과 diff) → 비용 가드. 하루 신규 5~15건 × 소형모델 = 수십원.
-- 소스 하나 죽어도 `Promise.allSettled`로 나머지 진행. KV 비면 시드/안내로 우아하게. **절대 안 깨짐.**
-- SSRF: 모든 외부 fetch는 기존 `lib/fetcher.js`의 `safeFetch` 재사용.
-
-## 3. 아키텍처 / 데이터 흐름
-
-```
-[매일 06:00 KST = 21:00 UTC] Vercel Cron
-  → POST /api/news/refresh   (CRON_SECRET 베어러 게이트)
-       1. 화이트리스트 RSS 병렬 fetch (safeFetch)
-       2. 관련성 키워드 게이트 필터
-       3. 부족(<MIN_ITEMS)하면 웹검색 보강 (기존 엔진 1콜)
-       4. 신규 항목만(저장본 URL 정규화 dedupe) → 소형 LLM:
-            한국어 한줄요약 + whyTag + relevance(0~1)
-       5. relevance < THRESHOLD 드롭, 상위 ~40건 KV 저장 (news:feed, news:meta)
-
-[사용자 방문] GET /api/news   (공개, Cache-Control s-maxage)
-  → KV news:feed JSON 반환 (LLM 0, 즉시). KV 비면 시드 폴백.
-  → 홈 'AI검색 동향' 섹션 + /news.html 렌더
-```
-
-## 4. 파일 (격리·단위테스트 가능하게 분리)
-
-신규:
-- `lib/news/sources.js` — 화이트리스트 소스 정의(name·rssUrl·tier·lang) + 시드 폴백 항목. 순수 데이터.
-- `lib/news/rss.js` — 최소 RSS/Atom 파서(cheerio xml mode). `parseFeed(xml) → [{title,url,publishedAt}]`. 순수.
-- `lib/news/relevance.js` — `isRelevant(item)` 키워드 게이트 + `canonicalUrl(url)` + `dedupe(items)`. 순수.
-- `lib/news/curate.js` — `selectNew(fetched, stored)` + `buildSummaryPrompt(item)` (LLM 호출은 주입) + `mergeFeed(stored, summarizedNew, max)`. 순수.
-- `api/news/refresh.js` — 크론 오케스트레이션 + CRON_SECRET 게이트. 얇게.
-- `api/news.js` — 공개 GET 서빙(KV 읽기 + 시드 폴백 + 캐시 헤더).
-- `public/news.html` + `public/news.js` — 전체 피드 페이지.
-- `test/news.test.js` — rss·relevance·dedupe·curate 단위테스트 + 요약 금칙어 가드.
-
-수정:
-- `vercel.json` — `crons` 추가 + `api/news/refresh.js` maxDuration 상향(요약 루프).
-- `public/index.html` + `public/app.js` (또는 해당 렌더) — 홈 "AI검색 동향" 티저 섹션.
-- `lib/engines.js` — 웹검색 보강·요약에 재사용할 호출 헬퍼가 없으면 소형 추가(기존 패턴 따름).
-
-기존 엔진/스코어/`auditUrl`/`/api/score`/`/api/compare`/공개 환자뷰 측정 로직은 **건드리지 않는다** (P1 위험 0).
-
-## 5. 소스 화이트리스트
-
-Tier 1 (공식): Google Search Central Blog · OpenAI News · Anthropic News · Google "The Keyword"(AI) · Microsoft/Bing·Copilot Blog · Perplexity Blog
-Tier 2 (전문매체): Search Engine Land · Search Engine Journal · Search Engine Roundtable
-
-- 실제 RSS URL은 구현 때 검증(피드 이동/폐지 가능). 검증 실패 소스는 `sourceStatus`에 기록하고 건너뜀.
-- 한국어 1차 소스는 화이트리스트에 두지 않음 — 영문 공식 위주 + 한국어는 요약으로 해결.
-- 웹검색 보강이 신선도 안전망.
-
-## 6. 관련성 게이트
-
-키워드: `AI search · generative engine (optimization) · GEO · AEO · AI Overviews · SGE · ChatGPT search · Perplexity · answer engine · citation · grounding · AI mode · Gemini · Copilot`
-- 화이트리스트 항목: 키워드 매칭 없으면 드롭.
-- 웹검색 보강 항목: 키워드 매칭 + LLM relevance ≥ THRESHOLD.
-- dedupe: canonical URL(쿼리스트링·utm·fragment 제거, http→https, 트레일링 슬래시 정규화) 기준.
-
-## 7. 데이터 형태
-
-`news:feed` = JSON 배열(롤링 최근 ~40건, publishedAt desc):
+### (A) 필드노트 — 주간 사람-큐레이션
+치과·로컬 마케터에게 **이번 주 영향 있는** AI검색 변화. 사람이 고르고 한 줄 쓴다(자동발행 없음).
 ```json
 {
-  "id": "<canonicalUrl sha 짧은해시>",
+  "kind": "fieldnote",
   "title": "원문 제목",
   "url": "원문 링크",
   "source": "Search Engine Land",
-  "sourceTier": 2,
-  "publishedAt": "2026-06-27T08:00:00Z",
-  "koSummary": "구글이 AI 개요 인용 표기를 강화했다…",
-  "whyTag": "지역업종·커머스 인용 노출 영향",
-  "relevance": 0.86,
-  "fetchedAt": "2026-06-28T21:00:00Z"
+  "date": "2026-06-27",
+  "summary": "구글이 AI 개요 인용 표기를 강화했다.",   // 사실 1줄
+  "clientAction": "지역 치과는 진료별 FAQ·출처 구조 점검 권장",  // 마케터 액션 1줄
+  "confidence": "high"   // high|medium (출처·해석 신뢰)
 }
 ```
-`news:meta` = `{ lastRefresh, count, sourceStatus: [{source, ok, itemCount, error?}] }`.
+형식 강제: **출처 → 사실 → 한국 치과시장 함의/액션 → 신뢰도.** "AI검색이 바뀌고 있다" 류 보일러플레이트 금지.
 
-## 8. 요약 LLM
+### (B) 벤치마크 — 자체 측정 데이터 (방어가능 핵심)
+운영자의 실제 인용 측정 런에서 뽑은 집계. 처음엔 수동 데이터 블록, 실측 패널 라이브(AD-13/14/15) 후 자동화 가능.
+```json
+{
+  "kind": "benchmark",
+  "label": "강남 임플란트 — ChatGPT 인용",
+  "metric": "10곳 중 3곳 인용",
+  "asOf": "2026-06",
+  "note": "인용된 곳 공통점: 지역·진료 엔티티 명확 + 디렉터리 존재",
+  "sampleNote": "소표본·단일질의 — 일반화 아님"   // 컴플라이언스: 과대일반화 금지
+}
+```
 
-- 모델: 소형·저렴. `NEWS_SUMMARY_MODEL` env로 교체(기본 저가 티어).
-- 프롬프트: 제목+원문 발췌 → (a) 한국어 1줄 요약(사실 위주, 과장·최상급 금지), (b) whyTag 1구, (c) relevance 0~1.
-- 출력 JSON 강제. 파싱 실패 시 해당 항목 드롭(피드 무결성 우선).
-- 신규 항목만 호출.
+## 3. 저장 · 서빙 (인프라 0)
 
-## 9. UI (기존 디자인 토큰: --plum/--teal #8052ff · --gold #ffb829 · Pretendard · 다크)
+- 단일 파일: `public/data/fieldnotes.json` = `{ updatedAt, reviewedAt, notes: [...], benchmarks: [...] }`.
+- 운영자가 파일 편집 → 커밋 → 배포. **크론·KV·LLM-in-request·서버 상태 없음.**
+- 클라이언트가 정적 fetch. 요청 시점 외부호출·LLM 0 (원안 원칙 유지, 인프라만 증발).
+- (선택) 로컬 헬퍼 `scripts/news-candidates.js`: 화이트리스트 RSS를 긁어 **후보를 콘솔에 출력만** → 운영자가 보고 골라 JSON에 수기 반영. 발행은 사람이. (자동발행 절대 아님)
 
-홈 "AI검색 동향" 섹션:
-- 상위 3~4건(한줄요약 + 출처배지 + 상대날짜) + "전체 보기 →" → `/news.html`.
-- 신뢰줄: "공식·전문매체 N곳 · 매일 06:00 갱신".
+## 4. UI (종속 · 진단 CTA로 회귀)
 
-`/news.html`:
-- 전체 피드 카드 그리드. 출처배지 tier별 색(tier1 골드, tier2 플럼).
-- 상대날짜("3일 전"), 원문 `target=_blank rel="noopener noreferrer"`.
-- tier 필터(전체/공식/전문매체).
-- 상단에 동일 신뢰줄 + lastRefresh 표시.
+- **독립 `/news.html` 만들지 않음.** 홈/결과 흐름 안의 컴팩트 "AI검색 동향" 섹션.
+- 필드노트 상위 3건 + 벤치마크 1~2개. 각 카드 출처배지·날짜.
+- 섹션 하단 **CTA 1개**: "내 사이트 AI검색 인용 점검 →" (스코어링으로 복귀). 병렬 목적지 금지.
+- 신선도: **"최근 검토: {reviewedAt}"** 표기. "매일 갱신" 류 카피 금지.
+- **Stale-hide:** `reviewedAt`가 21일(주간 케이던스 여유) 초과로 오래되면 섹션 **통째 숨김**(부패한 "권위" 노출 방지). 무피드가 멈춘피드보다 낫다.
+- 디자인 토큰: --plum/--teal #8052ff · --gold #ffb829 · Pretendard · 다크 (기존 일관).
 
-## 10. 견고성 / 폴백
+## 5. 컴플라이언스 / 카피
 
-- KV 미설정/빈 피드 → `sources.js` 시드 항목(수동 큐레이션 6~8건) 반환. "곧 자동 업데이트" 라벨.
-- 크론 실패/부분 실패 → 마지막 성공 피드 유지(refresh는 머지, 전체 덮어쓰기 아님).
-- 소스 fetch 실패 → `sourceStatus`에 error, 나머지 진행.
-- 요약 LLM 실패 → 해당 항목만 드롭.
+- 우리가 쓴 summary·clientAction·benchmark note: 과장·최상급·과대일반화 금지(의료광고법·신뢰). 벤치마크엔 항상 "소표본·일반화 아님" 단서.
+- "1위·최고·보장·완치" 등 LAW_HARD 0건(테스트 가드).
+- 치과 비치헤드 카피 유지 — 전업종 리포지션 카피 변경 **안 함**.
 
-## 11. 보안 / 컴플라이언스
+## 6. 무엇을 안 짓나 (린에서 제외)
 
-- `/api/news/refresh`: `CRON_SECRET` 베어러 검증. 누구나 트리거 불가.
-- `/api/news`: 공개 읽기 전용. 쓰기 경로 없음.
-- 외부 fetch: `safeFetch`(스킴·포트·DNS·IP 검증). RSS·원문 모두.
-- 뉴스는 3자 산업 콘텐츠 → 의료광고법 무관. 단 **우리가 만든 한국어 요약문**은 과장·최상급 금지(금칙어 가드 테스트).
-- 비밀키(요약 모델 키)는 서버 env만. 클라이언트 노출 0.
+- 매일 크론 / `/api/news/refresh` / `/api/news` / KV 의존 / 크론 시크릿.
+- LLM 자동요약·자동발행 / dedupe·롤링윈도 / sourceStatus.
+- 독립 `/news.html` 페이지.
+- 전업종 리포지션(구 P2)·엔진 업종 일반화(구 P3) — **별도 결정까지 보류**.
 
-## 12. 테스트
+## 7. 파일
 
-`test/news.test.js`:
-- `rss.parseFeed`: 샘플 RSS/Atom XML → 항목 추출(제목·url·날짜).
-- `relevance.isRelevant`: 양성(AI search 키워드)·음성(무관) 케이스.
-- `relevance.canonicalUrl` + `dedupe`: utm·트레일링 슬래시·http/https 변형이 같은 항목으로 합쳐짐.
-- `curate.selectNew`: 저장본에 있는 url 제외, 신규만.
-- `curate.mergeFeed`: max 컷, publishedAt desc 정렬.
-- 금칙어 가드: 요약 프롬프트/시드 항목 문자열에 과장·최상급(최고·1위·완치·보장 등) 0건 단언.
+신규:
+- `public/data/fieldnotes.json` — 콘텐츠 단일 출처(운영자 수기 편집).
+- `public/news-section.js` (또는 기존 렌더에 통합) — 종속 섹션 렌더 + stale-hide.
+- `scripts/news-candidates.js` (선택) — RSS 후보 출력 헬퍼(발행 아님).
+- `lib/news/fieldnotes.js` — JSON 로드·검증·stale 판정 순수 함수.
+- `test/fieldnotes.test.js` — 스키마 검증·stale-hide 경계·금칙어 가드.
+
+수정:
+- `public/index.html` (+ 해당 렌더) — "AI검색 동향" 종속 섹션 마운트 + 진단 CTA.
+
+엔진/스코어/`auditUrl`/`/api/score`/`/api/compare`/실측 패널 **안 건드림**.
+
+## 8. 테스트
+
+`test/fieldnotes.test.js`:
+- 스키마 검증: fieldnote·benchmark 필수필드, 잘못된 항목 드롭.
+- stale 판정: reviewedAt 21일 경계 전/후 → 숨김 토글.
+- 금칙어 가드: 모든 정적 카피 문자열에 LAW_HARD(최고·1위·완치·보장·100%·최상급) 0건 단언.
 
 검증:
 ```bash
 cd /c/Users/com/Downloads/dental-geo-score
-NODE_OPTIONS=--use-system-ca node --test test/*.test.js   # 기존 182 + 신규
+NODE_OPTIONS=--use-system-ca node --test test/*.test.js
 ```
-수동: 로컬에서 `/api/news/refresh`(CRON_SECRET 로컬값) 1회 → `/api/news` JSON 확인 → `/news.html` 렌더 → 홈 티저 확인.
+수동: JSON 편집 → 로컬 → 섹션 렌더 + CTA 동작 + reviewedAt 21일 넘기면 숨김 확인.
 
-배포: `NODE_OPTIONS=--use-system-ca vercel --prod --yes`. Vercel env 필요: `CRON_SECRET`, `NEWS_SUMMARY_MODEL`(선택), 요약용 LLM 키(이미 있는 OPENAI 키 재사용 가능), `KV_REST_API_URL`/`KV_REST_API_TOKEN`(없으면 인메모리 — 크론 영속 위해 권장).
+배포: `NODE_OPTIONS=--use-system-ca vercel --prod --yes`. **신규 env 없음**(KV·크론·요약키 불필요).
 
-## 13. Out of scope (P1 아님)
+## 9. 보류 항목의 선행조건 (언젠가 재개 시)
 
-- P2 리포지션 카피·브랜딩 (별도 스펙).
-- P3 엔진 업종 일반화 (별도 스펙).
-- 뉴스 개인화·이메일 다이제스트·푸시.
-- 댓글·소셜 공유 위젯.
-- 한국어 1차 RSS 소스 추가(현재 영문 화이트리스트 + 요약으로 충분).
+- **전업종 리포지션:** 기존 도구로 비치과 2~3곳 수동 인용 데모 → 전환 신호 확인 후에만.
+- **자동 갱신 피드:** 주간 수동본이 영업에서 실제로 읽히고 booked call/close에 기여한다는 증거 후에만.
+- **벤치마크 자동화:** 실측 패널 라이브(AD-13/14/15 해결) 후.
