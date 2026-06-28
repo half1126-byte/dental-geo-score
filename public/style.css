@@ -1190,31 +1190,31 @@ footer.site-footer {
 }
 
 /* ── AI검색 동향 (필드노트 + 자체 벤치마크) — 진단 보조 섹션 ── */
-.ai-trend-section { padding: 64px 0; border-top: 1px solid var(--border, rgba(255,255,255,.09)); }
-.ai-trend-section .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
-.ai-trend-h { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; margin: 0 0 4px; }
-.ai-trend-sub { display: inline-block; font-size: .82rem; font-weight: 400; color: var(--text-2, rgba(255,255,255,.52)); margin-left: 8px; }
-.ai-trend-reviewed { margin: 0 0 22px; font-size: .76rem; }
-.ai-trend-cta { margin-top: 26px; text-align: center; }
+/* .wrap 폭(720px)·글로벌 h2(clamp 1.9~3.2rem, weight 300)·.card 토큰을 그대로 따른다. */
+.ai-trend-section { padding: 80px 0; border-top: 1px solid var(--border); }
+.ai-trend-h { text-align: center; margin: 0 0 8px; }   /* 글로벌 h2 크기·굵기 상속 */
+.ai-trend-sub { text-align: center; color: var(--text-2); font-size: .95rem; margin: 0 0 6px; }
+.ai-trend-reviewed { text-align: center; margin: 0 0 28px; font-size: .76rem; }
+.ai-trend-cta { margin-top: 28px; text-align: center; }
 
-/* 벤치마크 — 자체 측정 데이터(방어가능 핵심), 카드보다 위에 강조 */
-.trend-bench-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 22px; }
-.trend-bench { padding: 16px 18px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,184,41,.07), rgba(255,184,41,.02)); border: 1px solid rgba(255,184,41,.20); }
-.trend-bench-label { font-size: .74rem; color: var(--gold, #ffb829); font-weight: 600; letter-spacing: .01em; }
-.trend-bench-metric { font-size: 1.02rem; font-weight: 600; margin: 5px 0 6px; line-height: 1.35; }
-.trend-bench-note { font-size: .82rem; color: var(--text-2, rgba(255,255,255,.62)); line-height: 1.5; }
-.trend-bench-sample { font-size: .7rem; color: rgba(255,255,255,.38); margin-top: 7px; }
+/* 벤치마크 — 자체 측정 데이터. gold 그라데이션 = 기존 resultCtaCard(플럼 그라데이션) 패턴 계열 */
+.trend-bench-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.trend-bench { padding: 18px 20px; border-radius: 16px; background: linear-gradient(135deg, rgba(255,184,41,.10), rgba(255,184,41,.03)); border: 1px solid rgba(255,184,41,.22); }
+.trend-bench-label { font-size: .74rem; color: var(--gold); font-weight: 600; letter-spacing: .01em; }
+.trend-bench-metric { font-size: 1.02rem; font-weight: 500; margin: 5px 0 6px; line-height: 1.4; }
+.trend-bench-note { font-size: .84rem; color: var(--text-2); line-height: 1.55; }
+.trend-bench-sample { font-size: .7rem; color: rgba(255,255,255,.4); margin-top: 8px; }
 
-/* 필드노트 — 출처 링크 카드 */
-.trend-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
-.trend-card { display: block; padding: 16px 18px; border-radius: 12px; background: var(--bg-2, #080808); border: 1px solid var(--border, rgba(255,255,255,.09)); text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
-.trend-card:hover { border-color: var(--plum, #8052ff); transform: translateY(-2px); }
+/* 필드노트 — 출처 링크 카드. .card와 동일 토큰(--bg-3 / --card-border / radius 16px) */
+.trend-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.trend-card { display: block; padding: 18px 20px; border-radius: 16px; background: var(--bg-3); border: 1px solid var(--card-border); text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+.trend-card:hover { border-color: var(--plum); transform: translateY(-2px); }
 .trend-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-.trend-src { font-size: .72rem; font-weight: 600; color: var(--plum, #8052ff); }
-.trend-date { font-size: .7rem; color: rgba(255,255,255,.4); }
-.trend-sum { font-size: .9rem; line-height: 1.5; color: #fff; }
-.trend-act { font-size: .8rem; line-height: 1.45; color: var(--text-2, rgba(255,255,255,.6)); margin-top: 8px; }
+.trend-src { font-size: .72rem; font-weight: 600; color: var(--plum); }
+.trend-date { font-size: .7rem; color: var(--text-2); }
+.trend-sum { font-size: .9rem; line-height: 1.55; color: var(--text-1); }
+.trend-act { font-size: .8rem; line-height: 1.5; color: var(--text-2); margin-top: 8px; }
 @media (max-width: 560px) {
-  .ai-trend-section { padding: 48px 0; }
+  .ai-trend-section { padding: 56px 0; }
   .trend-bench-row, .trend-cards { grid-template-columns: 1fr; }
 }
