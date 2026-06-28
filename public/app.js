@@ -93,12 +93,13 @@ function showError(data) {
 
 function render(d) {
   lastScoreData = d;
-  // score meter
-  $('scoreNum').innerHTML = `${d.score}<small style="font-size:.45em;color:var(--text-2);font-weight:400">/100</small>`;
+  // score meter — clamp to 0–100 so a malformed score never renders broken text/bar
+  const score = Math.max(0, Math.min(100, Number(d.score) || 0));
+  $('scoreNum').innerHTML = `${score}<small style="font-size:.45em;color:var(--text-2);font-weight:400">/100</small>`;
   $('bandLabel').textContent = d.band;
   $('verdict').textContent = verdictLine(d);
   show('result');
-  requestAnimationFrame(() => { $('scoreBar').style.width = d.score + '%'; });
+  requestAnimationFrame(() => { $('scoreBar').style.width = score + '%'; });
 
   // render-mode honesty note
   if (d.renderMode && d.renderMode.startsWith('js-shell')) {
@@ -111,7 +112,7 @@ function render(d) {
   // breakdown
   const bd = $('breakdown');
   bd.innerHTML = '';
-  for (const x of d.breakdown) {
+  for (const x of (d.breakdown || [])) { // defensive: missing breakdown shouldn't throw mid-render
     const mark = x.status === 'ok' ? '✓' : x.status === 'warn' ? '!' : '✗';
     const el = document.createElement('div');
     el.className = 'item';
@@ -201,7 +202,7 @@ function esc(s) {
 $('leadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = $('emailInput').value.trim();
-  const url = $('urlInput').value.trim();
+  const url = lastScoredUrl || $('urlInput').value.trim(); // 실측은 점수 낸 URL로 — 입력란 수정돼도 불일치 방지
   $('leadBtn').disabled = true;
   $('leadBtn').textContent = '신청 중...';
   let data = null;
