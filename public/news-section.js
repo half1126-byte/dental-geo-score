@@ -48,6 +48,7 @@
         return '<a class="trend-card" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">'
           + '<div class="trend-meta"><span class="trend-src">' + esc(n.source || '출처') + '</span>'
           + (n.date ? '<span class="trend-date">' + esc(n.date) + '</span>' : '') + '</div>'
+          + '<div class="trend-title">' + esc(n.title) + '</div>'
           + '<div class="trend-sum">' + esc(n.summary) + '</div>'
           + (n.clientAction ? '<div class="trend-act">→ ' + esc(n.clientAction) + '</div>' : '')
           + '</a>';

@@ -1212,7 +1212,8 @@ footer.site-footer {
 .trend-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
 .trend-src { font-size: .72rem; font-weight: 600; color: var(--plum); }
 .trend-date { font-size: .7rem; color: var(--text-2); }
-.trend-sum { font-size: .9rem; line-height: 1.55; color: var(--text-1); }
+.trend-title { font-size: .82rem; font-weight: 600; line-height: 1.4; color: var(--text-1); margin-bottom: 6px; }
+.trend-sum { font-size: .86rem; line-height: 1.55; color: var(--text-2); }
 .trend-act { font-size: .8rem; line-height: 1.5; color: var(--text-2); margin-top: 8px; }
 @media (max-width: 560px) {
   .ai-trend-section { padding: 56px 0; }
