@@ -1,0 +1,56 @@
+{
+  "_about": "운영자 수기 편집 단일 출처. 주간 검토 권장. reviewedAt를 검토일로 갱신하면 섹션이 다시 노출됩니다(21일 초과 시 자동 숨김). 형식: 출처→사실→치과 마케터 액션→신뢰도. 최상급·단정 표현 금지.",
+  "_seed": true,
+  "updatedAt": "2026-06-28",
+  "reviewedAt": "2026-06-28",
+  "notes": [
+    {
+      "kind": "fieldnote",
+      "title": "Google AI Overviews & AI Mode in Search",
+      "url": "https://developers.google.com/search/blog",
+      "source": "Google Search Central",
+      "date": "2026-06",
+      "summary": "구글이 검색에 AI 개요·AI 모드를 확대하면서 답변에 인용 출처 표기를 강화하고 있다.",
+      "clientAction": "치과 페이지는 진료별 질문형 제목과 명확한 구조화 데이터(LocalBusiness/FAQ) 점검을 권장.",
+      "confidence": "high"
+    },
+    {
+      "kind": "fieldnote",
+      "title": "ChatGPT search cites web sources",
+      "url": "https://openai.com/news/",
+      "source": "OpenAI",
+      "date": "2026-06",
+      "summary": "ChatGPT 검색이 답변에 웹 출처를 인용한다. 지역·업종 질의에서 특정 업체가 인용되어 노출된다.",
+      "clientAction": "내 치과가 '강남 임플란트 추천' 류 질의에서 인용되는지 실측으로 직접 확인.",
+      "confidence": "high"
+    },
+    {
+      "kind": "fieldnote",
+      "title": "Perplexity — 출처를 표기하는 답변 엔진",
+      "url": "https://www.perplexity.ai/",
+      "source": "Perplexity",
+      "date": "2026-06",
+      "summary": "퍼플렉시티는 답변마다 출처 링크를 표기한다. 인용되는 페이지의 구조·존재 신호가 노출을 가른다.",
+      "clientAction": "디렉터리 등록·일관된 상호/전화/주소(NAP)와 페이지 내 인용 가능한 사실 문장 정비.",
+      "confidence": "medium"
+    }
+  ],
+  "benchmarks": [
+    {
+      "kind": "benchmark",
+      "label": "실측 파일럿 — 점수 vs 실제 인용",
+      "metric": "표본에서 페이지 점수와 실제 AI 인용이 역상관",
+      "asOf": "2026-06",
+      "note": "AI 노출은 페이지 점수보다 존재·엔티티·의도에서 갈렸다. 점수는 페이지 추출 위생 지표, 노출 예측 아님.",
+      "sampleNote": "소표본(n=6)·단일질의·단일엔진 — 일반화 아님"
+    },
+    {
+      "kind": "benchmark",
+      "label": "지역 민감도",
+      "metric": "같은 진료라도 지역 단어가 바뀌면 인용 결과가 달라짐",
+      "asOf": "2026-06",
+      "note": "AI 검색 질의의 지역 토큰이 노출 후보군을 바꾼다. 타깃 지역 질의로 측정해야 정확.",
+      "sampleNote": "관측 사례 — 정량 모델 아님"
+    }
+  ]
+}

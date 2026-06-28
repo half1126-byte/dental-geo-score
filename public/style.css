@@ -1188,3 +1188,33 @@ footer.site-footer {
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, rgba(128,82,255,.12) 30%, rgba(128,82,255,.16) 50%, rgba(128,82,255,.12) 70%, transparent 100%);
 }
+
+/* ── AI검색 동향 (필드노트 + 자체 벤치마크) — 진단 보조 섹션 ── */
+.ai-trend-section { padding: 64px 0; border-top: 1px solid var(--border, rgba(255,255,255,.09)); }
+.ai-trend-section .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+.ai-trend-h { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; margin: 0 0 4px; }
+.ai-trend-sub { display: inline-block; font-size: .82rem; font-weight: 400; color: var(--text-2, rgba(255,255,255,.52)); margin-left: 8px; }
+.ai-trend-reviewed { margin: 0 0 22px; font-size: .76rem; }
+.ai-trend-cta { margin-top: 26px; text-align: center; }
+
+/* 벤치마크 — 자체 측정 데이터(방어가능 핵심), 카드보다 위에 강조 */
+.trend-bench-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.trend-bench { padding: 16px 18px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,184,41,.07), rgba(255,184,41,.02)); border: 1px solid rgba(255,184,41,.20); }
+.trend-bench-label { font-size: .74rem; color: var(--gold, #ffb829); font-weight: 600; letter-spacing: .01em; }
+.trend-bench-metric { font-size: 1.02rem; font-weight: 600; margin: 5px 0 6px; line-height: 1.35; }
+.trend-bench-note { font-size: .82rem; color: var(--text-2, rgba(255,255,255,.62)); line-height: 1.5; }
+.trend-bench-sample { font-size: .7rem; color: rgba(255,255,255,.38); margin-top: 7px; }
+
+/* 필드노트 — 출처 링크 카드 */
+.trend-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.trend-card { display: block; padding: 16px 18px; border-radius: 12px; background: var(--bg-2, #080808); border: 1px solid var(--border, rgba(255,255,255,.09)); text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+.trend-card:hover { border-color: var(--plum, #8052ff); transform: translateY(-2px); }
+.trend-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.trend-src { font-size: .72rem; font-weight: 600; color: var(--plum, #8052ff); }
+.trend-date { font-size: .7rem; color: rgba(255,255,255,.4); }
+.trend-sum { font-size: .9rem; line-height: 1.5; color: #fff; }
+.trend-act { font-size: .8rem; line-height: 1.45; color: var(--text-2, rgba(255,255,255,.6)); margin-top: 8px; }
+@media (max-width: 560px) {
+  .ai-trend-section { padding: 48px 0; }
+  .trend-bench-row, .trend-cards { grid-template-columns: 1fr; }
+}
