@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto';
 import { runCitationPanel } from '../lib/citation.js';
 import { AUTO_ENGINES } from '../lib/engines.js';
 import { checkNaverLocal, naverApiAvailable } from '../lib/naver.js';
-import { registrableDomain } from '../lib/normalize.js';
+import { registrableDomain, isKnownPlatformDomain } from '../lib/normalize.js';
 import { toPublicView, toPrivateReport } from '../lib/redact.js';
 import { makeStore } from '../lib/store.js';
 import { kv } from '../lib/kv.js';
@@ -57,6 +57,10 @@ export default async function handler(req, res) {
   }
   if (!url || typeof url !== 'string') {
     res.status(400).json({ error: 'missing-url' });
+    return;
+  }
+  if (isKnownPlatformDomain(url)) {
+    res.status(400).json({ error: 'platform-url', message: '네이버 플레이스·블로그·SNS URL은 분석할 수 없습니다. 병원 자체 홈페이지 URL을 입력해 주세요.' });
     return;
   }
   const domain = registrableDomain(url);

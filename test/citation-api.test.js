@@ -67,6 +67,23 @@ test('missing url → 400', async () => {
   assert.equal(out.json.error, 'missing-url');
 });
 
+test('platform url (Naver Place) → 400 platform-url (false-positive guard)', async () => {
+  clearEnv();
+  const { req, res, out } = mk('POST', { url: 'https://place.naver.com/hospital/2081935519/home', email: 'a@b.co' }, {});
+  await handler(req, res);
+  assert.equal(out.status, 400);
+  assert.equal(out.json.error, 'platform-url');
+});
+
+test('platform url as operator → 400 platform-url (operator also blocked)', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  const { req, res, out } = mk('POST', { url: 'https://blog.naver.com/myclinic' }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  assert.equal(out.status, 400);
+  assert.equal(out.json.error, 'platform-url');
+});
+
 test('queries param: whitespace-only strings are filtered → falls back to buildPrompts (202 pending when disabled)', async () => {
   clearEnv();
   process.env.OPERATOR_KEY = 'k';

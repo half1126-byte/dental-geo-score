@@ -3,7 +3,7 @@
 import { auditUrl, FetchBlockedError } from '../lib/audit.js';
 import { makeStore } from '../lib/store.js';
 import { kv } from '../lib/kv.js';
-import { registrableDomain } from '../lib/normalize.js';
+import { registrableDomain, isKnownPlatformDomain } from '../lib/normalize.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 20 };
 
@@ -20,6 +20,10 @@ export default async function handler(req, res) {
   const url = method === 'POST' ? req.body && req.body.url : req.query && req.query.url;
   if (!url || typeof url !== 'string') {
     res.status(400).json({ error: 'missing-url', message: 'url 필드가 필요합니다.' });
+    return;
+  }
+  if (isKnownPlatformDomain(url)) {
+    res.status(400).json({ error: 'platform-url', message: '네이버 플레이스·블로그·SNS URL은 분석할 수 없습니다. 병원 자체 홈페이지 URL을 입력해 주세요.' });
     return;
   }
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { registrableDomain, sameRegistrableDomain, unwrapRedirect } from '../lib/normalize.js';
+import { registrableDomain, sameRegistrableDomain, unwrapRedirect, isKnownPlatformDomain } from '../lib/normalize.js';
 
 test('eTLD+1 handles Korean multi-part TLDs (PSL, not naive 2-label)', () => {
   assert.equal(registrableDomain('https://www.haruplant.co.kr/implant'), 'haruplant.co.kr');
@@ -30,4 +30,24 @@ test('unwrapRedirect extracts real URL from grounding/redirect wrappers', () => 
   assert.equal(unwrapRedirect('https://haruplant.co.kr/x'), 'https://haruplant.co.kr/x');
   // citation through a wrapper still matches the clinic domain
   assert.equal(sameRegistrableDomain(wrapped, 'haruplant.co.kr'), true);
+});
+
+test('isKnownPlatformDomain: Naver Place URL → true (false-positive guard)', () => {
+  // place.naver.com → naver.com → platform → block
+  assert.equal(isKnownPlatformDomain('https://place.naver.com/hospital/2081935519/home'), true);
+  assert.equal(isKnownPlatformDomain('https://blog.naver.com/myclinic'), true);
+  assert.equal(isKnownPlatformDomain('https://cafe.naver.com/dental'), true);
+});
+
+test('isKnownPlatformDomain: other shared platforms → true', () => {
+  assert.equal(isKnownPlatformDomain('https://www.instagram.com/myclinic'), true);
+  assert.equal(isKnownPlatformDomain('https://www.facebook.com/myclinic'), true);
+  assert.equal(isKnownPlatformDomain('https://myclinic.tistory.com'), true);
+  assert.equal(isKnownPlatformDomain('https://map.kakao.com/link/map/12345'), true);
+});
+
+test('isKnownPlatformDomain: own clinic domain → false', () => {
+  assert.equal(isKnownPlatformDomain('https://www.seoulsmile.co.kr'), false);
+  assert.equal(isKnownPlatformDomain('https://haruplant.co.kr/implant'), false);
+  assert.equal(isKnownPlatformDomain('https://trium-dental.com'), false);
 });
