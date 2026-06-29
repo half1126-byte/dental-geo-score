@@ -60,8 +60,8 @@
 <section class="ai-demo">
   <div class="wrap-wide">
     <p class="kicker" style="text-align:center">AI CITATION EXAMPLE</p>
-    <h2 style="text-align:center">AI는 이미 치과를<br/><span class="g2">추천하고 있습니다</span></h2>
-    <p class="sub" style="text-align:center;max-width:560px;margin:0 auto 44px">"○○동 치과 추천"을 AI에게 물으면 아래 같은 응답이 나옵니다.<br/>우리 치과 이름이 여기 있어야 합니다.</p>
+    <h2 style="text-align:center">AI는 이미 <span class="g2" id="demoVertical">치과를</span><br/><span class="g2">추천하고 있습니다</span></h2>
+    <p class="sub" style="text-align:center;max-width:560px;margin:0 auto 44px">"우리 동네 ○○ 추천"을 AI에게 물으면 아래처럼 답합니다.<br/>여기에 우리 비즈니스 이름이 있어야 합니다.</p>
 
     <div class="ai-demo-grid">
 
@@ -71,7 +71,7 @@
           <span class="ai-engine-badge gpt">ChatGPT</span>
         </div>
         <div class="ai-col-body">
-          <div class="ai-user-q" id="demo-gpt-q">강남역 근처 임플란트 치과 추천해줘</div>
+          <div class="ai-user-q" id="demo-gpt-q">강남역 임플란트 치과 추천해줘</div>
           <div class="typing-dots" id="demo-gpt-dots"><span></span><span></span><span></span></div>
           <div class="ai-response" id="demo-gpt"></div>
         </div>
@@ -84,7 +84,7 @@
           <span class="ai-engine-badge ppl">Perplexity</span>
         </div>
         <div class="ai-col-body">
-          <div class="ai-user-q" id="demo-ppl-q">송파구 교정 잘 하는 치과 알려줘</div>
+          <div class="ai-user-q" id="demo-ppl-q">분당 여드름 피부과 추천해줘</div>
           <div class="typing-dots" id="demo-ppl-dots"><span></span><span></span><span></span></div>
           <div class="ai-response" id="demo-ppl"></div>
         </div>
@@ -97,7 +97,7 @@
           <span class="ai-engine-badge gem">Gemini</span>
         </div>
         <div class="ai-col-body">
-          <div class="ai-user-q" id="demo-gem-q">분당 스케일링 잘 하는 치과 어디야?</div>
+          <div class="ai-user-q" id="demo-gem-q">판교 아파트 인테리어 업체 어디가 좋아?</div>
           <div class="typing-dots" id="demo-gem-dots"><span></span><span></span><span></span></div>
           <div class="ai-response" id="demo-gem"></div>
         </div>
@@ -112,7 +112,7 @@
 <section class="verticals-section" id="verticals">
   <div class="wrap">
     <p class="kicker" style="text-align:center">EVERY LOCAL BUSINESS</p>
-    <h2 style="text-align:center">치과는 <span class="g">시작</span>일 뿐입니다</h2>
+    <h2 style="text-align:center">AI 검색은 <span class="g">모든 지역 업종</span>을 추천합니다</h2>
     <p class="sub" style="text-align:center;max-width:520px;margin:0 auto 44px">고객이 AI에게 <b style="color:#fff">"지역 + 업종"</b>을 물으면, 그 추천 안에 우리 비즈니스가 있어야 합니다.<br/>지역 기반 업종이라면 모두 같은 원리입니다.</p>
     <div class="vertical-grid">
       <div class="vertical-card"><span class="vcat">치과</span><span class="vq">강남 임플란트 잘하는 곳</span></div>
@@ -122,7 +122,7 @@
       <div class="vertical-card"><span class="vcat">법률·세무</span><span class="vq">이혼 전문 변호사 추천</span></div>
       <div class="vertical-card"><span class="vcat">인테리어·헬스·학원</span><span class="vq">판교 아파트 인테리어 업체</span></div>
     </div>
-    <p class="small muted" style="text-align:center;margin-top:28px">현재 무료 진단은 치과 기준으로 제공됩니다. 다른 업종 GEO 진단·구축은 <a href="https://www.medinmedi.com/" target="_blank" rel="noopener" style="color:var(--plum)">메디앤메디</a>로 문의하세요.</p>
+    <p class="small muted" style="text-align:center;margin-top:28px">무료 구조 진단은 모든 업종 홈페이지를 지원합니다. 업종별 AI 인용 실측·구축은 <a href="https://www.medinmedi.com/" target="_blank" rel="noopener" style="color:var(--plum)">메디앤메디</a>로 문의하세요.</p>
   </div>
 </section>
 
@@ -557,28 +557,34 @@ document.querySelectorAll('.faq-q').forEach(function(btn){
   document.querySelectorAll('.fade-up').forEach(function(el){ obs.observe(el); });
 })();
 
-/* ── AI demo — real chat animation ── */
+/* ── AI demo — multi-vertical rotating chat (룰렛처럼 업종 교차) ── */
 (function(){
-  var DEMOS = [
-    {
-      qId:'demo-gpt-q', dotsId:'demo-gpt-dots', respId:'demo-gpt',
-      text:'강남역 임플란트 치과를 안내해 드릴게요.\n\n① 서울스마일치과\n임플란트 전문의 2인, 의료진 자격·장비 정보가 홈페이지에 체계적으로 기재되어 AI가 쉽게 읽을 수 있는 구조입니다.\n\n② ○○치과 — 지역 커뮤니티 언급 다수\n\n③ △△치과 — 최신 CBCT 보유, 개원 5년',
-      hi:'서울스마일치과', cite:'참고: 서울스마일치과 홈페이지', colDelay:0
-    },
-    {
-      qId:'demo-ppl-q', dotsId:'demo-ppl-dots', respId:'demo-ppl',
-      text:'송파구 교정 치과 추천입니다.\n\n① 잠실교정치과\n교정 전문의 3인, FAQ 구조의 진료 안내와 치료 사례 콘텐츠가 AI 인용에 최적화되어 있습니다.\n\n② ○○치과 — 온라인 커뮤니티 평점 양호\n\n③ △△치과 — 인비절라인 공인 의원',
-      hi:'잠실교정치과', cite:'참고: 잠실교정치과 홈페이지', colDelay:500
-    },
-    {
-      qId:'demo-gem-q', dotsId:'demo-gem-dots', respId:'demo-gem',
-      text:'분당 스케일링 치과를 안내해 드릴게요.\n\n① 분당미소치과\n정기 스케일링 안내가 FAQ 형태로 정비되어 있으며 의료진 약력이 텍스트로 명시되어 AI가 직접 인용할 수 있습니다.\n\n② ○○치과 — 보험 스케일링 관련 블로그 다수\n\n③ △△치과 — 판교 인근, 접근 편리',
-      hi:'분당미소치과', cite:'참고: 분당미소치과 홈페이지', colDelay:1000
-    }
-  ];
+  // 각 엔진 카드가 자기 업종 리스트를 순환 → 화면엔 늘 서로 다른 3개 업종이 뜨고 계속 교차
+  var POOL = {
+    gpt:[
+      { q:'강남역 임플란트 치과 추천해줘', text:'강남역 임플란트 치과를 안내해 드릴게요.\n\n① 서울스마일치과\n임플란트 전문의 2인, 의료진 자격·장비 정보가 홈페이지에 체계적으로 기재되어 AI가 쉽게 읽을 수 있는 구조입니다.\n\n② ○○치과 — 지역 커뮤니티 언급 다수\n\n③ △△치과 — CBCT 장비 정보 명시, 개원 5년', hi:'서울스마일치과', cite:'참고: 서울스마일치과 홈페이지' },
+      { q:'일산 24시 동물병원 어디가 좋아?', text:'일산 24시 동물병원을 안내해 드릴게요.\n\n① 호수공원동물병원\n야간·응급 진료시간과 진료 항목이 표로 정리되고 수의사 약력이 명시돼 AI가 직접 인용할 수 있습니다.\n\n② ○○동물병원 — 보호자 후기 다수\n\n③ △△동물병원 — 영상검사 장비 정보 기재', hi:'호수공원동물병원', cite:'참고: 호수공원동물병원 홈페이지' },
+      { q:'분당 PT 잘하는 헬스장 추천', text:'분당 PT 헬스장을 안내해 드릴게요.\n\n① 코어핏 분당점\n트레이너 자격·경력과 PT 프로그램이 페이지에 구조화돼 AI가 인용하기 좋습니다.\n\n② ○○짐 — 시설 사진·이용 후기 다수\n\n③ △△피트니스 — 24시 운영시간 명시', hi:'코어핏 분당점', cite:'참고: 코어핏 분당점 홈페이지' }
+    ],
+    ppl:[
+      { q:'분당 여드름 피부과 추천해줘', text:'분당 여드름 피부과 추천입니다.\n\n① 맑은피부과의원\n여드름 진료 과정이 FAQ로 정리되고 의료진 약력이 텍스트로 명시돼 AI 인용에 최적화되어 있습니다.\n\n② ○○피부과 — 온라인 평점 양호\n\n③ △△의원 — 장비 정보 기재', hi:'맑은피부과의원', cite:'참고: 맑은피부과의원 홈페이지' },
+      { q:'송파 다이어트 한의원 알려줘', text:'송파 다이어트 한의원 추천입니다.\n\n① 바른몸한의원\n치료 프로그램과 한의사 약력이 구조화된 페이지로 정리돼 AI가 읽기 쉽습니다.\n\n② ○○한의원 — 지역 커뮤니티 후기\n\n③ △△한의원 — 진료시간·예약 안내 명시', hi:'바른몸한의원', cite:'참고: 바른몸한의원 홈페이지' },
+      { q:'노원 초등 영어학원 추천', text:'노원 초등 영어학원 추천입니다.\n\n① 리드앤영어교습소\n레벨·커리큘럼과 강사 이력이 표로 정리돼 AI가 직접 인용할 수 있습니다.\n\n② ○○학원 — 학부모 후기 다수\n\n③ △△어학원 — 시간표·셔틀 정보 명시', hi:'리드앤영어교습소', cite:'참고: 리드앤영어교습소 홈페이지' }
+    ],
+    gem:[
+      { q:'판교 아파트 인테리어 업체 어디가 좋아?', text:'판교 아파트 인테리어 업체를 안내해 드릴게요.\n\n① 더하우스디자인\n시공 사례와 견적 절차가 구조화돼 있고 보유 면허·이력이 명시돼 AI가 인용하기 좋습니다.\n\n② ○○인테리어 — 시공 후기 다수\n\n③ △△디자인 — 상담 예약 안내 명시', hi:'더하우스디자인', cite:'참고: 더하우스디자인 홈페이지' },
+      { q:'잠실 교정치과 잘하는 곳 어디야?', text:'잠실 교정치과를 안내해 드릴게요.\n\n① 잠실교정치과\n교정 전문의 3인, FAQ 구조의 진료 안내와 치료 사례 콘텐츠가 AI 인용에 최적화되어 있습니다.\n\n② ○○치과 — 커뮤니티 평점 양호\n\n③ △△치과 — 인비절라인 공인 의원', hi:'잠실교정치과', cite:'참고: 잠실교정치과 홈페이지' },
+      { q:'강남 세무사 추천해줘', text:'강남 세무사를 안내해 드릴게요.\n\n① 바른택스세무회계\n업종별 기장·신고 서비스와 세무사 약력이 페이지에 구조화돼 AI가 직접 인용할 수 있습니다.\n\n② ○○세무 — 상담 사례 다수\n\n③ △△세무회계 — 상담 예약 안내 명시', hi:'바른택스세무회계', cite:'참고: 바른택스세무회계 홈페이지' }
+    ]
+  };
+  var IDS = {
+    gpt:{ qId:'demo-gpt-q', dotsId:'demo-gpt-dots', respId:'demo-gpt' },
+    ppl:{ qId:'demo-ppl-q', dotsId:'demo-ppl-dots', respId:'demo-ppl' },
+    gem:{ qId:'demo-gem-q', dotsId:'demo-gem-dots', respId:'demo-gem' }
+  };
+  var KEYS = ['gpt','ppl','gem'];
 
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-
   function buildHtml(chunk, hi, cite, done){
     var safe = esc(chunk).replace(/\n/g,'<br>');
     var hiSafe = esc(hi);
@@ -587,48 +593,56 @@ document.querySelectorAll('.faq-q').forEach(function(btn){
     return safe;
   }
 
-  function runChat(demo){
-    /* step 1: user bubble slides in */
-    var qEl = document.getElementById(demo.qId);
-    var dotsEl = document.getElementById(demo.dotsId);
-    var rEl = document.getElementById(demo.respId);
+  var typers = {};   // per-engine typing interval — cleared before each new round
+  function setRound(key, item){
+    var ids = IDS[key];
+    var qEl = document.getElementById(ids.qId);
+    var dotsEl = document.getElementById(ids.dotsId);
+    var rEl = document.getElementById(ids.respId);
     if(!qEl||!dotsEl||!rEl) return;
-
+    if(typers[key]) { clearInterval(typers[key]); typers[key] = null; }
+    /* reset */
+    qEl.classList.remove('chat-in'); rEl.classList.remove('show');
+    rEl.innerHTML = ''; dotsEl.classList.remove('show');
+    qEl.textContent = item.q;
+    void qEl.offsetWidth; /* reflow so the slide-in animation replays */
     qEl.classList.add('chat-in');
-
-    /* step 2: AI typing dots appear */
+    setTimeout(function(){ dotsEl.classList.add('show'); }, 500);
     setTimeout(function(){
-      dotsEl.classList.add('show');
-    }, 500);
-
-    /* step 3: dots hide, response starts typing */
-    setTimeout(function(){
-      dotsEl.classList.remove('show');
-      rEl.classList.add('show');
+      dotsEl.classList.remove('show'); rEl.classList.add('show');
       rEl.innerHTML = '<span class="ai-cursor"></span>';
-      var text = demo.text;
-      var i = 0;
-      var iv = setInterval(function(){
+      var text = item.text, i = 0;
+      typers[key] = setInterval(function(){
         i = Math.min(i + 4, text.length);
         var done = (i >= text.length);
-        rEl.innerHTML = buildHtml(text.slice(0,i), demo.hi, demo.cite, done) +
-          (done ? '' : '<span class="ai-cursor"></span>');
-        if(done) clearInterval(iv);
+        rEl.innerHTML = buildHtml(text.slice(0,i), item.hi, item.cite, done) + (done ? '' : '<span class="ai-cursor"></span>');
+        if(done){ clearInterval(typers[key]); typers[key] = null; }
       }, 22);
     }, 2000);
   }
 
-  var triggered = false;
+  var idx = { gpt:0, ppl:0, gem:0 };
+  function runRound(){ KEYS.forEach(function(k,j){ setTimeout(function(){ setRound(k, POOL[k][idx[k]]); }, j*450); }); }
+  function advance(){ KEYS.forEach(function(k){ idx[k] = (idx[k]+1) % POOL[k].length; }); }
+
   var section = document.querySelector('.ai-demo');
-  if(!section) return;
-  new IntersectionObserver(function(entries){
-    if(triggered) return;
-    if(!entries[0].isIntersecting) return;
-    triggered = true;
-    DEMOS.forEach(function(demo){
-      setTimeout(function(){ runChat(demo); }, demo.colDelay);
-    });
-  }, { threshold:0.15 }).observe(section);
+  if(section){
+    var triggered = false;
+    new IntersectionObserver(function(entries){
+      if(triggered || !entries[0].isIntersecting) return;
+      triggered = true;
+      runRound();
+      setInterval(function(){ advance(); runRound(); }, 7000); /* 업종 룰렛 — 7초마다 다음 업종 세트 */
+    }, { threshold:0.15 }).observe(section);
+  }
+
+  /* 데모 헤딩 단어 룰렛: "AI는 이미 [치과를/피부과를/변호사를…] 추천하고 있습니다" */
+  var hv = document.getElementById('demoVertical');
+  if(hv){
+    var WORDS = ['치과를','피부과를','한의원을','동물병원을','변호사를','인테리어 업체를','헬스장을','학원을','세무사를'];
+    var wi = 0;
+    setInterval(function(){ wi = (wi+1) % WORDS.length; hv.textContent = WORDS[wi]; }, 2200);
+  }
 })();
 
 /* ── 고급 분석 gate — password checked server-side (/api/unlock), key never in page source ── */
