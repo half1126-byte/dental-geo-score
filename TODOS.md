@@ -12,19 +12,15 @@ _Last updated: 2026-06-29 (CEO Review SCOPE EXPANSION)_
 
 ## Now (다음 영업 미팅 전)
 
-- [ ] **Commit uncommitted 378 lines** — code-reveal UI + businessType params (베이스라인)
-- [ ] **Export 리포트** — `public/operator.html` 인쇄 버튼 + `@media print` A4 CSS, compliance 스캔
-  - effectLabel = "구조 위생 지표 · AI 인용 예측 아님"
-  - LAW_HARD 0건 테스트 (`test/export.test.js`)
-  - 브랜딩: 메디앤메디 CTA 포함
+- [x] **Commit uncommitted 378 lines** — code-reveal UI + businessType params (2026-06-29)
+- [ ] **Export 리포트** — `public/operator.html` 인쇄 버튼 + `@media print` A4 CSS, compliance 스캔 (디자인 재검토 필요)
 
 ---
 
 ## Soon (7월 내)
 
-- [ ] **Path A 공개 이메일 게이트** — `public/index.html` 이메일 모달
-  - 기본 점수 공개 → "AI 인용 실측은 이메일 입력 후" 홉
-  - `/api/citation` 이메일 경로 (`!isOperator`) 연결
+- [x] **Path A 공개 이메일 게이트** — 라이브 (2026-06-29)
+  - 이메일 입력 → `/api/citation` → `toPublicView()` 결과 (경쟁사 마스킹)
   - `DAILY_CITATION_CAP=20` 선 유지 (출시 후 KV per-IP 추가 검토)
 
 ---
