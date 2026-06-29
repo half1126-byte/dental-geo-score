@@ -24,6 +24,9 @@ export const config = { runtime: 'nodejs', maxDuration: 120 };
 
 const ENV_KEYS = { chatgpt: 'OPENAI_API_KEY', perplexity: 'PERPLEXITY_API_KEY', claude: 'ANTHROPIC_API_KEY' };
 const DAY = 86_400_000;
+// Repeat each query N× to stabilize the noisy single-shot rate (Wilson CI needs N≥2). Clamp 1–3.
+// Cost: requests = engines × prompts × repeats. Override with CITATION_REPEATS env.
+const REPEATS = Math.max(1, Math.min(parseInt(process.env.CITATION_REPEATS || '3', 10) || 3, 3));
 const store = makeStore({ kv }); // kv = Upstash when KV_REST_API_URL+TOKEN set, else in-memory
 
 const maskEmail = (e) => String(e || '').replace(/^(.).*(@.*)$/, '$1***$2');
@@ -39,7 +42,7 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'method-not-allowed' });
     return;
   }
-  const { url, email, region, regions, procedure, queries } = req.body || {};
+  const { url, email, region, regions, procedure, queries, clinicName } = req.body || {};
 
   // --- operator gate (internal tool) ---
   const operatorKeySet = !!process.env.OPERATOR_KEY;
@@ -121,7 +124,8 @@ export default async function handler(req, res) {
           procedure: procedure || '',
           keys,
           loc: { city: r },
-          repeats: 1,
+          repeats: REPEATS,
+          clinicName: clinicName || '',
           customPrompts,
         }))
       );
@@ -156,7 +160,8 @@ export default async function handler(req, res) {
       procedure: procedure || '',
       keys,
       loc: { city: effectiveRegions[0] || '' },
-      repeats: 1,
+      repeats: REPEATS,
+      clinicName: clinicName || '',
       customPrompts,
     });
     // Naver Local API check (non-blocking, parallel with cache write)

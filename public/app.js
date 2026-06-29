@@ -151,7 +151,7 @@ async function autoFetchCitation(key) {
     const res = await fetch('/api/citation', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-operator-key': key },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, clinicName: (lastScoreData && lastScoreData.clinicNameGuess) || '' }),
     });
     const data = await res.json().catch(() => null);
     if (data && Array.isArray(data.perEngine) && data.perEngine.length) {
@@ -190,7 +190,7 @@ $('leadForm').addEventListener('submit', async (e) => {
     const res = await fetch('/api/citation', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, url }),
+      body: JSON.stringify({ email, url, clinicName: (lastScoreData && lastScoreData.clinicNameGuess) || '' }),
     });
     data = await res.json().catch(() => null);
   } catch (_) { /* non-blocking */ }
@@ -321,6 +321,8 @@ function renderCitation(d) {
     } else if (p.cited) {
       const ci = p.ci ? ` · 신뢰구간 ${pct(p.ci.low)}–${pct(p.ci.high)}%` : '';
       v = `✓ ${p.validRuns}회 중 ${p.citedRuns}회 추천 (${pct(p.hitRate)}%${ci}) · N=${p.validRuns} 소표본`;
+    } else if (p.namedRuns > 0) {
+      v = `≈ 이름으로 ${p.namedRuns}회 언급 (직접 링크는 없음) — 노출은 되나 출처 연결이 약함`;
     } else {
       v = `이 표본엔 미인용 (0/${p.validRuns}) — "추천 안 함"이 아니라 이번 표본 미관측`;
     }

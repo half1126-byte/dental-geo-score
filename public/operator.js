@@ -287,9 +287,10 @@ $('opMeasureBtn').addEventListener('click', async () => {
   try {
     const headers = { 'content-type': 'application/json', 'x-operator-key': key };
     const queriesToSend = selectedQueries.length > 0 ? selectedQueries : undefined;
+    const cName = (lastScoreRes && lastScoreRes.d && lastScoreRes.d.clinicNameGuess) || '';
     const body = isMultiRegion
-      ? { url: lastUrl, regions: selectedRegions, procedure, queries: queriesToSend }
-      : { url: lastUrl, region: effectiveRegion, procedure, queries: queriesToSend };
+      ? { url: lastUrl, regions: selectedRegions, procedure, queries: queriesToSend, clinicName: cName }
+      : { url: lastUrl, region: effectiveRegion, procedure, queries: queriesToSend, clinicName: cName };
     const citeRes = await fetch('/api/citation', {
       method: 'POST', headers,
       body: JSON.stringify(body),
