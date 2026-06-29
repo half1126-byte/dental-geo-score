@@ -1219,3 +1219,16 @@ footer.site-footer {
   .ai-trend-section { padding: 56px 0; }
   .trend-bench-row, .trend-cards { grid-template-columns: 1fr; }
 }
+
+/* ── 여러 업종 사례 (치과는 시작일 뿐) ── */
+.verticals-section { padding: 80px 0; border-top: 1px solid var(--border); }
+.vertical-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.vertical-card { display: flex; flex-direction: column; gap: 5px; padding: 18px 20px; border-radius: 16px; background: var(--bg-3); border: 1px solid var(--card-border); transition: border-color .15s, transform .15s; }
+.vertical-card:hover { border-color: var(--plum); transform: translateY(-2px); }
+.vcat { font-size: .82rem; font-weight: 700; color: #fff; }
+.vq { font-size: .85rem; color: var(--text-2); }
+.vq::before { content: '🔎 '; opacity: .8; }
+@media (max-width: 560px) {
+  .verticals-section { padding: 56px 0; }
+  .vertical-grid { grid-template-columns: 1fr; }
+}
