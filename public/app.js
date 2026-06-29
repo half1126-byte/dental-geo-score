@@ -209,7 +209,7 @@ $('leadForm').addEventListener('submit', async (e) => {
     $('leadOk').textContent = '';
     show('leadOk');
   } else {
-    $('leadOk').textContent = (data && data.message) || '신청되었습니다. 개선 가이드와 실측 결과를 이메일로 보내드리겠습니다.';
+    $('leadOk').textContent = (data && !data.error && data.message) || '신청되었습니다. 개선 가이드와 실측 결과를 이메일로 보내드리겠습니다.';
     show('leadOk');
   }
 });

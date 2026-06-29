@@ -47,11 +47,8 @@ export default async function handler(req, res) {
   // --- operator gate (internal tool) ---
   const operatorKeySet = !!process.env.OPERATOR_KEY;
   const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
-  if (operatorKeySet && !isOperator) {
-    res.status(401).json({ error: 'operator-key-required', message: '운영자 키가 필요합니다.' });
-    return;
-  }
-  // public (no operator-key configured) path keeps the email lead gate
+  // Non-operator (public) path: allow through with email gate (Path A). toPublicView masks competitors.
+  // DAILY_CITATION_CAP=20 guards cost. Operators (x-operator-key) get full private report.
   if (!isOperator) {
     if (!email || typeof email !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       res.status(400).json({ error: 'email-required', message: '실측 결과를 받을 이메일이 필요합니다.' });

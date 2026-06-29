@@ -25,13 +25,13 @@ test('GET → 405', async () => {
   assert.equal(out.status, 405);
 });
 
-test('operator key configured + missing/wrong header → 401', async () => {
+test('operator key configured + no auth header → public path → 400 email-required', async () => {
   clearEnv();
   process.env.OPERATOR_KEY = 'secret';
   const { req, res, out } = mk('POST', { url: 'https://x.co.kr' }, {});
   await handler(req, res);
-  assert.equal(out.status, 401);
-  assert.equal(out.json.error, 'operator-key-required');
+  assert.equal(out.status, 400);
+  assert.equal(out.json.error, 'email-required'); // public users need email, not 401
 });
 
 test('operator path bypasses email; not-enabled → 202 pending', async () => {
