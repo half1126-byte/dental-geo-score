@@ -12,7 +12,7 @@ let lastScoredUrl = '';
   if (k) { localStorage.setItem('opKey', k); history.replaceState(null, '', location.pathname); }
 })();
 
-// scoreForm submit → URL 검증 후 팝업 표시
+// scoreForm submit → URL 검증 후 바로 진단 (value-first: 점수를 먼저 보여주고, 리드는 결과 뒤 이메일 게이트에서)
 $('scoreForm').addEventListener('submit', (e) => {
   e.preventDefault();
   let url = $('urlInput').value.trim();
@@ -20,26 +20,6 @@ $('scoreForm').addEventListener('submit', (e) => {
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   $('urlInput').value = url;
   lastScoredUrl = url;
-  document.getElementById('leadModal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('modalClinic').focus(), 80);
-});
-
-// 팝업 제출 — DB 정보 저장 후 진단 실행
-document.getElementById('leadModalForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const clinicName = document.getElementById('modalClinic').value.trim();
-  const contact    = document.getElementById('modalContact').value.trim();
-  const phone      = document.getElementById('modalPhone').value.trim();
-  if (clinicName || contact || phone) {
-    sessionStorage.setItem('leadInfo', JSON.stringify({ clinicName, contact, phone }));
-  }
-  document.getElementById('leadModal').classList.add('hidden');
-  runScan();
-});
-
-// 넘어가기 — 내부 테스트용
-document.getElementById('modalSkip').addEventListener('click', () => {
-  document.getElementById('leadModal').classList.add('hidden');
   runScan();
 });
 
