@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'method-not-allowed' });
     return;
   }
-  const { url, email, region, regions, procedure, queries, clinicName } = req.body || {};
+  const { url, email, region, regions, procedure, queries, clinicName, businessType } = req.body || {};
 
   // --- operator gate (internal tool) ---
   const operatorKeySet = !!process.env.OPERATOR_KEY;
@@ -122,6 +122,7 @@ export default async function handler(req, res) {
           clinicDomain: domain,
           region: r,
           procedure: procedure || '',
+          businessType: businessType || '치과',
           keys,
           loc: { city: r },
           repeats: REPEATS,
@@ -158,6 +159,7 @@ export default async function handler(req, res) {
       clinicDomain: domain,
       region: effectiveRegions[0] || '',
       procedure: procedure || '',
+      businessType: businessType || '치과',
       keys,
       loc: { city: effectiveRegions[0] || '' },
       repeats: REPEATS,
