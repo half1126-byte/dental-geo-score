@@ -258,8 +258,8 @@ function renderComparePanel(compData) {
   const cD = compData;
   const uBreakdown = uD.breakdown || [];
   const cBreakdown = cD.breakdown || [];
-  const uDomain = uD.domain || '이 치과';
-  const cDomain = cD.domain || '비교 치과';
+  const uDomain = uD.domain || '우리 사이트';
+  const cDomain = cD.domain || '비교 사이트';
 
   const compMap = Object.fromEntries(cBreakdown.map((c) => [c.label, c]));
   const gaps = [], same = [], uBetter = [];
@@ -299,9 +299,9 @@ function renderComparePanel(compData) {
       </div>
     </div>
     <div style="font-size:.72rem;color:var(--text-2);margin-bottom:4px;text-align:right">${esc(uDomain)} · ${esc(cDomain)}</div>
-    ${gaps.length ? secHead(`⬆️ 경쟁 치과에 있고 이 치과에 없는 항목 (${gaps.length}개)`) + `<div class="cmp-note">이 항목들이 AI 추천 격차의 구조적 원인일 수 있습니다</div>` + gaps.map((g) => row(g.label, false, true)).join('') : ''}
+    ${gaps.length ? secHead(`⬆️ 경쟁사에 있고 우리에 없는 항목 (${gaps.length}개)`) + `<div class="cmp-note">이 항목들이 AI 추천 격차의 구조적 원인일 수 있습니다</div>` + gaps.map((g) => row(g.label, false, true)).join('') : ''}
     ${same.length ? secHead(`✅ 양쪽 모두 통과 (${same.length}개)`) + same.map((g) => row(g.label, true, true)).join('') : ''}
-    ${uBetter.length ? secHead(`📌 이 치과만 통과 (${uBetter.length}개)`) + uBetter.map((g) => row(g.label, true, false)).join('') : ''}
+    ${uBetter.length ? secHead(`📌 우리만 통과 (${uBetter.length}개)`) + uBetter.map((g) => row(g.label, true, false)).join('') : ''}
     ${!gaps.length && !same.length && !uBetter.length ? '<p class="muted small" style="margin-top:8px">비교 가능한 신호 데이터가 없습니다.</p>' : ''}
     <p class="small muted" style="margin-top:12px;font-size:.73rem">기술 점수 비교 — AI 추천과 직접 인과관계 없음 (구조 위생 지표)</p>
   </div>`;
@@ -327,6 +327,6 @@ function renderCitation(d) {
     return `<div style="padding:5px 0;border-top:1px solid var(--border)"><b>${esc(label[p.engine] || p.engine)}</b> — ${esc(v)}</div>`;
   }).join('');
   return `<div><b>실측 인용 결과 — ${esc(d.clinicDomain || d.domain || '')}</b>${rows}` +
-    `<div class="muted small" style="margin-top:8px">이 수치는 <b>개발자 API</b> 기준이며 일반 ChatGPT 앱 결과와 다를 수 있습니다. 특정 시점 관측이라 환자 대상 광고에 "추천·1위·인증"으로 인용 금지(의료광고법).</div>` +
+    `<div class="muted small" style="margin-top:8px">이 수치는 <b>개발자 API</b> 기준이며 일반 ChatGPT 앱 결과와 다를 수 있습니다. 특정 시점 관측이라 규제 업종(의료 등) 광고에 "추천·1위·인증"으로 인용 금지(의료광고법).</div>` +
     (d.note ? `<div class="muted small">${esc(d.note)}</div>` : '') + `</div>`;
 }
