@@ -590,9 +590,9 @@ window.addEventListener('resize', () => {
   }, 150);
 });
 
-async function loadCompare(compDomain, compUrl) {
+async function loadCompare(compDomain, compUrl, _retrying = false) {
   const sec = $('compareSection');
-  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} — 양쪽 소스·구조 분석 중 (최대 20초, 느린 사이트는 재시도)...</p></div>`;
+  sec.innerHTML = `<div class="compare-panel"><p class="muted small">⏳ ${esc(compDomain)} — 구조 분석 중 (최대 35초)${_retrying ? ' · 재시도 중...' : ''}...</p></div>`;
   show('compareSection');
   sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -612,24 +612,44 @@ async function loadCompare(compDomain, compUrl) {
     teardown: cp.teardown, embeddable: cp.embeddable,
   } : null;
 
-  let pkg = null, errMsg = '';
+  let pkg = null, errMsg = '', errStatus = 0, errData = null;
   try {
-    const r = await fetch('/api/compare', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-operator-key': key },
-      body: JSON.stringify({ userUrl: lastUrl, compUrl: compFullUrl, userScore, userCited, userProfile }),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (r.ok) pkg = data;
-    else errMsg = (data && data.message) ? data.message : `분석 실패 (${r.status})`;
-  } catch {
-    errMsg = '네트워크 오류';
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 38000); // client-side guard — Vercel maxDuration=40s
+    let r;
+    try {
+      r = await fetch('/api/compare', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-operator-key': key },
+        body: JSON.stringify({ userUrl: lastUrl, compUrl: compFullUrl, userScore, userCited, userProfile }),
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(tid);
+    }
+    errStatus = r.status;
+    errData = await r.json().catch(() => ({}));
+    if (r.ok) pkg = errData;
+    else errMsg = (errData && errData.message) ? errData.message : `분석 실패 (${r.status})`;
+  } catch (e) {
+    errMsg = (e && e.name === 'AbortError') ? '분석 시간 초과 (35초) — 경쟁 병원 사이트 응답이 느린 것 같습니다' : '네트워크 오류';
+  }
+
+  // Auto-retry once on transient server/network errors (502 fetch-failed, 504 timeout, 0 network)
+  if (!pkg && !_retrying && (errStatus === 0 || errStatus === 502 || errStatus === 504)) {
+    return loadCompare(compDomain, compUrl, true);
   }
 
   if (!pkg || !pkg.signalDiff) {
+    const side = errData && errData.side;
+    const sideNote = side === 'comp'
+      ? '<br><span class="muted small" style="font-size:.78rem">경쟁 병원 사이트가 느리거나 일시 차단된 것 같습니다. 잠시 후 재시도해 보세요.</span>'
+      : side === 'user'
+      ? '<br><span class="muted small" style="font-size:.78rem">분석 대상 사이트를 다시 불러오지 못했습니다. "분석" 버튼으로 재측정 후 시도하세요.</span>'
+      : '';
     sec.innerHTML = `<div class="compare-panel">${compCloseBtn()}
-      <p class="muted" style="margin-bottom:14px">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}</p>
-      <button type="button" class="btn p" data-compare-retry data-retry-domain="${esc(compDomain)}" data-retry-url="${esc(compFullUrl)}" style="min-width:120px">🔄 다시 시도</button></div>`;
+      <p style="margin-bottom:12px">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}${sideNote}</p>
+      <button type="button" class="btn p" data-compare-retry data-retry-domain="${esc(compDomain)}" data-retry-url="${esc(compFullUrl)}" style="min-width:140px">🔄 다시 시도</button></div>`;
     return;
   }
   sec.innerHTML = renderCompare(pkg, compDomain);
