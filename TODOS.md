@@ -48,7 +48,7 @@ _Last updated: 2026-06-30_
 
 ## When Needed (거래처 5개+ 시)
 
-- [ ] **거래처 배치 대시보드** — operator.html 탭 추가
+- [x] **거래처 배치 대시보드** — operator.html 탭 추가 (2026-06-30)
   - localStorage URL 목록 저장
   - 배치 `/api/score` 호출 → 변화량 모아보기
 
