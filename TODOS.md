@@ -40,9 +40,9 @@ _Last updated: 2026-06-30_
 
 ## Later (8월 내)
 
-- [ ] **재측정 이력 그래프** — `/api/score` 응답에 `prevScore` 추가
-  - KV `c:domain` histAppend 재활용
-  - operator.js 화면에 "지난 측정 대비 ±점수" 표시
+- [x] **재측정 이력 그래프** — `/api/score` 응답에 `prevScore` 추가 (2026-06-30)
+  - KV `s:domain` histGet → prevScore/prevBand → result에 추가
+  - operator.js `renderResultHeader`: ▲/▼Npt 델타 배지 (전회 동점 포함)
 
 ---
 

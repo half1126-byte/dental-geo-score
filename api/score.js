@@ -31,13 +31,18 @@ export default async function handler(req, res) {
     const result = await auditUrl(url, { timeoutMs: 8000 });
     result.measuredAt = new Date().toISOString();
 
-    // Persist score history (non-blocking)
+    // Read previous entry before appending so delta is accurate
     const domain = registrableDomain(url);
+    const hist = await store.histGet(`s:${domain}`);
+    const prevScore = hist.length > 0 ? (hist[0].score ?? null) : null;
+    const prevBand  = hist.length > 0 ? (hist[0].band  ?? null) : null;
     store.histAppend(`s:${domain}`, {
       ts:    result.measuredAt,
       score: result.score,
       band:  result.band,
     }).catch(() => {});
+    result.prevScore = prevScore;
+    result.prevBand  = prevBand;
 
     res.status(200).json(result);
   } catch (e) {

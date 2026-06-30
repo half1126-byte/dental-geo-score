@@ -870,9 +870,16 @@ function renderResultHeader(scoreRes, citeRes, q) {
   const band  = sd ? sd.band : null;
   const bandColor = sd ? (sd.score >= 70 ? '#1fcec4' : sd.score >= 40 ? '#c9a84c' : '#f05e6a') : 'var(--text-2)';
 
+  const prevScore = sd ? (sd.prevScore ?? null) : null;
+  const delta = (prevScore != null && score != null) ? (score - prevScore) : null;
+  const deltaHtml = delta == null ? '' : delta === 0
+    ? `<div style="font-size:.72rem;font-weight:700;margin-top:4px;color:var(--text-2)">전회 동점</div>`
+    : `<div style="font-size:.72rem;font-weight:800;margin-top:4px;color:${delta > 0 ? 'var(--teal)' : '#f05e6a'}">${delta > 0 ? '▲' : '▼'}${Math.abs(delta)}pt</div>`;
+
   const scoreBlock = score != null ? `
     <div class="result-dash-score">
       <div class="result-dash-score-num">${score}</div>
+      ${deltaHtml}
       <div style="font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-top:3px">GEO 준비도</div>
       <div style="font-size:.9rem;font-weight:700;color:${bandColor};margin-top:6px">${esc(band)}</div>
     </div>` : '';
