@@ -1,26 +1,26 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex,nofollow" />
-<title>AI 추천 실측 · 메디앤메디</title>
-<link rel="stylesheet" href="/style.css" />
+<title>AI 異붿쿇 ?ㅼ륫 쨌 硫붾뵒?ㅻ찓??/title>
+<link rel="stylesheet" href="/style.css?v=2" />
 <style>
-/* ════════════════════════════════════════════════
-   OPERATOR UI v3 — editorial dark / mycel-inspired
-   ════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   OPERATOR UI v3 ??editorial dark / mycel-inspired
+   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
-/* ── layout wrapper ── */
+/* ?? layout wrapper ?? */
 .op-wrap { max-width:1400px; margin:0 auto; padding:0 28px 80px; }
 
-/* ── 끊김없이: 부드러운 스크롤 + 결과 페이드 인 ── */
+/* ?? ?딄??놁씠: 遺?쒕윭???ㅽ겕濡?+ 寃곌낵 ?섏씠?????? */
 html { scroll-behavior:smooth; }
 @keyframes resultReveal { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 .reveal { animation:resultReveal .34s cubic-bezier(.22,.61,.36,1) both; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } .reveal { animation:none; } }
 
-/* ── 강조: 볼드 키워드·섹션 헤더 더 잘 보이게 ── */
+/* ?? 媛뺤“: 蹂쇰뱶 ?ㅼ썙?쑣룹꽮???ㅻ뜑 ????蹂댁씠寃??? */
 .card b, .compare-panel b, .compare-invite b, .rv-text b { color:#fff; font-weight:700; }
 .result-section-label { border-bottom:1px solid var(--border); padding-bottom:9px; }
 
@@ -28,7 +28,7 @@ html { scroll-behavior:smooth; }
 .setup-card, .analyze-card, .confirm-card, .key-saved { max-width:820px; margin-left:auto; margin-right:auto; }
 #opLoading .prog, #opError .err { max-width:820px; margin-left:auto; margin-right:auto; }
 
-/* ── horizontal result dashboard ── */
+/* ?? horizontal result dashboard ?? */
 .result-dash {
   display:flex; align-items:stretch;
   background:var(--bg-3); border:1px solid rgba(255,184,41,.22);
@@ -60,20 +60,20 @@ html { scroll-behavior:smooth; }
   .result-dash-engines { padding:16px 22px; }
 }
 
-/* ── engine comparison table (horizontal, engines-as-columns) ── */
+/* ?? engine comparison table (horizontal, engines-as-columns) ?? */
 .engine-htable { width:100%; border-collapse:collapse; min-width:440px; }
 .engine-htable th, .engine-htable td { border-bottom:1px solid var(--border); }
 .engine-htable thead tr { background:rgba(255,255,255,.025); }
 
-/* ── competitor links ── */
+/* ?? competitor links ?? */
 .comp-chip { font-size:.75rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--text-2); }
 
-/* ── action tags ── */
+/* ?? action tags ?? */
 .action-tag  { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:4px; margin-top:5px; }
 .tag-proven  { background:rgba(128,82,255,.15); color:var(--teal); }
 .tag-hygiene { background:rgba(255,184,41,.12); color:var(--gold-2); }
 
-/* ── score bar ── */
+/* ?? score bar ?? */
 .score-visual    { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
 .score-big       { font-size:3rem; font-weight:800; line-height:1; color:var(--gold); }
 .score-big small { font-size:1rem; color:var(--text-2); font-weight:400; }
@@ -81,7 +81,7 @@ html { scroll-behavior:smooth; }
 .score-bar-wrap  { background:rgba(255,255,255,.06); border-radius:6px; height:8px; overflow:hidden; margin-top:6px; }
 .score-bar-fill  { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--gold),var(--gold-2)); transition:width 1s ease; }
 
-/* ── check rows ── */
+/* ?? check rows ?? */
 .check-row  { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-top:1px solid var(--border); font-size:.88rem; }
 .check-icon { width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; flex-shrink:0; }
 .icon-ok    { background:rgba(128,82,255,.15); color:var(--teal); }
@@ -92,7 +92,7 @@ html { scroll-behavior:smooth; }
 .check-why   { font-size:.78rem; color:var(--text-2); }
 .check-pts   { font-size:.82rem; color:var(--text-2); white-space:nowrap; }
 
-/* ── query selector ── */
+/* ?? query selector ?? */
 .query-selector-label { font-size:.82rem; color:var(--text-2); margin:14px 0 6px; display:block; }
 .query-chips-wrap { display:flex; flex-direction:column; gap:6px; }
 .q-chip {
@@ -113,7 +113,7 @@ html { scroll-behavior:smooth; }
 .q-chip-text { flex:1; }
 .q-select-hint { font-size:.76rem; color:var(--text-2); margin-top:6px; }
 
-/* ── engine logos ── */
+/* ?? engine logos ?? */
 .engine-logo {
   width:18px; height:18px; border-radius:4px; flex-shrink:0;
   display:inline-flex; align-items:center; justify-content:center;
@@ -125,7 +125,7 @@ html { scroll-behavior:smooth; }
 .engine-title-row   { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
 .engine-title-logos { display:flex; gap:5px; }
 
-/* ── competitor compare ── */
+/* ?? competitor compare ?? */
 .comp-link { font-size:.75rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--gold-2); text-decoration:none; cursor:pointer; }
 .comp-link:hover { border-color:var(--gold); background:rgba(255,184,41,.1); }
 .compare-panel      { margin-top:14px; background:var(--bg-3); border:1px solid rgba(255,184,41,.18); border-radius:18px; padding:22px; }
@@ -141,7 +141,7 @@ html { scroll-behavior:smooth; }
 .compare-val.ok   { color:var(--teal); }
 .compare-val.fail { color:var(--text-2); }
 
-/* ── source code comparison ── */
+/* ?? source code comparison ?? */
 .compare-code-cols {
   display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;
 }
@@ -163,7 +163,7 @@ html { scroll-behavior:smooth; }
   font-family:'SF Mono','Consolas','Courier New',monospace;
 }
 
-/* ── deep competitor compare: preview ── */
+/* ?? deep competitor compare: preview ?? */
 .compare-preview-cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 4px; }
 @media(max-width:720px){ .compare-preview-cols { grid-template-columns:1fr; } }
 .compare-preview-cell { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg-2); }
@@ -173,14 +173,14 @@ html { scroll-behavior:smooth; }
 .compare-mini-badge.gold { background:var(--gold); color:#000; }
 .compare-preview-stage { position:relative; height:440px; background:#fff; overflow:hidden; }
 @media(max-width:720px){ .compare-preview-stage { height:380px; } }
-.compare-preview-frame { position:absolute; top:0; left:0; border:0; background:#fff; } /* width·height·transform = JS (scale-to-fit) */
+.compare-preview-frame { position:absolute; top:0; left:0; border:0; background:#fff; } /* width쨌height쨌transform = JS (scale-to-fit) */
 .compare-preview-fallback { position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; padding:20px; text-align:center; background:#0c0c0c; }
 .cp-open { color:inherit; text-decoration:none; opacity:.65; margin-left:5px; font-weight:700; }
 .cp-open:hover { opacity:1; }
 .compare-preview-blocked { font-size:.82rem; color:var(--text-2); line-height:1.5; }
 .compare-preview-blocked span { font-size:.68rem; opacity:.6; }
 
-/* ── deep competitor compare: diff tables ── */
+/* ?? deep competitor compare: diff tables ?? */
 .compare-diff-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.82rem; }
 .compare-diff-table th { text-align:left; font-size:.72rem; font-weight:700; color:var(--text-2); padding:6px 8px; border-bottom:1px solid var(--border); }
 .compare-diff-table th:nth-child(n+2) { text-align:center; width:104px; }
@@ -207,7 +207,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .diff-types b { color:var(--text-1); }
 @media(max-width:720px){ .diff-types { grid-template-columns:1fr; } }
 
-/* ── deep competitor compare: plan table ── */
+/* ?? deep competitor compare: plan table ?? */
 .compare-plan-wrap { overflow-x:auto; margin-top:8px; }
 .compare-plan-table { width:100%; border-collapse:collapse; font-size:.8rem; min-width:640px; }
 .compare-plan-table th { text-align:left; font-size:.7rem; font-weight:700; color:var(--text-2); padding:7px 8px; border-bottom:1px solid var(--border); }
@@ -219,9 +219,9 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .plan-target { color:var(--text-1); font-size:.78rem; max-width:240px; }
 .plan-effect { font-size:.66rem; color:var(--text-2); opacity:.7; margin-top:3px; }
 .plan-badge { font-size:.7rem; font-weight:700; border-radius:5px; padding:2px 8px; white-space:nowrap; }
-.plan-diff-상 { background:rgba(240,94,106,.18); color:#f7949c; }
-.plan-diff-중 { background:rgba(255,184,41,.16); color:var(--gold-2); }
-.plan-diff-하 { background:rgba(128,82,255,.16); color:#b79dff; }
+.plan-diff-??{ background:rgba(240,94,106,.18); color:#f7949c; }
+.plan-diff-以?{ background:rgba(255,184,41,.16); color:var(--gold-2); }
+.plan-diff-??{ background:rgba(128,82,255,.16); color:#b79dff; }
 .plan-prods { display:flex; flex-wrap:wrap; gap:5px; }
 .plan-prod-chip { font-size:.7rem; font-weight:600; background:rgba(128,82,255,.14); color:#b79dff; border:1px solid rgba(128,82,255,.3); border-radius:6px; padding:2px 8px; cursor:pointer; transition:background .12s; }
 .plan-prod-chip:hover { background:rgba(128,82,255,.26); }
@@ -229,7 +229,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .compare-add-btn { width:100%; margin-top:14px; font-size:.9rem; }
 .compare-add-btn.on { opacity:.72; }
 
-/* ── compare invite (citation panel: 추천 홈페이지 클릭 유도) ── */
+/* ?? compare invite (citation panel: 異붿쿇 ?덊럹?댁? ?대┃ ?좊룄) ?? */
 .compare-invite { margin-top:14px; padding:16px 18px; background:linear-gradient(135deg,rgba(128,82,255,.1),rgba(128,82,255,.03)); border:1px solid rgba(128,82,255,.28); border-radius:14px; }
 .compare-invite-head { font-size:1rem; font-weight:700; color:var(--text-1); }
 .compare-invite-sub { font-size:.84rem; color:var(--text-2); line-height:1.55; margin:6px 0 12px; }
@@ -240,14 +240,14 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .ci-domain { flex:1; min-width:0; font-size:.86rem; font-weight:600; color:var(--text-1); word-break:break-all; }
 .ci-cta { flex-shrink:0; font-size:.78rem; font-weight:700; color:var(--plum); white-space:nowrap; }
 
-/* ── solution CTA (compare panel: 구매 유도) ── */
+/* ?? solution CTA (compare panel: 援щℓ ?좊룄) ?? */
 .solution-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; margin-top:8px; }
 .solution-card { display:flex; flex-direction:column; justify-content:space-between; gap:12px; padding:15px 16px; background:linear-gradient(135deg,var(--bg-3),rgba(201,168,76,.05)); border:1.5px solid var(--gold); border-radius:14px; }
 .solution-name { font-size:.95rem; font-weight:700; color:var(--text-1); }
 .solution-desc { font-size:.8rem; color:var(--text-2); line-height:1.5; margin-top:5px; }
 .solution-cta { width:100%; font-size:.86rem; }
 
-/* ── result IA: 섹션 라벨 + 결론 hero verdict ── */
+/* ?? result IA: ?뱀뀡 ?쇰꺼 + 寃곕줎 hero verdict ?? */
 .result-section-label { display:flex; align-items:center; gap:9px; margin:26px 0 10px; font-size:1.04rem; font-weight:700; color:var(--text-1); }
 .result-section-label.dim { color:var(--text-2); font-size:.92rem; margin-top:22px; }
 .rsl-num { flex-shrink:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--plum); color:#fff; border-radius:8px; font-size:.8rem; font-weight:800; }
@@ -259,7 +259,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .rv-text { font-size:.92rem; color:var(--text-1); line-height:1.45; }
 .rv-text b { font-size:1.08rem; font-weight:700; }
 
-/* ── result 2-column grid (below citation) ── */
+/* ?? result 2-column grid (below citation) ?? */
 .result-2col {
   display:grid;
   grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
@@ -268,7 +268,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .result-2col > * { min-width:0; }
 @media(max-width:760px)  { .result-2col { grid-template-columns:1fr; } }
 
-/* ── accordion ── */
+/* ?? accordion ?? */
 .accordion-wrap { margin-top:8px; }
 .accordion-btn {
   width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -285,7 +285,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .accordion-body > .card, .accordion-body > .card.gate { border-radius:0 0 12px 12px; border-top:none; margin-top:0; margin-bottom:0; }
 .result-2col > div > .card:last-child { margin-bottom:0; }
 
-/* ── insight banner (cited) ── */
+/* ?? insight banner (cited) ?? */
 .insight-banner {
   border-radius:12px; padding:13px 16px; font-size:.84rem;
   margin-top:14px; line-height:1.6;
@@ -295,9 +295,9 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .insight-ok   { background:rgba(128,82,255,.07); border-color:rgba(128,82,255,.2); color:var(--teal); }
 .insight-ok b { color:var(--teal); }
 
-/* ════════════════════════════════════════════════
-   AI 인용 전략 카드 (not-cited 시 표시)
-   ════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   AI ?몄슜 ?꾨왂 移대뱶 (not-cited ???쒖떆)
+   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 .strategy-card {
   background:rgba(255,184,41,.04);
   border:1px solid rgba(255,184,41,.18);
@@ -333,9 +333,9 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .strategy-item-label { font-size:.86rem; font-weight:700; color:var(--text-1); margin-bottom:5px; }
 .strategy-item-desc  { font-size:.77rem; color:var(--text-2); line-height:1.6; }
 
-/* ════════════════════════════════════════════════
-   Step cards — 01 / 02 / 03 bg-num decoration
-   ════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   Step cards ??01 / 02 / 03 bg-num decoration
+   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 .step-label { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
 .step-num {
   width:30px; height:30px; border-radius:8px;
@@ -414,7 +414,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .region-hint    { font-size:.78rem; color:var(--text-2); margin-top:4px; }
 .region-hint.ok { color:var(--teal); }
 
-/* ── chips ── */
+/* ?? chips ?? */
 .chip-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
 .chip {
   display:inline-flex; align-items:center; padding:6px 14px;
@@ -425,13 +425,13 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .chip:hover { border-color:var(--gold); color:var(--text-1); }
 .chip.on    { background:rgba(255,184,41,.15); color:var(--gold-2); border-color:rgba(255,184,41,.35); font-weight:600; }
 
-/* ── query preview ── */
+/* ?? query preview ?? */
 .query-preview { background:rgba(255,255,255,.035); border-radius:10px; padding:12px 14px; margin-top:12px; }
 .query-preview .qlabel { font-size:.78rem; color:var(--text-2); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
 .query-preview ol { margin:0; padding-left:20px; }
 .query-preview li { font-size:.88rem; color:var(--text-1); padding:3px 0; }
 
-/* ── measure btn ── */
+/* ?? measure btn ?? */
 .measure-btn {
   width:100%; margin-top:16px; padding:16px;
   background:var(--plum);
@@ -442,7 +442,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 .measure-btn:disabled { opacity:.5; cursor:wait; }
 .measure-hint { text-align:center; font-size:.78rem; color:var(--text-2); margin-top:8px; }
 
-/* ── key input row ── */
+/* ?? key input row ?? */
 .key-input-row { display:flex; gap:8px; margin-top:10px; }
 .key-input-row input {
   flex:1; background:var(--bg-2); border:1px solid var(--border);
@@ -465,9 +465,9 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 <header class="hero" style="min-height:auto;padding:52px 0 36px">
   <div class="hero-inner">
     <div class="wrap">
-      <p class="kicker">MEDINMEDI · 내부 전용</p>
-      <h1 style="font-size:clamp(1.8rem,4vw,2.6rem);font-weight:600">거래처 <span class="g2">AI</span> <span class="g">추천 실측</span></h1>
-      <p class="sub" style="font-size:.92rem">URL 하나로 ChatGPT·Perplexity가 이 치과를 실제로 추천하는지 확인합니다</p>
+      <p class="kicker">MEDINMEDI 쨌 ?대? ?꾩슜</p>
+      <h1 style="font-size:clamp(1.8rem,4vw,2.6rem);font-weight:600">嫄곕옒泥?<span class="g2">AI</span> <span class="g">異붿쿇 ?ㅼ륫</span></h1>
+      <p class="sub" style="font-size:.92rem">URL ?섎굹濡?ChatGPT쨌Perplexity媛 ??移섍낵瑜??ㅼ젣濡?異붿쿇?섎뒗吏 ?뺤씤?⑸땲??/p>
     </div>
   </div>
 </header>
@@ -475,112 +475,112 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 <main class="op-wrap" style="padding-top:28px">
 
   <div class="op-tabs" id="opTabs">
-    <button class="op-tab on" data-tab="single" onclick="switchTab('single')">단일 분석</button>
-    <button class="op-tab" data-tab="batch" onclick="switchTab('batch')">배치 대시보드</button>
+    <button class="op-tab on" data-tab="single" onclick="switchTab('single')">?⑥씪 遺꾩꽍</button>
+    <button class="op-tab" data-tab="batch" onclick="switchTab('batch')">諛곗튂 ??쒕낫??/button>
   </div>
 
   <div id="singleView">
 
-  <!-- ① 운영자 패스코드 -->
+  <!-- ???댁쁺???⑥뒪肄붾뱶 -->
   <section id="setupSection">
     <div id="keySaved" class="key-saved hidden">
-      <span class="badge">🔑 프리미엄 액세스</span>
+      <span class="badge">?뵎 ?꾨━誘몄뾼 ?≪꽭??/span>
       <span id="keyMasked" class="muted small"></span>
-      <span class="change" id="keyShareBtn" style="margin-left:auto">링크 복사</span>
-      <span class="change" id="keyChangeBtn" style="margin-left:8px">변경</span>
+      <span class="change" id="keyShareBtn" style="margin-left:auto">留곹겕 蹂듭궗</span>
+      <span class="change" id="keyChangeBtn" style="margin-left:8px">蹂寃?/span>
     </div>
     <div id="setupCard" class="setup-card hidden">
       <div class="step-label">
-        <div class="step-num">①</div>
+        <div class="step-num">??/div>
         <div>
-          <div class="step-title">프리미엄 액세스 — 비밀번호 입력</div>
-          <div class="step-sub">처음 한 번만 — 이후 자동 저장</div>
+          <div class="step-title">?꾨━誘몄뾼 ?≪꽭????鍮꾨?踰덊샇 ?낅젰</div>
+          <div class="step-sub">泥섏쓬 ??踰덈쭔 ???댄썑 ?먮룞 ???/div>
         </div>
       </div>
       <div class="key-note">
-        <b>프리미엄 전용 기능입니다.</b> 실측 AI 인용·경쟁사 심층 비교는 발급받은 비밀번호로 잠금 해제됩니다.<br>
-        비밀번호가 없으면 메디앤메디에 문의해 주세요.
+        <b>?꾨━誘몄뾼 ?꾩슜 湲곕뒫?낅땲??</b> ?ㅼ륫 AI ?몄슜쨌寃쎌웳???ъ링 鍮꾧탳??諛쒓툒諛쏆? 鍮꾨?踰덊샇濡??좉툑 ?댁젣?⑸땲??<br>
+        鍮꾨?踰덊샇媛 ?놁쑝硫?硫붾뵒?ㅻ찓?붿뿉 臾몄쓽??二쇱꽭??
       </div>
       <div class="key-input-row">
-        <input type="password" id="opKey" placeholder="프리미엄 비밀번호" autocomplete="off" />
-        <button type="button" id="keySaveBtn">저장</button>
+        <input type="password" id="opKey" placeholder="?꾨━誘몄뾼 鍮꾨?踰덊샇" autocomplete="off" />
+        <button type="button" id="keySaveBtn">???/button>
       </div>
       <p id="keyValidationNote" style="display:none;font-size:.82rem;color:#f05e6a;margin-top:8px"></p>
     </div>
   </section>
 
-  <!-- ② URL 분석 -->
+  <!-- ??URL 遺꾩꽍 -->
   <section id="analyzeSection" class="hidden" style="margin-top:10px">
     <div class="analyze-card">
       <div class="step-label" style="margin-bottom:12px">
-        <div class="step-num">②</div>
+        <div class="step-num">??/div>
         <div>
-          <div class="step-title">거래처 URL 입력</div>
-          <div class="step-sub">지역·진료를 자동 감지합니다</div>
+          <div class="step-title">嫄곕옒泥?URL ?낅젰</div>
+          <div class="step-sub">吏??룹쭊猷뚮? ?먮룞 媛먯??⑸땲??/div>
         </div>
       </div>
       <div class="url-row">
-        <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" />
-        <button class="btn p" type="button" id="opBtn">분석</button>
+        <input type="url" id="opUrl" placeholder="https://嫄곕옒泥섏튂怨?co.kr" />
+        <button class="btn p" type="button" id="opBtn">遺꾩꽍</button>
       </div>
     </div>
   </section>
 
-  <!-- ③ 지역·진료 확인 + 측정 -->
+  <!-- ??吏??룹쭊猷??뺤씤 + 痢≪젙 -->
   <section id="confirmSection" class="hidden" style="margin-top:4px">
     <div class="confirm-card">
       <div class="step-label">
-        <div class="step-num">③</div>
+        <div class="step-num">??/div>
         <div>
-          <div class="step-title">지역·진료 확인 후 AI 실측</div>
-          <div class="step-sub">자동 감지된 값을 확인·수정하세요</div>
+          <div class="step-title">吏??룹쭊猷??뺤씤 ??AI ?ㅼ륫</div>
+          <div class="step-sub">?먮룞 媛먯???媛믪쓣 ?뺤씤쨌?섏젙?섏꽭??/div>
         </div>
       </div>
 
-      <label>측정 지역 <span class="muted" style="font-weight:400;font-size:.78rem">— 여러 지역을 추가하면 지역별 비교 히트맵을 봅니다 (최대 5개)</span></label>
+      <label>痢≪젙 吏??<span class="muted" style="font-weight:400;font-size:.78rem">???щ윭 吏??쓣 異붽??섎㈃ 吏??퀎 鍮꾧탳 ?덊듃留듭쓣 遊낅땲??(理쒕? 5媛?</span></label>
       <div style="display:flex;gap:6px">
-        <input type="text" id="opRegion" list="regionList" placeholder="예: 강남" style="flex:1" />
-        <button type="button" id="opRegionAddBtn" class="btn" style="padding:10px 14px;font-size:.84rem;white-space:nowrap">추가</button>
+        <input type="text" id="opRegion" list="regionList" placeholder="?? 媛뺣궓" style="flex:1" />
+        <button type="button" id="opRegionAddBtn" class="btn" style="padding:10px 14px;font-size:.84rem;white-space:nowrap">異붽?</button>
       </div>
       <datalist id="regionList"></datalist>
       <div class="region-hint" id="opRegionHint"></div>
       <div class="chip-wrap" id="opRegionChips" style="margin-top:8px"></div>
 
-      <label>진료 과목</label>
-      <div class="chip-wrap" id="opProcChips"><span class="muted small">감지 중...</span></div>
-      <input type="text" id="opProcAdd" placeholder="직접 입력 후 Enter (예: 임플란트)" style="margin-top:8px;" />
+      <label>吏꾨즺 怨쇰ぉ</label>
+      <div class="chip-wrap" id="opProcChips"><span class="muted small">媛먯? 以?..</span></div>
+      <input type="text" id="opProcAdd" placeholder="吏곸젒 ?낅젰 ??Enter (?? ?꾪뵆???" style="margin-top:8px;" />
 
-      <label class="query-selector-label">AI에게 보낼 질의 선택 <span class="muted" style="font-weight:400">(최대 3개)</span></label>
+      <label class="query-selector-label">AI?먭쾶 蹂대궪 吏덉쓽 ?좏깮 <span class="muted" style="font-weight:400">(理쒕? 3媛?</span></label>
       <div class="query-chips-wrap" id="opQueryChips"></div>
-      <p class="q-select-hint" id="opQueryHint">선택된 질의로만 측정합니다.</p>
+      <p class="q-select-hint" id="opQueryHint">?좏깮??吏덉쓽濡쒕쭔 痢≪젙?⑸땲??</p>
 
-      <button class="measure-btn" type="button" id="opMeasureBtn">측정 시작 (유료 API)</button>
-      <p class="measure-hint">거래처당 1달러 미만 · 일일 한도·캐시 적용</p>
+      <button class="measure-btn" type="button" id="opMeasureBtn">痢≪젙 ?쒖옉 (?좊즺 API)</button>
+      <p class="measure-hint">嫄곕옒泥섎떦 1?щ윭 誘몃쭔 쨌 ?쇱씪 ?쒕룄쨌罹먯떆 ?곸슜</p>
     </div>
   </section>
 
-  <!-- 상태 -->
+  <!-- ?곹깭 -->
   <section id="opLoading" class="hidden">
-    <div class="prog"><div class="row"><span class="spin"></span> <span id="opLoadMsg">처리 중...</span></div></div>
+    <div class="prog"><div class="row"><span class="spin"></span> <span id="opLoadMsg">泥섎━ 以?..</span></div></div>
   </section>
   <section id="opError" class="hidden">
-    <div class="err"><b>오류.</b> <span id="opErrMsg"></span></div>
+    <div class="err"><b>?ㅻ쪟.</b> <span id="opErrMsg"></span></div>
   </section>
   <section id="opResult" class="hidden"></section>
 
-  <!-- 인쇄 전용 헤더: 화면에서 숨김, @media print 에서만 표시 -->
+  <!-- ?몄뇙 ?꾩슜 ?ㅻ뜑: ?붾㈃?먯꽌 ?④?, @media print ?먯꽌留??쒖떆 -->
   <div id="printHeader" class="print-only">
     <div class="print-header-inner">
-      <span class="print-header-title">AI 추천 실측 리포트 &middot; 메디앤메디</span>
+      <span class="print-header-title">AI 異붿쿇 ?ㅼ륫 由ы룷??&middot; 硫붾뵒?ㅻ찓??/span>
       <span id="printMeta" class="print-header-meta"></span>
     </div>
-    <p class="print-disclaimer">본 수치는 측정 시점·AI 엔진 조건에 따라 달라질 수 있습니다. 환자 광고에 &ldquo;추천·1위·인증&rdquo;으로 인용 불가 (의료광고법 제56조).</p>
+    <p class="print-disclaimer">蹂??섏튂??痢≪젙 ?쒖젏쨌AI ?붿쭊 議곌굔???곕씪 ?щ씪吏????덉뒿?덈떎. ?섏옄 愿묎퀬??&ldquo;異붿쿇쨌1?꽷룹씤利?rdquo;?쇰줈 ?몄슜 遺덇? (?섎즺愿묎퀬踰???6議?.</p>
   </div>
 
-  <!-- 인쇄 버튼: 결과 로드 후 표시 -->
+  <!-- ?몄뇙 踰꾪듉: 寃곌낵 濡쒕뱶 ???쒖떆 -->
   <div id="printBar" class="hidden print-bar">
-    <button type="button" class="print-btn" onclick="window.printReport()">&#128438; 리포트 인쇄 / PDF 저장</button>
-    <p class="print-bar-hint">인쇄창에서 &ldquo;PDF로 저장&rdquo; 선택 시 A4 PDF로 내보낼 수 있습니다</p>
+    <button type="button" class="print-btn" onclick="window.printReport()">&#128438; 由ы룷???몄뇙 / PDF ???/button>
+    <p class="print-bar-hint">?몄뇙李쎌뿉??&ldquo;PDF濡????rdquo; ?좏깮 ??A4 PDF濡??대낫?????덉뒿?덈떎</p>
   </div>
 
   <section id="naverSection" class="hidden" style="margin-top:14px"></section>
@@ -594,7 +594,7 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 
 </main>
 
-<footer><div class="wrap">메디앤메디 내부 전용(noindex) · 실측 수치는 환자 광고에 "추천·1위·인증"으로 인용 금지(의료광고법)</div></footer>
+<footer><div class="wrap">硫붾뵒?ㅻ찓???대? ?꾩슜(noindex) 쨌 ?ㅼ륫 ?섏튂???섏옄 愿묎퀬??"異붿쿇쨌1?꽷룹씤利??쇰줈 ?몄슜 湲덉?(?섎즺愿묎퀬踰?</div></footer>
 <script type="module" src="/operator.js"></script>
 </body>
 </html>
