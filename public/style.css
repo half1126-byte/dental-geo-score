@@ -1685,3 +1685,80 @@ footer.site-footer {
 .nm-save-btn { background: var(--gold); color: #000; border: none; border-radius: 8px; padding: 7px 18px; font-size: .82rem; font-weight: 700; cursor: pointer; font-family: inherit; }
 .nm-save-btn:hover { background: var(--gold-2); }
 .nm-save-msg { font-size: .78rem; margin-left: 10px; vertical-align: middle; }
+
+/* ── Operator Tabs ─────────────────────────────────────────────────────────── */
+.op-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+.op-tab {
+  padding: 8px 20px; border: 1px solid var(--border); border-radius: 999px;
+  background: transparent; color: var(--text-2); font-size: .86rem; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: all .15s;
+}
+.op-tab:hover { border-color: var(--gold); color: var(--text-1); }
+.op-tab.on { background: rgba(255,184,41,.15); color: var(--gold-2); border-color: rgba(255,184,41,.35); }
+
+/* ── Batch Dashboard ──────────────────────────────────────────────────────── */
+.batch-card {
+  background: var(--bg-3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 26px; margin-bottom: 16px;
+}
+.batch-head { margin-bottom: 18px; }
+.batch-title { font-size: 1.05rem; font-weight: 700; color: var(--text-1); display: block; }
+.batch-sub { font-size: .8rem; color: var(--text-2); margin-top: 4px; display: block; }
+.batch-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.batch-url-input {
+  flex: 1; background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px; color: var(--text-1);
+  font-size: .9rem; font-family: inherit;
+}
+.batch-url-input:focus { outline: none; border-color: var(--gold); }
+.batch-add-btn {
+  padding: 10px 18px; border-radius: 10px; border: 1px solid rgba(255,184,41,.25);
+  background: rgba(255,184,41,.12); color: var(--gold-2);
+  font-weight: 700; font-size: .88rem; font-family: inherit; cursor: pointer;
+  transition: background .15s; white-space: nowrap;
+}
+.batch-add-btn:hover { background: rgba(255,184,41,.22); }
+.batch-url-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; min-height: 28px; }
+.batch-url-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 12px;
+}
+.batch-url-text { flex: 1; font-size: .84rem; color: var(--text-1); word-break: break-all; }
+.batch-url-del {
+  flex-shrink: 0; background: none; border: none; color: var(--text-2);
+  cursor: pointer; font-size: .76rem; padding: 2px 5px; border-radius: 4px;
+  transition: color .12s; font-family: inherit;
+}
+.batch-url-del:hover { color: #f05e6a; }
+.batch-empty { font-size: .82rem; color: var(--text-2); padding: 4px 0; }
+.batch-run-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 14px;
+  background: var(--plum); color: #fff;
+  font-weight: 800; font-size: .95rem; font-family: inherit; cursor: pointer;
+  transition: opacity .15s;
+}
+.batch-run-btn:disabled { opacity: .45; cursor: not-allowed; }
+.batch-run-hint { text-align: center; font-size: .74rem; color: var(--text-2); margin-top: 7px; }
+.batch-result-wrap { }
+.batch-section-head { font-size: .9rem; font-weight: 700; color: var(--text-1); margin-bottom: 10px; }
+.batch-table-wrap { overflow-x: auto; }
+.batch-table {
+  width: 100%; border-collapse: collapse; font-size: .82rem; min-width: 480px;
+  background: var(--bg-3); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.batch-table th {
+  text-align: left; font-size: .72rem; font-weight: 700; color: var(--text-2);
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.025);
+}
+.batch-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,.04); vertical-align: middle; }
+.batch-table tr:last-child td { border-bottom: none; }
+.batch-row-err td { background: rgba(240,94,106,.04); }
+.batch-domain { font-weight: 600; font-size: .8rem; word-break: break-all; color: var(--text-1); }
+.batch-score { font-weight: 800; font-size: 1rem; color: var(--gold); }
+.batch-delta { font-size: .78rem; font-weight: 800; }
+.batch-delta.up   { color: var(--teal); }
+.batch-delta.down { color: #f05e6a; }
+.batch-delta.same { color: var(--text-2); font-weight: 600; }
+.batch-ts { font-size: .72rem; color: var(--text-2); white-space: nowrap; }

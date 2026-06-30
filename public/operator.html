@@ -474,6 +474,13 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
 
 <main class="op-wrap" style="padding-top:28px">
 
+  <div class="op-tabs" id="opTabs">
+    <button class="op-tab on" data-tab="single" onclick="switchTab('single')">단일 분석</button>
+    <button class="op-tab" data-tab="batch" onclick="switchTab('batch')">배치 대시보드</button>
+  </div>
+
+  <div id="singleView">
+
   <!-- ① 운영자 패스코드 -->
   <section id="setupSection">
     <div id="keySaved" class="key-saved hidden">
@@ -580,6 +587,10 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
   <section id="naverManualSection" class="hidden" style="margin-top:14px"></section>
   <section id="compareSection" class="hidden"></section>
   <section id="historySection" class="hidden" style="margin-top:14px"></section>
+
+  </div><!-- /#singleView -->
+
+  <section id="batchSection" class="hidden" style="margin-top:4px"></section>
 
 </main>
 

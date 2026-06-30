@@ -1836,3 +1836,165 @@ async function saveNaverManual(domain) {
     if (msg) { msg.textContent = '네트워크 오류'; msg.style.color = '#f05e6a'; }
   }
 }
+
+// ── 배치 대시보드 ──────────────────────────────────────────────────────────
+
+const BATCH_KEY = 'op_batch_urls';
+
+function loadBatchUrls() {
+  try { return JSON.parse(localStorage.getItem(BATCH_KEY) || '[]'); } catch { return []; }
+}
+function saveBatchUrls(arr) {
+  localStorage.setItem(BATCH_KEY, JSON.stringify(arr));
+}
+
+let batchResults = [];
+let batchRunning = false;
+
+function switchTab(tab) {
+  document.querySelectorAll('.op-tab').forEach(el => el.classList.toggle('on', el.dataset.tab === tab));
+  const single = $('singleView');
+  const batch  = $('batchSection');
+  if (tab === 'batch') {
+    if (single) single.classList.add('hidden');
+    if (batch)  { batch.classList.remove('hidden'); renderBatch(); }
+  } else {
+    if (single) single.classList.remove('hidden');
+    if (batch)  batch.classList.add('hidden');
+  }
+}
+
+function renderBatch() {
+  const sec = $('batchSection');
+  if (!sec) return;
+  const urls = loadBatchUrls();
+
+  const urlListHtml = urls.length === 0
+    ? '<p class="batch-empty">URL이 없습니다. 위에서 추가하세요.</p>'
+    : urls.map((u, i) => `
+      <div class="batch-url-row">
+        <span class="batch-url-text">${esc(u)}</span>
+        <button class="batch-url-del" onclick="batchRemoveUrl(${i})" title="삭제">✕</button>
+      </div>`).join('');
+
+  const resultsHtml = batchResults.length === 0 ? '' : `
+    <div class="batch-result-wrap">
+      <div class="batch-section-head">측정 결과 <span class="muted small">${batchResults.length}개</span></div>
+      <div class="batch-table-wrap">
+        <table class="batch-table">
+          <thead><tr><th>도메인</th><th>점수</th><th>변화량</th><th>밴드</th><th>측정 시각</th></tr></thead>
+          <tbody>${batchResults.map(r => _batchRow(r)).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  sec.innerHTML = `
+    <div class="batch-card">
+      <div class="batch-head">
+        <span class="batch-title">배치 대시보드</span>
+        <span class="batch-sub">거래처 URL 목록을 저장하고 일괄 점수 조회 · 변화량을 모아봅니다</span>
+      </div>
+      <div class="batch-add-row">
+        <input class="batch-url-input" id="batchUrlInput" type="url" placeholder="https://거래처치과.co.kr" />
+        <button class="batch-add-btn" onclick="batchAddUrl()">추가</button>
+      </div>
+      <div class="batch-url-list">${urlListHtml}</div>
+      <button class="batch-run-btn" id="batchRunBtn" onclick="runBatch()"${urls.length === 0 ? ' disabled' : ''}>
+        ▶ 배치 측정 실행 (${urls.length}개)
+      </button>
+      <p class="batch-run-hint">순차 측정 · 위생점수만 (무료 API · prevScore 델타 포함)</p>
+    </div>
+    ${resultsHtml}`;
+
+  const inp = $('batchUrlInput');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') batchAddUrl(); });
+}
+
+function _batchRow(r) {
+  if (r.error) {
+    return `<tr class="batch-row-err">
+      <td class="batch-domain">${esc(r.domain || r.url)}</td>
+      <td colspan="4" style="color:#f05e6a;font-size:.78rem">${esc(r.error)}</td>
+    </tr>`;
+  }
+  const score = r.score != null ? Number(r.score) : null;
+  const prev  = r.prevScore != null ? Number(r.prevScore) : null;
+  const delta = (score != null && prev != null) ? score - prev : null;
+  const deltaHtml = delta == null
+    ? '<span class="muted">—</span>'
+    : delta === 0
+      ? '<span class="batch-delta same">동점</span>'
+      : `<span class="batch-delta ${delta > 0 ? 'up' : 'down'}">${delta > 0 ? '▲' : '▼'}${Math.abs(delta)}pt</span>`;
+  const bandColor = { A: 'var(--teal)', B: 'var(--gold-2)', C: 'var(--text-2)', D: '#f05e6a' };
+  const band = r.band || '—';
+  const ts = r.measuredAt ? new Date(r.measuredAt).toLocaleTimeString('ko-KR') : '';
+  return `<tr>
+    <td class="batch-domain">${esc(r.domain || r.url)}</td>
+    <td class="batch-score">${score != null ? score : '—'}</td>
+    <td>${deltaHtml}</td>
+    <td style="font-weight:700;color:${bandColor[band] || 'var(--text-2)'}">${esc(band)}</td>
+    <td class="batch-ts">${esc(ts)}</td>
+  </tr>`;
+}
+
+function batchAddUrl() {
+  const inp = $('batchUrlInput');
+  if (!inp) return;
+  let val = inp.value.trim();
+  if (!val) return;
+  if (!/^https?:\/\//i.test(val)) val = 'https://' + val;
+  const urls = loadBatchUrls();
+  if (!urls.includes(val)) { urls.push(val); saveBatchUrls(urls); }
+  inp.value = '';
+  renderBatch();
+}
+
+function batchRemoveUrl(idx) {
+  const urls = loadBatchUrls();
+  urls.splice(idx, 1);
+  saveBatchUrls(urls);
+  renderBatch();
+}
+
+async function runBatch() {
+  if (batchRunning) return;
+  const urls = loadBatchUrls();
+  if (!urls.length) return;
+  batchRunning = true;
+  batchResults = [];
+
+  const btn = $('batchRunBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '측정 중... (0/' + urls.length + ')'; }
+
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    if (btn) btn.textContent = `측정 중... (${i + 1}/${urls.length})`;
+    let domain = url;
+    try { domain = new URL(url).hostname; } catch { /* keep raw */ }
+    try {
+      const r = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || d.error) {
+        batchResults.push({ url, domain, error: d.message || d.reason || '분석 실패' });
+      } else {
+        batchResults.push({
+          url,
+          domain: d.domain || domain,
+          score: d.score,
+          prevScore: d.prevScore ?? null,
+          band: d.band,
+          measuredAt: d.measuredAt || new Date().toISOString(),
+        });
+      }
+    } catch {
+      batchResults.push({ url, domain, error: '네트워크 오류' });
+    }
+    renderBatch();
+  }
+
+  batchRunning = false;
+}
