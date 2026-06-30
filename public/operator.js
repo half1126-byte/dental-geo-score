@@ -114,7 +114,7 @@ $('opBtn').addEventListener('click', async () => {
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   lastUrl = url;
 
-  hide('opResult'); hide('opError'); hide('confirmSection'); hide('printBar'); hide('naverSection');
+  hide('opResult'); hide('opError'); hide('confirmSection'); hide('printBar'); hide('naverSection'); hide('naverManualSection');
   $('opLoadMsg').textContent = '페이지 분석 중 (지역·진료 자동 감지)...';
   show('opLoading');
   $('opBtn').disabled = true; $('opBtn').textContent = '분석 중...';
@@ -375,6 +375,9 @@ function render(scoreRes, citeRes, q) {
   // Naver Place 비동기 로드 (실패해도 메인 결과 영향 없음)
   hide('naverSection');
   loadNaverPlace(q);
+  hide('naverManualSection');
+  const _nmDomain = lastUrl ? lastUrl.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] : '';
+  if (_nmDomain) loadNaverManual(_nmDomain);
 }
 
 function renderContentStrategy(q) {
@@ -1712,5 +1715,124 @@ async function submitLead() {
   } catch (err) {
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '문의 제출'; }
     showMsg('제출 실패: ' + String(err.message || err).slice(0, 100), false);
+  }
+}
+
+// ── Naver Manual (Smart Place private stats) ──────────────────────────────────
+let _nmAbort = null;
+
+async function loadNaverManual(domain) {
+  const sec = $('naverManualSection');
+  if (!sec || !domain) return;
+  const key = localStorage.getItem('opKey') || '';
+  _nmAbort?.abort();
+  _nmAbort = new AbortController();
+  try {
+    const r = await fetch(`/api/naver-manual?domain=${encodeURIComponent(domain)}&months=6`, {
+      headers: { 'x-operator-key': key },
+      signal: _nmAbort.signal,
+    });
+    if (!r.ok) { hide('naverManualSection'); return; }
+    const data = await r.json();
+    sec.innerHTML = renderNaverManual(data, domain);
+    show('naverManualSection');
+  } catch (e) {
+    if (e?.name !== 'AbortError') hide('naverManualSection');
+  }
+}
+
+function renderNaverManual(data, domain) {
+  const records = data.records || [];
+  const fmtN = (n) => n != null ? Number(n).toLocaleString('ko-KR') : '—';
+
+  const tableRows = records.map((r) => `
+    <tr>
+      <td style="color:var(--gold-2);font-weight:700">${esc(r.period)}</td>
+      <td>${r.naturalVisitRate != null ? r.naturalVisitRate + '%' : '—'}</td>
+      <td>${fmtN(r.callClicks)}</td>
+      <td>${fmtN(r.directionClicks)}</td>
+      <td>${fmtN(r.reservations)}</td>
+      <td>${fmtN(r.saves)}</td>
+    </tr>`).join('');
+
+  const tableHtml = records.length > 0 ? `
+    <table class="nm-table">
+      <thead><tr><th>기간</th><th>자연유입</th><th>전화클릭</th><th>길찾기</th><th>예약</th><th>저장수</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>` : `<p class="nm-empty">저장된 통계가 없습니다. 아래에서 입력하세요.</p>`;
+
+  const now = new Date();
+  const currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  return `<div class="naver-place-card naver-manual-card">
+    <div class="nm-head">
+      <span class="nm-title">📊 Smart Place 통계 <span class="nm-period">(수동 입력)</span></span>
+      <button class="nm-toggle" onclick="this.closest('.naver-manual-card').querySelector('.nm-form').classList.toggle('open');this.textContent=this.textContent.includes('입력')?'▲ 닫기':'+ 월별 통계 입력'">+ 월별 통계 입력</button>
+    </div>
+    ${tableHtml}
+    <div class="nm-form">
+      <div class="nm-form-grid">
+        <div class="nm-form-group">
+          <label class="nm-form-label">기간 (YYYY-MM)</label>
+          <input class="nm-form-input" id="nmPeriod" type="text" placeholder="${currentPeriod}" value="${currentPeriod}">
+        </div>
+        <div class="nm-form-group">
+          <label class="nm-form-label">자연유입률 (%)</label>
+          <input class="nm-form-input" id="nmNaturalVisitRate" type="number" min="0" max="100" step="0.1" placeholder="예: 42.5">
+        </div>
+        <div class="nm-form-group">
+          <label class="nm-form-label">전화 클릭</label>
+          <input class="nm-form-input" id="nmCallClicks" type="number" min="0" placeholder="예: 87">
+        </div>
+        <div class="nm-form-group">
+          <label class="nm-form-label">길찾기 클릭</label>
+          <input class="nm-form-input" id="nmDirectionClicks" type="number" min="0" placeholder="예: 234">
+        </div>
+        <div class="nm-form-group">
+          <label class="nm-form-label">예약 수</label>
+          <input class="nm-form-input" id="nmReservations" type="number" min="0" placeholder="예: 12">
+        </div>
+        <div class="nm-form-group">
+          <label class="nm-form-label">저장수 (하트)</label>
+          <input class="nm-form-input" id="nmSaves" type="number" min="0" placeholder="예: 312">
+        </div>
+      </div>
+      <button class="nm-save-btn" onclick="saveNaverManual(${JSON.stringify(domain)})">저장</button>
+      <span class="nm-save-msg muted" id="nmSaveMsg"></span>
+    </div>
+  </div>`;
+}
+
+async function saveNaverManual(domain) {
+  const opKey = localStorage.getItem('opKey') || '';
+  const period = ($('nmPeriod') || {}).value || '';
+  const msg = $('nmSaveMsg');
+  if (!/^\d{4}-\d{2}$/.test(period)) {
+    if (msg) { msg.textContent = '기간 형식 오류 (YYYY-MM)'; msg.style.color = '#f05e6a'; }
+    return;
+  }
+  const data = {
+    naturalVisitRate: ($('nmNaturalVisitRate') || {}).value,
+    callClicks:       ($('nmCallClicks')       || {}).value,
+    directionClicks:  ($('nmDirectionClicks')  || {}).value,
+    reservations:     ($('nmReservations')     || {}).value,
+    saves:            ($('nmSaves')            || {}).value,
+  };
+  if (msg) { msg.textContent = '저장 중...'; msg.style.color = 'var(--text-2)'; }
+  try {
+    const r = await fetch('/api/naver-manual', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', 'x-operator-key': opKey },
+      body: JSON.stringify({ domain, period, data }),
+    });
+    const result = await r.json().catch(() => ({}));
+    if (!r.ok || result.error) {
+      if (msg) { msg.textContent = '저장 실패 — 키 확인'; msg.style.color = '#f05e6a'; }
+      return;
+    }
+    if (msg) { msg.textContent = `✔ ${period} 저장 완료`; msg.style.color = 'var(--teal)'; }
+    setTimeout(() => loadNaverManual(domain), 400);
+  } catch {
+    if (msg) { msg.textContent = '네트워크 오류'; msg.style.color = '#f05e6a'; }
   }
 }
