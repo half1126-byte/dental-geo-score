@@ -1790,6 +1790,11 @@ footer.site-footer {
   #heroVideo { opacity: 0.45; }
 }
 
+/* ── 600px: 네비 — 로고 좌 / CTA 우 정렬 ── */
+@media (max-width: 600px) {
+  .nav-inner { justify-content: space-between; }
+}
+
 /* ── 680px: 신호 그리드 1열 전환 ── */
 @media (max-width: 680px) {
   .signals-grid { grid-template-columns: 1fr !important; }
@@ -1808,13 +1813,25 @@ footer.site-footer {
   /* 히어로 */
   header.hero { padding: 48px 0 40px; }
 
+  /* 히어로 CTA — 풀너비 블록 (375px에서 가로 오버플로 방지) */
+  .btn-hero-scroll {
+    display: block;
+    text-align: center;
+    padding: 16px 24px;
+    box-sizing: border-box;
+  }
+
   /* 섹션 패딩 통일 */
-  .paradigm       { padding: 60px 0; }
-  .why-now        { padding: 60px 0; }
-  .pain-section   { padding: 60px 0; }
-  .hiw            { padding: 60px 0; }
-  .signals        { padding: 60px 0; }
+  .ai-demo          { padding: 60px 0; }
+  .paradigm         { padding: 60px 0; }
+  .why-now          { padding: 60px 0; }
+  .pain-section     { padding: 60px 0; }
+  .hiw              { padding: 60px 0; }
+  .signals          { padding: 60px 0; }
+  .code-reveal      { padding: 56px 0; }
   .services-section { padding: 60px 0; }
+  .faq-sec          { padding: 60px 0; }
+  .cta-section      { padding: 60px 0 44px; }
   .measure-section  { padding: 60px 0 50px; }
 
   /* 패러다임 카드 */
@@ -1832,6 +1849,16 @@ footer.site-footer {
 
   /* 고통 섹션 */
   .pain-num { font-size: 1.8rem; }
+
+  /* AI 데모 카드 — 3장 스택 시 응답 높이 축소 */
+  .ai-response { min-height: 110px; }
+
+  /* mid-CTA — 세로 스택 */
+  .mid-cta .wrap { flex-direction: column; gap: 12px; }
+  .btn-cta-mid { display: block; text-align: center; box-sizing: border-box; }
+
+  /* 모달 패딩 축소 (375px에서 36px 좌우 패딩은 너무 답답) */
+  .modal-box { padding: 28px 20px; }
 
   /* 폼 — 세로 스택 + 풀너비 버튼 (iOS 자동확대 방지: font-size 16px) */
   .form { flex-direction: column; gap: 10px; }
