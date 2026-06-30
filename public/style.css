@@ -1032,6 +1032,7 @@ footer.site-footer {
 
 /* ── MEASURE SECTION ── */
 .measure-section {
+  position:relative;
   padding:90px 0 80px;
   border-top:1px solid var(--border);
   background:linear-gradient(180deg,rgba(128,82,255,.04) 0%,transparent 100%);
@@ -1784,9 +1785,8 @@ footer.site-footer {
    MOBILE OPTIMIZATIONS — 375px 기준 통합 패치
    ══════════════════════════════════════════════════════ */
 
-/* ── 768px: 배경 비디오 숨김 (데이터·배터리 절약) ── */
+/* ── 768px: 히어로 비디오 투명도 조정 ── */
 @media (max-width: 768px) {
-  .section-bg-video { display: none; }
   #heroVideo { opacity: 0.45; }
 }
 
