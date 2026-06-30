@@ -1779,3 +1779,71 @@ footer.site-footer {
 .batch-delta.down { color: #f05e6a; }
 .batch-delta.same { color: var(--text-2); font-weight: 600; }
 .batch-ts { font-size: .72rem; color: var(--text-2); white-space: nowrap; }
+
+/* ══════════════════════════════════════════════════════
+   MOBILE OPTIMIZATIONS — 375px 기준 통합 패치
+   ══════════════════════════════════════════════════════ */
+
+/* ── 768px: 배경 비디오 숨김 (데이터·배터리 절약) ── */
+@media (max-width: 768px) {
+  .section-bg-video { display: none; }
+  #heroVideo { opacity: 0.45; }
+}
+
+/* ── 680px: 신호 그리드 1열 전환 ── */
+@media (max-width: 680px) {
+  .signals-grid { grid-template-columns: 1fr !important; }
+  .stat-grid { gap: 12px; }
+}
+
+/* ── 560px: 핵심 모바일 최적화 ── */
+@media (max-width: 560px) {
+  /* 타이포그래피 */
+  h1 { font-size: clamp(1.9rem, 8vw, 3rem); line-height: 1.02; }
+  h2 { font-size: clamp(1.45rem, 5.5vw, 2.4rem); line-height: 1.15; }
+  .kicker { font-size: .75rem; margin-bottom: 16px; }
+  .sub { font-size: .9rem; margin-bottom: 24px; }
+  body { line-height: 1.75; }
+
+  /* 히어로 */
+  header.hero { padding: 48px 0 40px; }
+
+  /* 섹션 패딩 통일 */
+  .paradigm       { padding: 60px 0; }
+  .why-now        { padding: 60px 0; }
+  .pain-section   { padding: 60px 0; }
+  .hiw            { padding: 60px 0; }
+  .signals        { padding: 60px 0; }
+  .services-section { padding: 60px 0; }
+  .measure-section  { padding: 60px 0 50px; }
+
+  /* 패러다임 카드 */
+  .paradigm-track { gap: 18px; }
+  .para-step { min-height: auto; }
+
+  /* 통계 카드 */
+  .stat-card { padding: 20px 18px; }
+
+  /* 서비스 카드 */
+  .svc-card { padding: 20px 18px; }
+
+  /* 가격 카드 */
+  .price-card { padding: 20px 18px; }
+
+  /* 고통 섹션 */
+  .pain-num { font-size: 1.8rem; }
+
+  /* 폼 — 세로 스택 + 풀너비 버튼 (iOS 자동확대 방지: font-size 16px) */
+  .form { flex-direction: column; gap: 10px; }
+  .form input {
+    font-size: 16px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .form .btn { width: 100%; min-height: 48px; border-radius: 16px; }
+
+  /* 측정 섹션 폼 최대 너비 */
+  #scoreForm { max-width: 100%; }
+}
