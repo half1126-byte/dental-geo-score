@@ -910,7 +910,7 @@ function renderResultHeader(scoreRes, citeRes, q) {
   return `${verdictLine}<div class="result-dash">
     ${scoreBlock}
     <div class="result-dash-info">
-      <div class="result-dash-domain">${esc(domain)}</div>
+      <div class="result-dash-domain"><a class="result-dash-link" href="${esc(lastUrl || ('https://'+domain))}" target="_blank" rel="noopener noreferrer">${esc(domain)}<span style="font-size:.7em;margin-left:3px;opacity:.5">↗</span></a></div>
       <div class="result-dash-region">${esc(q.region || '')} · ${esc(q.procedure || '')} · AI 추천 실측</div>
     </div>
     ${engRows ? `<div class="result-dash-engines">${engRows}</div>` : ''}
@@ -1406,6 +1406,31 @@ function renderNaverPlace(data) {
   </div>`;
 }
 
+function renderScoreSparkline(history) {
+  if (!history || history.length < 2) return '';
+  const W = 240, H = 44;
+  const pts = history.slice(-12).map(r => r.score ?? 0);
+  const maxV = Math.max(...pts, 10);
+  const n = pts.length;
+  const bw = W / n;
+  const bars = pts.map((s, i) => {
+    const bh = Math.max(2, (s / maxV) * H);
+    const color = s >= 70 ? '#1fcec4' : s >= 40 ? '#c9a84c' : '#f05e6a';
+    return `<rect x="${(i*bw+1).toFixed(1)}" y="${(H-bh).toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${bh.toFixed(1)}" fill="${color}" rx="2" opacity=".85"/>`;
+  }).join('');
+  const d0 = pts[0], d1 = pts[n-1], dd = d1 - d0;
+  const dc = dd > 0 ? '#1fcec4' : dd < 0 ? '#f05e6a' : 'var(--text-2)';
+  const arrow = dd > 0 ? '▲' : dd < 0 ? '▼' : '→';
+  return `<div style="margin-bottom:10px">
+    <svg width="${W}" height="${H}" style="display:block;border-radius:6px;background:rgba(255,255,255,.03);overflow:visible">${bars}</svg>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;font-size:.68rem;color:var(--text-2)">
+      <span>${d0}pt</span>
+      <span style="color:${dc};font-weight:700">${arrow}${Math.abs(dd)}pt</span>
+      <span>${d1}pt</span>
+    </div>
+  </div>`;
+}
+
 function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
   const fmt = (ts) => {
     try {
@@ -1417,9 +1442,10 @@ function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
   const TH = 'padding:8px 12px;font-size:.74rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap';
   const TD = 'padding:8px 12px;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top';
 
-  // Score history table
+  // Score history table (with sparkline if ≥2 points)
+  const sparkline = renderScoreSparkline(scoreHistory);
   const scoreTable = scoreHistory.length ? `
-    <div style="overflow-x:auto">
+    ${sparkline}<div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse">
         <thead><tr>
           <th style="${TH}">날짜</th>

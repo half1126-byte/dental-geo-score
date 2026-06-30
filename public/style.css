@@ -1484,6 +1484,10 @@ footer.site-footer {
 /* 화면에서 숨김 (인쇄 시만 표시) */
 .print-only { display: none; }
 
+/* result-dash 도메인 링크 */
+.result-dash-link { color: inherit; text-decoration: none; }
+.result-dash-link:hover { text-decoration: underline; opacity: .8; }
+
 /* ══════════════════════════════════════════════════════
    @media print — A4 운영자 리포트 레이아웃
    환자 광고용 아님: 내부 영업 상담 자료
@@ -1555,6 +1559,7 @@ footer.site-footer {
     color: #555 !important;
   }
   .result-dash-domain { color: #111 !important; }
+  .result-dash-link   { color: #111 !important; text-decoration: none; }
   .result-dash-region { color: #7a5f10 !important; }
   .score-big          { color: #9a7010 !important; }
   /* gradient text → flat (invisible on print if left as transparent) */
