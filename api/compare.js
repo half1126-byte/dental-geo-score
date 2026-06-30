@@ -86,9 +86,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'method-not-allowed' }); return; }
 
   // Operator gate (mirrors api/page-source.js).
-  const operatorKeySet = !!process.env.OPERATOR_KEY;
-  const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
-  if (operatorKeySet && !isOperator) {
+  const isOperator = !!process.env.OPERATOR_KEY &&
+    req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
+  if (!isOperator) {
     res.status(401).json({ error: 'operator-key-required' });
     return;
   }

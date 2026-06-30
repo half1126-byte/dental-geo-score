@@ -27,7 +27,8 @@ export function sanitize(raw) {
   for (const f of ALLOWED_FIELDS) {
     if (raw[f] === undefined || raw[f] === null || raw[f] === '') continue;
     const n = Number(raw[f]);
-    if (Number.isFinite(n) && n >= 0 && n <= 1_000_000) out[f] = n;
+    const max = f === 'naturalVisitRate' ? 100 : 1_000_000;
+    if (Number.isFinite(n) && n >= 0 && n <= max) out[f] = n;
   }
   return out;
 }
@@ -63,8 +64,10 @@ export default async function handler(req, res) {
     const domain = parseDomain(rawDomain);
     if (!domain) return res.status(400).json({ error: 'bad_request', message: 'invalid domain' });
 
+    if (!kv) return res.status(503).json({ error: 'kv_unavailable', message: 'KV store not configured' });
+
     const record = { ...sanitize(data), savedAt: new Date().toISOString() };
-    if (kv) await kv.set(`nm:${domain}:${period}`, JSON.stringify(record), TTL_S);
+    await kv.set(`nm:${domain}:${period}`, JSON.stringify(record), TTL_S);
 
     return res.status(200).json({ ok: true, domain, period, savedAt: record.savedAt });
   }

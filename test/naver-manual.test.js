@@ -52,10 +52,17 @@ describe('sanitize', () => {
     assert.equal(sanitize({ callClicks: -1 }).callClicks, undefined);
   });
 
-  it('drops values over 1,000,000', () => {
+  it('drops values over 1,000,000 for count fields', () => {
     assert.equal(sanitize({ saves: 2_000_000 }).saves, undefined);
     assert.equal(sanitize({ saves: 1_000_001 }).saves, undefined);
     assert.equal(sanitize({ saves: 1_000_000 }).saves, 1_000_000);
+  });
+
+  it('caps naturalVisitRate at 100 (percentage field)', () => {
+    assert.equal(sanitize({ naturalVisitRate: 101 }).naturalVisitRate, undefined);
+    assert.equal(sanitize({ naturalVisitRate: 100 }).naturalVisitRate, 100);
+    assert.equal(sanitize({ naturalVisitRate: 99.9 }).naturalVisitRate, 99.9);
+    assert.equal(sanitize({ naturalVisitRate: 1_000_000 }).naturalVisitRate, undefined);
   });
 
   it('drops empty strings', () => {
