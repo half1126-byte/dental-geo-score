@@ -114,7 +114,7 @@ $('opBtn').addEventListener('click', async () => {
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   lastUrl = url;
 
-  hide('opResult'); hide('opError'); hide('confirmSection');
+  hide('opResult'); hide('opError'); hide('confirmSection'); hide('printBar'); hide('naverSection');
   $('opLoadMsg').textContent = '페이지 분석 중 (지역·진료 자동 감지)...';
   show('opLoading');
   $('opBtn').disabled = true; $('opBtn').textContent = '분석 중...';
@@ -313,6 +313,7 @@ $('opMeasureBtn').addEventListener('click', async () => {
 });
 
 function showError(msg) { $('opErrMsg').innerHTML = msg; show('opError'); }
+window.printReport = function () { window.print(); };
 
 function render(scoreRes, citeRes, q) {
   geminiVerdicts = [];
@@ -362,9 +363,18 @@ function render(scoreRes, citeRes, q) {
     const bar = document.querySelector('.score-bar-fill');
     if (bar) bar.style.width = bar.dataset.pct + '%';
   });
+  // 인쇄 버튼 활성화 + 메타 갱신
+  { const _pd = (citeRes && citeRes.d) || {};
+    const _dom = _pd.clinicDomain || lastUrl.replace(/^https?:\/\//, '').split('/')[0];
+    const _pm = document.getElementById('printMeta');
+    if (_pm) _pm.textContent = [_dom, new Date().toLocaleDateString('ko-KR'), q.region, q.procedure].filter(Boolean).join(' · ');
+    show('printBar'); }
   // 이력 비동기 로드 (메인 렌더를 블록하지 않음)
   hide('historySection');
   fetchAndRenderHistory(lastUrl);
+  // Naver Place 비동기 로드 (실패해도 메인 결과 영향 없음)
+  hide('naverSection');
+  loadNaverPlace(q);
 }
 
 function renderContentStrategy(q) {
@@ -1292,6 +1302,98 @@ async function fetchAndRenderHistory(url) {
     sec.innerHTML = renderHistorySection(scoreHistory, citationHistory, backedByKv);
     show('historySection');
   } catch { /* 이력 없으면 조용히 스킵 */ }
+}
+
+// ── Naver Place 현황 ────────────────────────────────────────────
+let _naverAbort = null;
+
+async function loadNaverPlace(q) {
+  const sec = $('naverSection');
+  if (!sec) return;
+  const key = localStorage.getItem('opKey') || '';
+  const region = (q.region || '').split('·')[0].trim();
+  const procedure = (q.procedure || '').trim();
+  if (!region || !procedure) return;
+
+  const clinicName = (lastScoreRes && lastScoreRes.d && lastScoreRes.d.clinicNameGuess) || '';
+  const clinicPhone = (lastScoreRes && lastScoreRes.d && lastScoreRes.d.phone) || '';
+
+  _naverAbort?.abort();
+  _naverAbort = new AbortController();
+
+  sec.innerHTML = `<div class="naver-place-card"><p class="muted small" style="display:flex;align-items:center;gap:8px"><span class="spin"></span>네이버 플레이스 조회 중...</p></div>`;
+  show('naverSection');
+
+  try {
+    const r = await fetch('/api/naver-place', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      body: JSON.stringify({ region, procedure, clinicPhone, clinicName }),
+      signal: _naverAbort.signal,
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.error === 'unauthorized') { hide('naverSection'); return; }
+    if (data.error === 'fetch_failed') {
+      sec.innerHTML = '<div class="naver-place-card"><p class="muted small">네이버 플레이스 조회 실패 — 잠시 후 재시도하세요.</p></div>';
+      return;
+    }
+    const html = renderNaverPlace(data);
+    if (!html) { hide('naverSection'); return; }
+    sec.innerHTML = html;
+    sec.classList.remove('reveal'); void sec.offsetWidth; sec.classList.add('reveal');
+  } catch (e) {
+    if (e?.name !== 'AbortError') hide('naverSection');
+  }
+}
+
+function renderNaverPlace(data) {
+  if (!data) return '';
+  const fmt = (n) => n != null ? Number(n).toLocaleString('ko-KR') : '—';
+  const target = data.target;
+  const comps = data.competitors || [];
+  const total = data.total != null ? Number(data.total) | 0 : null;
+  const rank = data.targetRank != null ? Number(data.targetRank) | 0 : 0;
+  const parsedAt = data.parsedAt
+    ? new Date(data.parsedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '';
+
+  const targetBlock = target
+    ? `<div class="np-target">
+        <div class="np-target-head">
+          <a class="np-name" href="${esc(target.naverUrl)}" target="_blank" rel="noopener noreferrer">${esc(target.name)}</a>
+          ${rank ? `<span class="np-rank-badge">${rank}위</span>` : '<span class="np-rank-na">순위 미식별</span>'}
+        </div>
+        <div class="np-stats">
+          <span>방문자리뷰 <b>${fmt(target.visitorReviews)}</b></span>
+          <span>블로그리뷰 <b>${fmt(target.blogReviews)}</b></span>
+          <span>예약리뷰 <b>${fmt(target.bookingReviews)}</b></span>
+          <span>사진 <b>${fmt(target.photos)}</b>장</span>
+        </div>
+      </div>`
+    : `<div class="np-no-target">"${esc(data.query)}" 검색 결과에서 이 치과를 찾지 못했습니다${total != null ? ` (총 ${total}개 중)` : ''}<br><span style="font-size:.76rem">전화번호·치과명 매칭 실패 — 거래처 전화번호를 확인하세요.</span></div>`;
+
+  const compBlock = comps.length
+    ? `<div class="np-comp-section">
+        <div class="np-comp-label">경쟁 상위 — 공개 파싱</div>
+        ${comps.map((c, i) => `
+          <div class="np-comp-row">
+            <span class="np-comp-num">${i + 1}</span>
+            <a class="np-comp-name" href="${esc(c.naverUrl)}" target="_blank" rel="noopener noreferrer">${esc(c.name)}</a>
+            <span class="np-comp-stats">방문 ${fmt(c.visitorReviews)} · 블로그 ${fmt(c.blogReviews)} · 사진 ${fmt(c.photos)}</span>
+          </div>`).join('')}
+      </div>`
+    : '';
+
+  return `<div class="naver-place-card">
+    <div class="np-head">
+      <span class="np-title">📍 플레이스 현황</span>
+      <span class="np-query">"${esc(data.query)}"</span>
+      ${total != null ? `<span class="np-total">총 ${total}개</span>` : ''}
+    </div>
+    ${targetBlock}
+    ${compBlock}
+    <p class="np-note">${parsedAt ? `파싱 기준 ${parsedAt} · ` : ''}${esc(data.dataNote || '')}</p>
+  </div>`;
 }
 
 function renderHistorySection(scoreHistory, citationHistory, backedByKv) {

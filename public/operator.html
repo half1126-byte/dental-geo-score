@@ -560,6 +560,23 @@ tr.diff-gap .diff-item { color:var(--gold-2); }
     <div class="err"><b>오류.</b> <span id="opErrMsg"></span></div>
   </section>
   <section id="opResult" class="hidden"></section>
+
+  <!-- 인쇄 전용 헤더: 화면에서 숨김, @media print 에서만 표시 -->
+  <div id="printHeader" class="print-only">
+    <div class="print-header-inner">
+      <span class="print-header-title">AI 추천 실측 리포트 &middot; 메디앤메디</span>
+      <span id="printMeta" class="print-header-meta"></span>
+    </div>
+    <p class="print-disclaimer">본 수치는 측정 시점·AI 엔진 조건에 따라 달라질 수 있습니다. 환자 광고에 &ldquo;추천·1위·인증&rdquo;으로 인용 불가 (의료광고법 제56조).</p>
+  </div>
+
+  <!-- 인쇄 버튼: 결과 로드 후 표시 -->
+  <div id="printBar" class="hidden print-bar">
+    <button type="button" class="print-btn" onclick="window.printReport()">&#128438; 리포트 인쇄 / PDF 저장</button>
+    <p class="print-bar-hint">인쇄창에서 &ldquo;PDF로 저장&rdquo; 선택 시 A4 PDF로 내보낼 수 있습니다</p>
+  </div>
+
+  <section id="naverSection" class="hidden" style="margin-top:14px"></section>
   <section id="compareSection" class="hidden"></section>
   <section id="historySection" class="hidden" style="margin-top:14px"></section>
 

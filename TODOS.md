@@ -1,6 +1,6 @@
 # dental-geo-score — TODOS
 
-_Last updated: 2026-06-29 (CEO Review SCOPE EXPANSION)_
+_Last updated: 2026-06-30_
 
 ---
 
@@ -13,7 +13,20 @@ _Last updated: 2026-06-29 (CEO Review SCOPE EXPANSION)_
 ## Now (다음 영업 미팅 전)
 
 - [x] **Commit uncommitted 378 lines** — code-reveal UI + businessType params (2026-06-29)
-- [ ] **Export 리포트** — `public/operator.html` 인쇄 버튼 + `@media print` A4 CSS, compliance 스캔 (디자인 재검토 필요)
+- [x] **Export 리포트** — 인쇄 버튼 + `@media print` A4 CSS + compliance 스캔 완료 (2026-06-30)
+
+---
+
+## Naver POC (7월 내)
+
+- [x] **설계 문서** — `docs/naver-poc-plan.md` (2026-06-30)
+- [x] **Step 1: `lib/naver-place.js`** — GraphQL client + normalizePlace + findTargetClinic, 27 tests (2026-06-30)
+- [x] **Step 2: `api/naver-place.js`** — operator-gated POST endpoint (2026-06-30)
+- [x] **Step 3: operator.js/html UI** — `loadNaverPlace()` + `renderNaverPlace()` 카드 (2026-06-30)
+- [ ] **Step 4: `api/naver-manual.js`** (옵션 B) — Smart Place 수동 입력 KV 저장
+
+> GraphQL 탐색 결과: `visitorReviewCount`, `blogCafeReviewCount`, `bookingReviewCount`, `imageCount`, `phone`, `roadAddress` 확보.
+> 저장수·별점은 Private Smart Place 전용 — API 미제공 확인.
 
 ---
 
