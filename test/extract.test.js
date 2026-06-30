@@ -232,3 +232,29 @@ test('hasSameAsAuthority: sameAs non-authority domain → false', () => {
   </script></head><body>${PAD}</body></html>`;
   assert.equal(extractSignals(html).jsonld.hasSameAsAuthority, false);
 });
+
+// ── Lenient JSON-LD parse (extruct-inspired trailing-comma fix) ───────────────
+
+test('lenient JSON-LD: trailing comma before } still extracts Dentist type', () => {
+  const html = `<html><head><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Dentist","name":"트레일링치과",}
+  </script></head><body>${PAD}</body></html>`;
+  const j = extractSignals(html).jsonld;
+  assert.equal(j.hasDental, true, 'trailing comma before } must not drop JSON-LD');
+});
+
+test('lenient JSON-LD: trailing comma before ] in array still parses', () => {
+  const html = `<html><head><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":["Dentist","LocalBusiness",]}
+  </script></head><body>${PAD}</body></html>`;
+  const j = extractSignals(html).jsonld;
+  assert.equal(j.hasDental, true, 'trailing comma before ] must not drop JSON-LD');
+});
+
+test('lenient JSON-LD: genuinely broken JSON (unclosed brace) still silently skips', () => {
+  const html = `<html><head><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Dentist"
+  </script></head><body>${PAD}</body></html>`;
+  const j = extractSignals(html).jsonld;
+  assert.equal(j.hasDental, false, 'truly broken JSON must not crash — silent skip');
+});

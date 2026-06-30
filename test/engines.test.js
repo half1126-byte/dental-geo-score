@@ -79,6 +79,44 @@ test('allCitedDomains uses eTLD+1 (consistent with isClinicCited match logic)', 
   assert.equal(result.allCitedDomains.length, 2, 'haruplant.co.kr + other-clinic.co.kr = 2 distinct domains');
 });
 
+// ── mentionPosition (AutoGEO ICLR 2026) ──────────────────────────────────────
+
+test('mentionPosition: top when domain in first third of answer', () => {
+  const domain = 'haruplant.co.kr';
+  // domain near start → 'top'
+  const resp = { output: [{ type: 'message', content: [{ type: 'output_text',
+    text: `haruplant.co.kr 은 강남 최고의 치과입니다. ${' 일반적인 텍스트 '.repeat(50)}`,
+    annotations: [{ type: 'url_citation', url: 'https://haruplant.co.kr/' }],
+  }] }] };
+  const r = isClinicCited('chatgpt', resp, domain);
+  assert.equal(r.mentionPosition, 'top');
+});
+
+test('mentionPosition: tail when domain in last third of answer', () => {
+  const domain = 'haruplant.co.kr';
+  const resp = { output: [{ type: 'message', content: [{ type: 'output_text',
+    text: `${'일반적인 텍스트 '.repeat(50)} haruplant.co.kr 참조`,
+    annotations: [{ type: 'url_citation', url: 'https://haruplant.co.kr/' }],
+  }] }] };
+  const r = isClinicCited('chatgpt', resp, domain);
+  assert.equal(r.mentionPosition, 'tail');
+});
+
+test('mentionPosition: null when domain not in answer text', () => {
+  const resp = { output: [{ type: 'message', content: [{ type: 'output_text',
+    text: '서울 강남 치과 추천입니다.',
+    annotations: [],
+  }] }] };
+  const r = isClinicCited('chatgpt', resp, 'haruplant.co.kr');
+  assert.equal(r.mentionPosition, null);
+});
+
+test('mentionPosition: null when response is empty (no measurement)', () => {
+  const r = isClinicCited('chatgpt', { output: [] }, 'haruplant.co.kr');
+  assert.equal(r.mentionPosition, null);
+  assert.equal(r.cited, false);
+});
+
 test('checklists: GBP + Place present with required fields', () => {
   assert.equal(CHECKLISTS.length, 2);
   for (const cl of [GBP_CHECKLIST, PLACE_CHECKLIST]) {
