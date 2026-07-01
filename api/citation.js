@@ -145,6 +145,24 @@ export default async function handler(req, res) {
       }
 
       await store.cacheSet(cacheKey, { type: 'multi', panelsByRegion, measuredAt }, DAY);
+
+      // Persist citation history per region (non-blocking, same shape as single-region path)
+      for (const r of effectiveRegions) {
+        const panel = panelsByRegion[r];
+        if (!panel || panel.error) continue;
+        store.histAppend(`c:${domain}`, {
+          ts: measuredAt,
+          region: r,
+          procedure: procedure || '',
+          engines: (panel.perEngine || []).map((p) => ({
+            engine: p.engine,
+            cited: p.cited,
+            citedRuns: p.citedRuns ?? 0,
+            validRuns: p.validRuns ?? 0,
+          })),
+        }).catch(() => {});
+      }
+
       const byRegion = buildByRegionView(panelsByRegion, effectiveRegions, view);
       res.status(200).json({ clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion, measuredAt, costNote, view: isOperator ? 'private' : 'public' });
       return;
