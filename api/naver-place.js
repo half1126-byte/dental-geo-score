@@ -3,6 +3,7 @@
 // Requires x-operator-key header. Never reaches public view (competitor data).
 
 import { getNaverPlaceData } from '../lib/naver-place.js';
+import { sendAlert } from '../lib/alert.js';
 
 export const config = { maxDuration: 20 };
 
@@ -31,6 +32,7 @@ export default async function handler(req, res) {
   } catch (err) {
     // Graceful failure: log but return structured empty result
     console.error('[naver-place] error:', err.message);
+    sendAlert(`⚠️ **Naver GraphQL 오류** (스키마 변경 가능성)\n쿼리: ${query}\n오류: ${err.message.slice(0, 120)}`).catch(() => {});
     return res.status(502).json({
       query,
       total: null,

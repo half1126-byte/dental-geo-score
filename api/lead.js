@@ -3,6 +3,7 @@
 // Stores to Upstash KV (backup) + Notion (primary DB for meeting scheduling).
 // Graceful degradation: if NOTION_TOKEN/NOTION_LEADS_DB_ID missing → KV only.
 import { kv } from '../lib/kv.js';
+import { sendAlert } from '../lib/alert.js';
 
 const NOTION_API = 'https://api.notion.com/v1/pages';
 const NOTION_VERSION = '2022-06-28';
@@ -108,5 +109,6 @@ export default async function handler(req, res) {
   }
 
   console.log('[lead]', leadData.domain, leadData.clinicName, leadData.selectedProducts.join(','), notionOk ? 'Notion:ok' : 'Notion:skip');
+  sendAlert(`🏥 **새 거래처 리드**\n${leadData.clinicName} | ${leadData.contactName} | ${leadData.phone}\n상품: ${leadData.selectedProducts.join(', ')}\nGEO: ${leadData.geoScore ?? '-'} | AI인용: ${leadData.aiCited ? '있음' : '없음'}`).catch(() => {});
   res.status(200).json({ ok: true, leadId, notionOk, notionSkipped: !notionToken || !notionDbId });
 }

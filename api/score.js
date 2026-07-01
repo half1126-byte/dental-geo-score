@@ -26,6 +26,10 @@ export default async function handler(req, res) {
     res.status(400).json({ error: 'platform-url', message: '네이버 플레이스·블로그·SNS URL은 분석할 수 없습니다. 병원 자체 홈페이지 URL을 입력해 주세요.' });
     return;
   }
+  if (url.length > 2048) {
+    res.status(400).json({ error: 'url-too-long', message: 'URL은 2048자 이하여야 합니다.' });
+    return;
+  }
 
   try {
     const result = await auditUrl(url, { timeoutMs: 8000 });

@@ -12,6 +12,7 @@
 // Multi-region: pass `regions: string[]` (max 5) to run one panel per region in parallel and get
 // a { byRegion: { region: panel } } response. `regions` overrides `region`.
 import { createHash } from 'node:crypto';
+import { sendAlert } from '../lib/alert.js';
 import { runCitationPanel } from '../lib/citation.js';
 import { AUTO_ENGINES } from '../lib/engines.js';
 import { checkNaverLocal, naverApiAvailable } from '../lib/naver.js';
@@ -69,6 +70,9 @@ export default async function handler(req, res) {
   const rawIp = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
   const ipHash = isOperator ? null : hashIp(rawIp);
   console.log('[citation]', isOperator ? 'operator' : maskEmail(email), domain, region || '', procedure || '');
+  if (!isOperator && email) {
+    sendAlert(`📬 **새 공개 리드**\n이메일: ${maskEmail(email)}\n치과: ${clinicName || '(미입력)'}\nURL: ${url}`).catch(() => {});
+  }
 
   // Multi-region: `regions` overrides `region`. Clamped to 5, empty strings filtered out.
   const rawRegions = Array.isArray(regions) && regions.length > 0
