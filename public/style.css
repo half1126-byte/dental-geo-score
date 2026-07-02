@@ -1879,3 +1879,61 @@ footer.site-footer {
   /* 측정 섹션 폼 최대 너비 */
   #scoreForm { max-width: 100%; }
 }
+
+/* ══════════════════════════════════════════════════════
+   MOBILE QA 2026-07-02 — 정렬·UX 추가 패치
+   ══════════════════════════════════════════════════════ */
+
+/* 1. wrap-wide 패딩 통일 ─────────────────────────────
+   히어로/AI데모(wrap-wide: 24px) vs 나머지 섹션(wrap: 20px)
+   모바일에서 4px 좌우 오프셋 차이로 정렬이 어긋나 보이는 문제 수정 */
+@media (max-width: 768px) {
+  .wrap-wide { padding: 0 20px; }
+}
+
+/* 2. 히어로 강제 줄바꿈 제거 → 모바일 자연 흐름 ────────
+   h1의 <br>이 세 줄을 "이제 AI가 / 고객을 / 보냅니다"로 끊어
+   중앙 정렬 시 줄 길이가 제각각이라 시각적으로 삐뚤어 보임 */
+@media (max-width: 560px) {
+  .hero-text h1 br,
+  .hero-text .sub br { display: none; }
+  .hero-text .sub { max-width: 100%; }
+}
+
+/* 3. kicker 장문 줄 넘침 방지 */
+@media (max-width: 480px) {
+  .kicker { word-break: keep-all; white-space: normal; }
+}
+
+/* 4. 모달/배치 input ─ iOS 자동 확대 방지 (font-size < 16px 트리거) */
+@media (max-width: 768px) {
+  .modal-field input { font-size: 16px; }
+  .batch-url-input   { font-size: 16px; }
+}
+
+/* 5. 점수 배너 모바일 스택 (score-banner-row) */
+@media (max-width: 480px) {
+  .score-banner-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .score-banner-mid { width: 100%; }
+}
+
+/* 6. nm-form 2열 그리드 → 1열 (초소형 폰 입력 편의) */
+@media (max-width: 400px) {
+  .nm-form-grid { grid-template-columns: 1fr; }
+}
+
+/* 7. 초소형 폰 (360px 미만: Galaxy A 구형 등) ─────── */
+@media (max-width: 360px) {
+  .wrap, .wrap-wide { padding: 0 16px; }
+  h1  { font-size: 1.75rem; }
+  h2  { font-size: 1.3rem; }
+  .stat-card, .svc-card, .price-card { padding: 18px 16px; }
+  .stat-num { font-size: 2.4rem; }
+  .btn-hero-scroll { font-size: .88rem; padding: 14px 20px; }
+  .btn-cta-large   { padding: 14px 28px; font-size: .88rem; }
+  .modal-box { padding: 24px 16px; }
+}
