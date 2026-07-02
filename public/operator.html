@@ -1,601 +1,1202 @@
 <!DOCTYPE html>
+
 <html lang="ko">
+
 <head>
+
 <meta charset="UTF-8" />
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <meta name="robots" content="noindex,nofollow" />
-<title>AI GEO 점수 · 운영자</title>
+
+<title>AI GEO ���� �� ���</title>
+
 <link rel="stylesheet" href="/style.css?v=4" />
+
 <style>
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+
+/* ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+
    OPERATOR UI v3 ??editorial dark / mycel-inspired
-   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+
+   ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═ */
+
+
 
 /* ?? layout wrapper ?? */
+
 .op-wrap { max-width:1400px; margin:0 auto; padding:0 28px 80px; }
 
-/* ?? ?딄??놁씠: 遺?쒕윭???ㅽ겕濡?+ 寃곌낵 ?섏씠?????? */
+
+
+/* ?? ?��??�이: �?�러???�크�?+ 결과 ?�이?????? */
+
 html { scroll-behavior:smooth; }
+
 @keyframes resultReveal { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
 .reveal { animation:resultReveal .34s cubic-bezier(.22,.61,.36,1) both; }
+
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } .reveal { animation:none; } }
 
-/* ?? 媛뺤“: 蹂쇰뱶 ?ㅼ썙?쑣룹꽮???ㅻ뜑 ????蹂댁씠寃??? */
+
+
+/* ?? 강조: 볼드 ?�워?�·섹???�더 ????보이�??? */
+
 .card b, .compare-panel b, .compare-invite b, .rv-text b { color:#fff; font-weight:700; }
+
 .result-section-label { border-bottom:1px solid var(--border); padding-bottom:9px; }
 
+
+
 /* Constrain input cards to readable width */
+
 .setup-card, .analyze-card, .confirm-card, .key-saved { max-width:820px; margin-left:auto; margin-right:auto; }
+
 #opLoading .prog, #opError .err { max-width:820px; margin-left:auto; margin-right:auto; }
 
+
+
 /* ?? horizontal result dashboard ?? */
+
 .result-dash {
+
   display:flex; align-items:stretch;
+
   background:var(--bg-3); border:1px solid rgba(255,184,41,.22);
+
   border-radius:18px; margin-top:14px; overflow:hidden;
+
 }
+
 .result-dash-score {
+
   padding:22px 28px; text-align:center; flex-shrink:0; min-width:120px;
+
   border-right:1px solid var(--border);
+
   display:flex; flex-direction:column; align-items:center; justify-content:center;
+
 }
+
 .result-dash-score-num {
+
   font-size:3rem; font-weight:800; line-height:1; letter-spacing:-.03em;
+
   background:linear-gradient(120deg,var(--gold-2),var(--gold));
+
   -webkit-background-clip:text; background-clip:text; color:transparent;
+
 }
+
 .result-dash-info {
+
   padding:22px 28px; flex:1; border-right:1px solid var(--border);
+
   display:flex; flex-direction:column; justify-content:center;
+
 }
+
 .result-dash-domain { font-size:1.1rem; font-weight:700; color:var(--text-1); }
+
 .result-dash-region { font-size:.78rem; color:var(--gold); font-weight:700; letter-spacing:.07em; text-transform:uppercase; margin-top:5px; }
+
 .result-dash-engines { padding:22px 28px; display:flex; flex-direction:column; justify-content:center; gap:10px; flex-shrink:0; }
+
 .result-dash-engine-row { display:flex; align-items:center; gap:9px; font-size:.86rem; }
+
 .rdname { color:var(--text-2); font-size:.76rem; font-weight:600; min-width:82px; }
+
 @media(max-width:760px) {
+
   .result-dash { flex-direction:column; }
+
   .result-dash-score { border-right:none; border-bottom:1px solid var(--border); flex-direction:row; gap:16px; justify-content:flex-start; padding:16px 22px; min-width:0; }
+
   .result-dash-info  { border-right:none; border-bottom:1px solid var(--border); padding:16px 22px; }
+
   .result-dash-engines { padding:16px 22px; }
+
 }
+
+
 
 /* ?? engine comparison table (horizontal, engines-as-columns) ?? */
+
 .engine-htable { width:100%; border-collapse:collapse; min-width:440px; }
+
 .engine-htable th, .engine-htable td { border-bottom:1px solid var(--border); }
+
 .engine-htable thead tr { background:rgba(255,255,255,.025); }
 
+
+
 /* ?? competitor links ?? */
+
 .comp-chip { font-size:.75rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--text-2); }
 
+
+
 /* ?? action tags ?? */
+
 .action-tag  { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:4px; margin-top:5px; }
+
 .tag-proven  { background:rgba(128,82,255,.15); color:var(--teal); }
+
 .tag-hygiene { background:rgba(255,184,41,.12); color:var(--gold-2); }
 
+
+
 /* ?? score bar ?? */
+
 .score-visual    { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+
 .score-big       { font-size:3rem; font-weight:800; line-height:1; color:var(--gold); }
+
 .score-big small { font-size:1rem; color:var(--text-2); font-weight:400; }
+
 .score-meaning   { flex:1; }
+
 .score-bar-wrap  { background:rgba(255,255,255,.06); border-radius:6px; height:8px; overflow:hidden; margin-top:6px; }
+
 .score-bar-fill  { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--gold),var(--gold-2)); transition:width 1s ease; }
 
+
+
 /* ?? check rows ?? */
+
 .check-row  { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-top:1px solid var(--border); font-size:.88rem; }
+
 .check-icon { width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; flex-shrink:0; }
+
 .icon-ok    { background:rgba(128,82,255,.15); color:var(--teal); }
+
 .icon-warn  { background:rgba(255,184,41,.15); color:var(--gold-2); }
+
 .icon-fail  { background:rgba(141,160,187,.1);  color:var(--text-2); }
+
 .check-text  { flex:1; }
+
 .check-label { font-weight:700; display:block; margin-bottom:1px; }
+
 .check-why   { font-size:.78rem; color:var(--text-2); }
+
 .check-pts   { font-size:.82rem; color:var(--text-2); white-space:nowrap; }
 
+
+
 /* ?? query selector ?? */
+
 .query-selector-label { font-size:.82rem; color:var(--text-2); margin:14px 0 6px; display:block; }
+
 .query-chips-wrap { display:flex; flex-direction:column; gap:6px; }
+
 .q-chip {
+
   display:flex; align-items:flex-start; gap:10px; padding:10px 12px;
+
   border:1px solid var(--border); border-radius:10px;
+
   background:transparent; color:var(--text-1);
+
   font-size:.84rem; font-family:inherit; cursor:pointer; text-align:left; line-height:1.4; transition:all .15s;
+
 }
+
 .q-chip:hover { border-color:var(--plum); }
+
 .q-chip.on    { background:rgba(255,184,41,.1); border-color:rgba(255,184,41,.35); }
+
 .q-chip-num {
+
   width:20px; height:20px; border-radius:50%;
+
   background:rgba(255,184,41,.15); color:var(--gold-2);
+
   font-weight:800; font-size:.72rem;
+
   display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;
+
 }
+
 .q-chip.on .q-chip-num { background:var(--gold); color:var(--bg-1); }
+
 .q-chip-text { flex:1; }
+
 .q-select-hint { font-size:.76rem; color:var(--text-2); margin-top:6px; }
 
+
+
 /* ?? engine logos ?? */
+
 .engine-logo {
+
   width:18px; height:18px; border-radius:4px; flex-shrink:0;
+
   display:inline-flex; align-items:center; justify-content:center;
+
   font-size:9px; font-weight:900; color:#fff;
+
 }
+
 .logo-chatgpt    { background:#10a37f; }
+
 .logo-perplexity { background:#20b2aa; }
+
 .logo-claude     { background:#d97559; }
+
 .engine-title-row   { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+
 .engine-title-logos { display:flex; gap:5px; }
 
+
+
 /* ?? competitor compare ?? */
+
 .comp-link { font-size:.75rem; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--gold-2); text-decoration:none; cursor:pointer; }
+
 .comp-link:hover { border-color:var(--gold); background:rgba(255,184,41,.1); }
+
 .compare-panel      { margin-top:14px; background:var(--bg-3); border:1px solid rgba(255,184,41,.18); border-radius:18px; padding:22px; }
+
 .compare-title      { font-weight:700; font-size:.95rem; margin-bottom:12px; }
+
 .compare-domains    { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+
 .compare-domain-tag { font-size:.76rem; padding:4px 10px; border-radius:6px; font-weight:700; }
+
 .compare-tag-user   { background:rgba(141,160,187,.15); color:var(--text-2); }
+
 .compare-tag-comp   { background:rgba(128,82,255,.12); color:var(--teal); }
+
 .compare-section-head { font-size:.72rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-2); margin:12px 0 6px; }
+
 .compare-row   { display:flex; align-items:center; gap:10px; padding:7px 0; border-top:1px solid var(--border); font-size:.84rem; }
+
 .compare-label { flex:1; }
+
 .compare-val   { width:60px; text-align:center; font-size:.8rem; font-weight:700; }
+
 .compare-val.ok   { color:var(--teal); }
+
 .compare-val.fail { color:var(--text-2); }
 
+
+
 /* ?? source code comparison ?? */
+
 .compare-code-cols {
+
   display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;
+
 }
+
 @media(max-width:720px) { .compare-code-cols { grid-template-columns:1fr; } }
+
 .compare-code-box {
+
   display:flex; flex-direction:column; overflow:hidden;
+
   border-radius:10px; border:1px solid var(--border);
+
 }
+
 .compare-code-header {
+
   padding:7px 12px; font-size:.72rem; font-weight:700;
+
   border-radius:10px 10px 0 0; letter-spacing:.04em;
+
 }
+
 .compare-pre {
+
   margin:0; padding:12px 14px;
+
   overflow:auto; max-height:340px;
+
   font-size:.72rem; line-height:1.6;
+
   color:var(--text-2); background:var(--bg-2);
+
   white-space:pre-wrap; word-break:break-all;
+
   font-family:'SF Mono','Consolas','Courier New',monospace;
+
 }
+
+
 
 /* ?? deep competitor compare: preview ?? */
+
 .compare-preview-cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 4px; }
+
 @media(max-width:720px){ .compare-preview-cols { grid-template-columns:1fr; } }
+
 .compare-preview-cell { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg-2); }
+
 .compare-preview-head { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 12px; font-size:.78rem; font-weight:700; }
+
 .compare-preview-score { font-size:.72rem; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+
 .compare-mini-badge { font-size:.62rem; font-weight:700; background:rgba(255,255,255,.08); color:var(--text-2); border-radius:5px; padding:2px 6px; }
+
 .compare-mini-badge.gold { background:var(--gold); color:#000; }
+
 .compare-preview-stage { position:relative; height:440px; background:#fff; overflow:hidden; }
+
 @media(max-width:720px){ .compare-preview-stage { height:380px; } }
-.compare-preview-frame { position:absolute; top:0; left:0; border:0; background:#fff; } /* width쨌height쨌transform = JS (scale-to-fit) */
+
+.compare-preview-frame { position:absolute; top:0; left:0; border:0; background:#fff; } /* width·height·transform = JS (scale-to-fit) */
+
 .compare-preview-fallback { position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; padding:20px; text-align:center; background:#0c0c0c; }
+
 .cp-open { color:inherit; text-decoration:none; opacity:.65; margin-left:5px; font-weight:700; }
+
 .cp-open:hover { opacity:1; }
+
 .compare-preview-blocked { font-size:.82rem; color:var(--text-2); line-height:1.5; }
+
 .compare-preview-blocked span { font-size:.68rem; opacity:.6; }
 
+
+
 /* ?? deep competitor compare: diff tables ?? */
+
 .compare-diff-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.82rem; }
+
 .compare-diff-table th { text-align:left; font-size:.72rem; font-weight:700; color:var(--text-2); padding:6px 8px; border-bottom:1px solid var(--border); }
+
 .compare-diff-table th:nth-child(n+2) { text-align:center; width:104px; }
+
 .compare-diff-table td { padding:8px; border-bottom:1px solid var(--border); vertical-align:top; }
+
 .diff-item { color:var(--text-1); }
+
 .diff-why { font-size:.72rem; color:var(--text-2); margin-top:3px; line-height:1.45; }
+
 .diff-layer { font-size:.62rem; color:var(--text-2); border:1px solid var(--border); border-radius:4px; padding:0 4px; margin-left:4px; }
+
 .diff-cell { text-align:center; white-space:nowrap; }
+
 .diff-cell-l { font-size:.76rem; color:var(--text-2); word-break:break-all; }
+
 .diff-len { font-size:.64rem; color:var(--text-2); opacity:.6; }
+
 .diff-none { color:var(--text-2); opacity:.5; font-size:.76rem; }
+
 .diff-status { display:inline-block; min-width:18px; font-weight:800; }
+
 .diff-status.ok { color:var(--teal); }
+
 .diff-status.warn { color:var(--gold); }
+
 .diff-status.fail { color:#f05e6a; }
+
 .diff-status.na { color:var(--text-2); opacity:.5; }
+
 tr.diff-gap { background:rgba(255,184,41,.07); }
+
 tr.diff-gap .diff-item { color:var(--gold-2); }
+
 .diff-tag { font-size:.66rem; font-weight:700; border-radius:5px; padding:2px 7px; }
+
 .diff-tag.gap { background:rgba(255,184,41,.18); color:var(--gold-2); }
+
 .diff-tag.ahead { background:rgba(128,82,255,.18); color:#b79dff; }
+
 .diff-tag.same { background:rgba(255,255,255,.06); color:var(--text-2); }
+
 .diff-types { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:.74rem; color:var(--text-2); margin:6px 0; }
+
 .diff-types b { color:var(--text-1); }
+
 @media(max-width:720px){ .diff-types { grid-template-columns:1fr; } }
 
+
+
 /* ?? deep competitor compare: plan table ?? */
+
 .compare-plan-wrap { overflow-x:auto; margin-top:8px; }
+
 .compare-plan-table { width:100%; border-collapse:collapse; font-size:.8rem; min-width:640px; }
+
 .compare-plan-table th { text-align:left; font-size:.7rem; font-weight:700; color:var(--text-2); padding:7px 8px; border-bottom:1px solid var(--border); }
+
 .compare-plan-table td { padding:9px 8px; border-bottom:1px solid var(--border); vertical-align:top; }
+
 .plan-pri { font-weight:800; color:var(--gold); width:28px; text-align:center; }
+
 .plan-item b { color:var(--text-1); }
+
 .plan-detail { font-size:.72rem; color:var(--text-2); margin-top:3px; line-height:1.4; }
+
 .plan-now { color:var(--text-2); font-size:.76rem; max-width:150px; }
+
 .plan-target { color:var(--text-1); font-size:.78rem; max-width:240px; }
+
 .plan-effect { font-size:.66rem; color:var(--text-2); opacity:.7; margin-top:3px; }
+
 .plan-badge { font-size:.7rem; font-weight:700; border-radius:5px; padding:2px 8px; white-space:nowrap; }
+
 .plan-diff-??{ background:rgba(240,94,106,.18); color:#f7949c; }
-.plan-diff-以?{ background:rgba(255,184,41,.16); color:var(--gold-2); }
+
+.plan-diff-�?{ background:rgba(255,184,41,.16); color:var(--gold-2); }
+
 .plan-diff-??{ background:rgba(128,82,255,.16); color:#b79dff; }
+
 .plan-prods { display:flex; flex-wrap:wrap; gap:5px; }
+
 .plan-prod-chip { font-size:.7rem; font-weight:600; background:rgba(128,82,255,.14); color:#b79dff; border:1px solid rgba(128,82,255,.3); border-radius:6px; padding:2px 8px; cursor:pointer; transition:background .12s; }
+
 .plan-prod-chip:hover { background:rgba(128,82,255,.26); }
+
 .plan-prod-chip.on { background:var(--plum); color:#fff; }
+
 .compare-add-btn { width:100%; margin-top:14px; font-size:.9rem; }
+
 .compare-add-btn.on { opacity:.72; }
 
-/* ?? compare invite (citation panel: 異붿쿇 ?덊럹?댁? ?대┃ ?좊룄) ?? */
+
+
+/* ?? compare invite (citation panel: 추천 ?�페?��? ?�릭 ?�도) ?? */
+
 .compare-invite { margin-top:14px; padding:16px 18px; background:linear-gradient(135deg,rgba(128,82,255,.1),rgba(128,82,255,.03)); border:1px solid rgba(128,82,255,.28); border-radius:14px; }
+
 .compare-invite-head { font-size:1rem; font-weight:700; color:var(--text-1); }
+
 .compare-invite-sub { font-size:.84rem; color:var(--text-2); line-height:1.55; margin:6px 0 12px; }
+
 .compare-invite-list { display:flex; flex-direction:column; gap:8px; }
+
 .compare-invite-item { display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--bg-2); border:1px solid var(--border); border-radius:10px; text-decoration:none; transition:border-color .15s,background .15s; }
+
 .compare-invite-item:hover { border-color:var(--plum); background:rgba(128,82,255,.08); }
+
 .ci-rank { flex-shrink:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center; background:var(--plum); color:#fff; border-radius:50%; font-size:.78rem; font-weight:700; }
+
 .ci-domain { flex:1; min-width:0; font-size:.86rem; font-weight:600; color:var(--text-1); word-break:break-all; }
+
 .ci-cta { flex-shrink:0; font-size:.78rem; font-weight:700; color:var(--plum); white-space:nowrap; }
 
-/* ?? solution CTA (compare panel: 援щℓ ?좊룄) ?? */
+
+
+/* ?? solution CTA (compare panel: 구매 ?�도) ?? */
+
 .solution-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; margin-top:8px; }
+
 .solution-card { display:flex; flex-direction:column; justify-content:space-between; gap:12px; padding:15px 16px; background:linear-gradient(135deg,var(--bg-3),rgba(201,168,76,.05)); border:1.5px solid var(--gold); border-radius:14px; }
+
 .solution-name { font-size:.95rem; font-weight:700; color:var(--text-1); }
+
 .solution-desc { font-size:.8rem; color:var(--text-2); line-height:1.5; margin-top:5px; }
+
 .solution-cta { width:100%; font-size:.86rem; }
 
-/* ?? result IA: ?뱀뀡 ?쇰꺼 + 寃곕줎 hero verdict ?? */
+
+
+/* ?? result IA: ?�션 ?�벨 + 결론 hero verdict ?? */
+
 .result-section-label { display:flex; align-items:center; gap:9px; margin:26px 0 10px; font-size:1.04rem; font-weight:700; color:var(--text-1); }
+
 .result-section-label.dim { color:var(--text-2); font-size:.92rem; margin-top:22px; }
+
 .rsl-num { flex-shrink:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--plum); color:#fff; border-radius:8px; font-size:.8rem; font-weight:800; }
+
 .result-section-label.dim .rsl-num { background:rgba(255,255,255,.12); color:var(--text-2); }
+
 .result-verdict { display:flex; align-items:center; gap:13px; padding:15px 18px; border-radius:14px; margin-bottom:10px; }
+
 .result-verdict.ok { background:rgba(31,206,196,.1); border:1px solid rgba(31,206,196,.32); }
+
 .result-verdict.bad { background:rgba(240,94,106,.1); border:1px solid rgba(240,94,106,.32); }
+
 .rv-icon { font-size:1.6rem; flex-shrink:0; line-height:1; }
+
 .rv-text { font-size:.92rem; color:var(--text-1); line-height:1.45; }
+
 .rv-text b { font-size:1.08rem; font-weight:700; }
 
+
+
 /* ?? result 2-column grid (below citation) ?? */
+
 .result-2col {
+
   display:grid;
+
   grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+
   gap:16px; align-items:start; margin-top:16px;
+
 }
+
 .result-2col > * { min-width:0; }
+
 @media(max-width:760px)  { .result-2col { grid-template-columns:1fr; } }
 
+
+
 /* ?? accordion ?? */
+
 .accordion-wrap { margin-top:8px; }
+
 .accordion-btn {
+
   width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
+
   padding:12px 18px; background:var(--bg-3); border:1px solid var(--border);
+
   border-radius:12px; cursor:pointer; font-size:.88rem; font-weight:700;
+
   color:var(--text-1); font-family:inherit; text-align:left; transition:border-color .15s;
+
 }
+
 .accordion-btn:hover  { border-color:rgba(255,184,41,.3); }
+
 .accordion-body { display:none; }
+
 .accordion-wrap.open .accordion-body  { display:block; }
+
 .accordion-wrap.open .accordion-btn   { border-radius:12px 12px 0 0; }
+
 .accordion-arrow { font-size:.72rem; flex-shrink:0; transition:transform .2s; color:var(--text-2); }
+
 .accordion-wrap.open .accordion-arrow { transform:rotate(180deg); }
+
 .accordion-body > .card, .accordion-body > .card.gate { border-radius:0 0 12px 12px; border-top:none; margin-top:0; margin-bottom:0; }
+
 .result-2col > div > .card:last-child { margin-bottom:0; }
 
+
+
 /* ?? insight banner (cited) ?? */
+
 .insight-banner {
+
   border-radius:12px; padding:13px 16px; font-size:.84rem;
+
   margin-top:14px; line-height:1.6;
+
   background:rgba(240,94,106,.07); border:1px solid rgba(240,94,106,.2); color:#f05e6a;
+
 }
+
 .insight-banner b { color:inherit; }
+
 .insight-ok   { background:rgba(128,82,255,.07); border-color:rgba(128,82,255,.2); color:var(--teal); }
+
 .insight-ok b { color:var(--teal); }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-   AI ?몄슜 ?꾨왂 移대뱶 (not-cited ???쒖떆)
-   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+
+
+/* ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+
+   AI ?�용 ?�략 카드 (not-cited ???�시)
+
+   ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═ */
+
 .strategy-card {
+
   background:rgba(255,184,41,.04);
+
   border:1px solid rgba(255,184,41,.18);
+
   border-radius:18px;
+
   padding:24px 26px;
+
   margin-top:14px;
+
 }
+
 .strategy-card-hd    { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+
 .strategy-card-icon  { font-size:1.4rem; line-height:1.1; }
+
 .strategy-card-title { font-size:1.05rem; font-weight:700; color:var(--gold-2); }
+
 .strategy-card-sub   { font-size:.78rem; color:var(--text-2); margin-top:2px; }
+
 .strategy-card-lead  {
+
   font-size:.85rem; color:var(--text-2); line-height:1.7;
+
   margin:0 0 16px; padding:12px 14px;
+
   background:rgba(255,255,255,.025); border-radius:10px;
+
   border-left:2px solid rgba(255,184,41,.25);
+
 }
+
 .strategy-card-lead b { color:var(--text-1); }
+
 .strategy-items { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
 @media(max-width:580px) { .strategy-items { grid-template-columns:1fr; } }
+
 .strategy-item {
+
   background:rgba(255,255,255,.03); border:1px solid var(--border);
+
   border-radius:12px; padding:14px 14px 14px 12px;
+
   display:flex; gap:10px; align-items:flex-start;
+
 }
+
 .strategy-item-num {
+
   font-size:1.45rem; font-weight:900; line-height:1.1;
+
   color:rgba(255,184,41,.22); flex-shrink:0;
+
   letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+
   margin-top:1px;
+
 }
+
 .strategy-item-body  { flex:1; }
+
 .strategy-item-label { font-size:.86rem; font-weight:700; color:var(--text-1); margin-bottom:5px; }
+
 .strategy-item-desc  { font-size:.77rem; color:var(--text-2); line-height:1.6; }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+
+
+/* ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═
+
    Step cards ??01 / 02 / 03 bg-num decoration
-   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+
+   ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═ */
+
 .step-label { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+
 .step-num {
+
   width:30px; height:30px; border-radius:8px;
+
   background:rgba(255,184,41,.12); color:var(--gold-2);
+
   font-weight:800; font-size:.88rem;
+
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
+
   border:1px solid rgba(255,184,41,.22);
+
 }
+
 .step-title { font-weight:700; font-size:1.05rem; }
+
 .step-sub   { font-size:.82rem; color:var(--text-2); margin-top:2px; }
 
+
+
 .setup-card {
+
   background:var(--bg-3); border:1px solid rgba(255,184,41,.22);
+
   border-radius:20px; padding:26px; margin-bottom:16px;
+
   position:relative; overflow:hidden;
+
 }
+
 .setup-card::after {
+
   content:'01';
+
   position:absolute; bottom:-28px; right:4px;
+
   font-size:9rem; font-weight:900; line-height:1; letter-spacing:-.04em;
+
   color:rgba(255,255,255,.025); pointer-events:none; user-select:none;
+
 }
+
 .setup-card .key-note {
+
   background:rgba(255,184,41,.07); border-radius:10px;
+
   padding:10px 14px; font-size:.82rem; color:var(--text-2); margin:12px 0;
+
 }
+
 .setup-card .key-note b { color:var(--gold-2); }
 
+
+
 .key-saved {
+
   display:flex; align-items:center; gap:10px; padding:13px 18px;
+
   background:rgba(128,82,255,.06); border:1px solid rgba(128,82,255,.2);
+
   border-radius:14px; margin-bottom:16px;
+
 }
+
 .key-saved .badge  { font-size:.8rem; font-weight:700; color:var(--teal); }
+
 .key-saved .change { font-size:.78rem; color:var(--text-2); cursor:pointer; text-decoration:underline; margin-left:auto; }
 
+
+
 .analyze-card {
+
   background:var(--bg-3); border:1px solid var(--border);
+
   border-radius:20px; padding:26px; margin-bottom:16px;
+
   position:relative; overflow:hidden;
+
 }
+
 .analyze-card::after {
+
   content:'02';
+
   position:absolute; bottom:-28px; right:4px;
+
   font-size:9rem; font-weight:900; line-height:1; letter-spacing:-.04em;
+
   color:rgba(255,255,255,.025); pointer-events:none; user-select:none;
+
 }
+
+
 
 .url-row { display:flex; gap:8px; }
+
 .url-row input {
+
   flex:1; background:var(--bg-2); border:1px solid var(--border);
+
   border-radius:12px; padding:13px 16px; color:var(--text-1);
+
   font-size:.95rem; font-family:inherit;
+
 }
+
 .url-row input:focus { outline:none; border-color:var(--gold); }
 
+
+
 .confirm-card {
+
   background:var(--bg-3); border:1px solid var(--border);
+
   border-radius:20px; padding:26px; margin-bottom:16px;
+
   position:relative; overflow:hidden;
+
 }
+
 .confirm-card::after {
+
   content:'03';
+
   position:absolute; bottom:-28px; right:4px;
+
   font-size:9rem; font-weight:900; line-height:1; letter-spacing:-.04em;
+
   color:rgba(255,255,255,.025); pointer-events:none; user-select:none;
+
 }
+
 .confirm-card label { display:block; font-size:.82rem; color:var(--text-2); margin:14px 0 6px; }
+
 .confirm-card label:first-of-type { margin-top:0; }
+
 .confirm-card input[type=text] {
+
   width:100%; background:var(--bg-2); border:1px solid var(--border);
+
   border-radius:10px; padding:11px 14px; color:var(--text-1);
+
   font-size:.9rem; font-family:inherit;
+
 }
+
 .confirm-card input[type=text]:focus { outline:none; border-color:var(--gold); }
+
 .region-hint    { font-size:.78rem; color:var(--text-2); margin-top:4px; }
+
 .region-hint.ok { color:var(--teal); }
 
+
+
 /* ?? chips ?? */
+
 .chip-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+
 .chip {
+
   display:inline-flex; align-items:center; padding:6px 14px;
+
   border:1px solid var(--border); border-radius:999px;
+
   background:transparent; color:var(--text-2);
+
   font-size:.84rem; font-family:inherit; cursor:pointer; transition:all .15s;
+
 }
+
 .chip:hover { border-color:var(--gold); color:var(--text-1); }
+
 .chip.on    { background:rgba(255,184,41,.15); color:var(--gold-2); border-color:rgba(255,184,41,.35); font-weight:600; }
 
+
+
 /* ?? query preview ?? */
+
 .query-preview { background:rgba(255,255,255,.035); border-radius:10px; padding:12px 14px; margin-top:12px; }
+
 .query-preview .qlabel { font-size:.78rem; color:var(--text-2); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+
 .query-preview ol { margin:0; padding-left:20px; }
+
 .query-preview li { font-size:.88rem; color:var(--text-1); padding:3px 0; }
 
+
+
 /* ?? measure btn ?? */
+
 .measure-btn {
+
   width:100%; margin-top:16px; padding:16px;
+
   background:var(--plum);
+
   color:#fff; border:none; border-radius:24px;
+
   font-weight:800; font-size:1rem; font-family:inherit; cursor:pointer;
+
   letter-spacing:.02em; transition:opacity .15s;
+
 }
+
 .measure-btn:disabled { opacity:.5; cursor:wait; }
+
 .measure-hint { text-align:center; font-size:.78rem; color:var(--text-2); margin-top:8px; }
 
+
+
 /* ?? key input row ?? */
+
 .key-input-row { display:flex; gap:8px; margin-top:10px; }
+
 .key-input-row input {
+
   flex:1; background:var(--bg-2); border:1px solid var(--border);
+
   border-radius:10px; padding:11px 14px; color:var(--text-1);
+
   font-size:.9rem; font-family:inherit;
+
 }
+
 .key-input-row input:focus { outline:none; border-color:var(--gold); }
+
 .key-input-row button {
+
   padding:11px 18px; border-radius:10px; border:1px solid rgba(255,184,41,.25);
+
   background:rgba(255,184,41,.12); color:var(--gold-2);
+
   font-weight:700; font-size:.88rem; font-family:inherit; cursor:pointer;
+
   transition:background .15s;
+
 }
+
 .key-input-row button:hover { background:rgba(255,184,41,.2); }
 
+
+
 </style>
+
 <script defer src="/_vercel/insights/script.js"></script>
+
 </head>
+
 <body>
 
+
+
 <header class="hero" style="min-height:auto;padding:52px 0 36px">
+
   <div class="hero-inner">
+
     <div class="wrap">
-      <p class="kicker">MEDINMEDI 쨌 ?대? ?꾩슜</p>
-      <h1 style="font-size:clamp(1.8rem,4vw,2.6rem);font-weight:600">嫄곕옒泥?<span class="g2">AI</span> <span class="g">異붿쿇 ?ㅼ륫</span></h1>
-      <p class="sub" style="font-size:.92rem">URL ?섎굹濡?ChatGPT쨌Perplexity媛 ??移섍낵瑜??ㅼ젣濡?異붿쿇?섎뒗吏 ?뺤씤?⑸땲??/p>
+
+      <p class="kicker">MEDINMEDI · 내부 사용</p>
+
+      <h1 style="font-size:clamp(1.8rem,4vw,2.6rem);font-weight:600">거래처 <span class="g2">AI</span> <span class="g">추천 실측</span></h1>
+
+      <p class="sub" style="font-size:.92rem">URL 입력으로 ChatGPT·Perplexity가 치과를 실제로 추천하는지 확인합니다</p>
+
     </div>
+
   </div>
+
 </header>
+
+
 
 <main class="op-wrap" style="padding-top:28px">
 
+
+
   <div class="op-tabs" id="opTabs">
-    <button class="op-tab on" data-tab="single" onclick="switchTab('single')">?⑥씪 遺꾩꽍</button>
-    <button class="op-tab" data-tab="batch" onclick="switchTab('batch')">諛곗튂 ??쒕낫??/button>
+
+    <button class="op-tab on" data-tab="single" onclick="switchTab('single')">단일 분석</button>
+
+    <button class="op-tab" data-tab="batch" onclick="switchTab('batch')">배치 분석</button>
+
   </div>
+
+
 
   <div id="singleView">
 
+
+
   <!-- ???댁쁺???⑥뒪肄붾뱶 -->
+
   <section id="setupSection">
+
     <div id="keySaved" class="key-saved hidden">
-      <span class="badge">?뵎 ?꾨━誘몄뾼 ?≪꽭??/span>
+
+      <span class="badge">운영자 세션 활성</span>
+
       <span id="keyMasked" class="muted small"></span>
-      <span class="change" id="keyShareBtn" style="margin-left:auto">留곹겕 蹂듭궗</span>
-      <span class="change" id="keyChangeBtn" style="margin-left:8px">蹂寃?/span>
+
+      <span class="change" id="keyShareBtn" style="margin-left:auto">링크 복사</span>
+
+      <span class="change" id="keyChangeBtn" style="margin-left:8px">변경</span>
+
     </div>
+
     <div id="setupCard" class="setup-card hidden">
+
       <div class="step-label">
-        <div class="step-num">??/div>
+
+        <div class="step-num">①</div>
+
         <div>
-          <div class="step-title">?꾨━誘몄뾼 ?≪꽭????鍮꾨?踰덊샇 ?낅젰</div>
-          <div class="step-sub">泥섏쓬 ??踰덈쭔 ???댄썑 ?먮룞 ???/div>
+
+          <div class="step-title">비밀번호 입력</div>
+
+          <div class="step-sub">처음 한 번만 입력하면 이후 자동 로그인</div>
+
         </div>
+
       </div>
+
       <div class="key-note">
-        <b>?꾨━誘몄뾼 ?꾩슜 湲곕뒫?낅땲??</b> ?ㅼ륫 AI ?몄슜쨌寃쎌웳???ъ링 鍮꾧탳??諛쒓툒諛쏆? 鍮꾨?踰덊샇濡??좉툑 ?댁젣?⑸땲??<br>
-        鍮꾨?踰덊샇媛 ?놁쑝硫?硫붾뵒?ㅻ찓?붿뿉 臾몄쓽??二쇱꽭??
+
+        <b>프리미엄 전용 기능입니다.</b> 실측 AI 인용·경쟁사 심층 비교에 사용됩니다. 발급받은 비밀번호를 지금 입력하세요.
+
+        비�?번호� ?�으�?메디?�메?�에 문의??주세??
+
       </div>
+
       <div class="key-input-row">
-        <input type="password" id="opKey" placeholder="?꾨━誘몄뾼 鍮꾨?踰덊샇" autocomplete="off" />
-        <button type="button" id="keySaveBtn">???/button>
+
+        <input type="password" id="opKey" placeholder="비밀번호" />
+
+        <button type="button" id="keySaveBtn">저장</button>
+
       </div>
+
       <p id="keyValidationNote" style="display:none;font-size:.82rem;color:#f05e6a;margin-top:8px"></p>
+
     </div>
+
   </section>
+
+
 
   <!-- ??URL 遺꾩꽍 -->
+
   <section id="analyzeSection" class="hidden" style="margin-top:10px">
+
     <div class="analyze-card">
+
       <div class="step-label" style="margin-bottom:12px">
-        <div class="step-num">??/div>
+
+        <div class="step-num">②</div>
+
         <div>
-          <div class="step-title">嫄곕옒泥?URL ?낅젰</div>
-          <div class="step-sub">吏??룹쭊猷뚮? ?먮룞 媛먯??⑸땲??/div>
+
+          <div class="step-title">거래처 URL 입력</div>
+
+          <div class="step-sub">전문 진료과목 자동 감지합니다</div>
+
         </div>
+
       </div>
+
       <div class="url-row">
-        <input type="url" id="opUrl" placeholder="https://嫄곕옒泥섏튂怨?co.kr" />
-        <button class="btn p" type="button" id="opBtn">遺꾩꽍</button>
+
+        <input type="url" id="opUrl" placeholder="https://거래처치과.co.kr" />
+
+        <button class="btn p" type="button" id="opBtn">분석</button>
+
       </div>
+
     </div>
+
   </section>
+
+
 
   <!-- ??吏??룹쭊猷??뺤씤 + 痢≪젙 -->
+
   <section id="confirmSection" class="hidden" style="margin-top:4px">
+
     <div class="confirm-card">
+
       <div class="step-label">
-        <div class="step-num">??/div>
+
+        <div class="step-num">③</div>
+
         <div>
-          <div class="step-title">吏??룹쭊猷??뺤씤 ??AI ?ㅼ륫</div>
-          <div class="step-sub">?먮룞 媛먯???媛믪쓣 ?뺤씤쨌?섏젙?섏꽭??/div>
+
+          <div class="step-title">치과 확인 + AI 실측</div>
+
+          <div class="step-sub">자동 감지된 값을 확인·조정하세요</div>
+
         </div>
+
       </div>
 
-      <label>痢≪젙 吏??<span class="muted" style="font-weight:400;font-size:.78rem">???щ윭 吏??쓣 異붽??섎㈃ 吏??퀎 鍮꾧탳 ?덊듃留듭쓣 遊낅땲??(理쒕? 5媛?</span></label>
+
+
+      <label>측정 지역<span class="muted" style="font-weight:400;font-size:.78rem">여러 지역을 추가하면 지역별 비교 히트맵을 봅니다 (최대 5개)</span></label>
+
       <div style="display:flex;gap:6px">
-        <input type="text" id="opRegion" list="regionList" placeholder="?? 媛뺣궓" style="flex:1" />
-        <button type="button" id="opRegionAddBtn" class="btn" style="padding:10px 14px;font-size:.84rem;white-space:nowrap">異붽?</button>
+
+        <input type="text" id="opRegion" list="regionList" placeholder="예) 강남" />
+
+        <button type="button" id="opRegionAddBtn" class="btn" style="padding:10px 14px;font-size:.84rem;white-space:nowrap">추가</button>
+
       </div>
+
       <datalist id="regionList"></datalist>
+
       <div class="region-hint" id="opRegionHint"></div>
+
       <div class="chip-wrap" id="opRegionChips" style="margin-top:8px"></div>
 
-      <label>吏꾨즺 怨쇰ぉ</label>
-      <div class="chip-wrap" id="opProcChips"><span class="muted small">媛먯? 以?..</span></div>
-      <input type="text" id="opProcAdd" placeholder="吏곸젒 ?낅젰 ??Enter (?? ?꾪뵆???" style="margin-top:8px;" />
 
-      <label class="query-selector-label">AI?먭쾶 蹂대궪 吏덉쓽 ?좏깮 <span class="muted" style="font-weight:400">(理쒕? 3媛?</span></label>
+
+      <label>진료 과목</label>
+
+      <div class="chip-wrap" id="opProcChips"><span class="muted small">감지 중..</span></div>
+
+      <input type="text" id="opProcAdd" placeholder="직접 입력 후 Enter (예: 임플란트)" />
+
+
+
+      <label class="query-selector-label">AI에게 보낼 질의 선택 <span class="muted" style="font-weight:400">(최대 3개)</span></label>
+
       <div class="query-chips-wrap" id="opQueryChips"></div>
-      <p class="q-select-hint" id="opQueryHint">?좏깮??吏덉쓽濡쒕쭔 痢≪젙?⑸땲??</p>
 
-      <button class="measure-btn" type="button" id="opMeasureBtn">痢≪젙 ?쒖옉 (?좊즺 API)</button>
-      <p class="measure-hint">嫄곕옒泥섎떦 1?щ윭 誘몃쭔 쨌 ?쇱씪 ?쒕룄쨌罹먯떆 ?곸슜</p>
+      <p class="q-select-hint" id="opQueryHint">선택된 질의로만 측정합니다</p>
+
+
+
+      <button class="measure-btn" type="button" id="opMeasureBtn">측정 시작 (유료 API)</button>
+
+      <p class="measure-hint">거래처당 1달러 미만 · 당일 한도·캐시 활용</p>
+
     </div>
+
   </section>
+
+
 
   <!-- ?곹깭 -->
+
   <section id="opLoading" class="hidden">
-    <div class="prog"><div class="row"><span class="spin"></span> <span id="opLoadMsg">泥섎━ 以?..</span></div></div>
+
+    <div class="prog"><div class="row"><span class="spin"></span> <span id="opLoadMsg">처리 중..</span></div></div>
+
   </section>
+
   <section id="opError" class="hidden">
-    <div class="err"><b>?ㅻ쪟.</b> <span id="opErrMsg"></span></div>
+
+    <div class="err"><b>오류.</b> <span id="opErrMsg"></span></div>
+
   </section>
+
   <section id="opResult" class="hidden"></section>
 
+
+
   <!-- ?몄뇙 ?꾩슜 ?ㅻ뜑: ?붾㈃?먯꽌 ?④?, @media print ?먯꽌留??쒖떆 -->
+
   <div id="printHeader" class="print-only">
+
     <div class="print-header-inner">
-      <span class="print-header-title">AI 異붿쿇 ?ㅼ륫 由ы룷??&middot; 硫붾뵒?ㅻ찓??/span>
+
+      <span class="print-header-title">AI 추천 실측 리포트 &middot; 메디앤메디</span>
+
       <span id="printMeta" class="print-header-meta"></span>
+
     </div>
-    <p class="print-disclaimer">蹂??섏튂??痢≪젙 ?쒖젏쨌AI ?붿쭊 議곌굔???곕씪 ?щ씪吏????덉뒿?덈떎. ?섏옄 愿묎퀬??&ldquo;異붿쿇쨌1?꽷룹씤利?rdquo;?쇰줈 ?몄슜 遺덇? (?섎즺愿묎퀬踰???6議?.</p>
+
+    <p class="print-disclaimer">측정 시점·AI 엔진 조건에 따라 달라질 수 있습니다. 의료 광고에 &ldquo;추천·1위·인용&rdquo;으로 이용 불가 (의료광고법 제56조).</p>
+
   </div>
+
+
 
   <!-- ?몄뇙 踰꾪듉: 寃곌낵 濡쒕뱶 ???쒖떆 -->
+
   <div id="printBar" class="hidden print-bar">
-    <button type="button" class="print-btn" onclick="window.printReport()">&#128438; 由ы룷???몄뇙 / PDF ???/button>
-    <p class="print-bar-hint">?몄뇙李쎌뿉??&ldquo;PDF濡????rdquo; ?좏깮 ??A4 PDF濡??대낫?????덉뒿?덈떎</p>
+
+    <button type="button" class="print-btn" onclick="window.printReport()">&#128438; 리포트 인쇄 / PDF 저장</button>
+
+    <p class="print-bar-hint">인쇄창에서 &ldquo;PDF로 저장&rdquo; 선택 후 A4 PDF로 저장할 수 있습니다</p>
+
   </div>
 
+
+
   <section id="naverSection" class="hidden" style="margin-top:14px"></section>
+
   <section id="naverManualSection" class="hidden" style="margin-top:14px"></section>
+
   <section id="compareSection" class="hidden"></section>
+
   <section id="historySection" class="hidden" style="margin-top:14px"></section>
+
+
 
   </div><!-- /#singleView -->
 
+
+
   <section id="batchSection" class="hidden" style="margin-top:4px"></section>
+
+
 
 </main>
 
-<footer><div class="wrap">硫붾뵒?ㅻ찓???대? ?꾩슜(noindex) 쨌 ?ㅼ륫 ?섏튂???섏옄 愿묎퀬??"異붿쿇쨌1?꽷룹씤利??쇰줈 ?몄슜 湲덉?(?섎즺愿묎퀬踰?</div></footer>
+
+
+<footer><div class="wrap">메디앤메디 내부 사용(noindex) · 실측 결과는 의료 광고에 &quot;추천·1위·인용&quot;으로 이용 금지(의료광고법)</div></footer>
+
 <script type="module" src="/operator.js"></script>
+
 </body>
+
 </html>
+
