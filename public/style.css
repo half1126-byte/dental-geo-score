@@ -955,7 +955,7 @@ main.wrap { padding-top: 20px; }
   border-radius:3px 12px 12px 12px;
   padding:12px 14px;
   font-size:.8rem; color:rgba(255,255,255,.75); line-height:1.68;
-  flex:1; min-height:180px;
+  flex:1; min-height:300px;
   opacity:0; transition:opacity .18s;
 }
 .ai-response.show { opacity:1; }
@@ -1855,8 +1855,8 @@ footer.site-footer {
   /* 고통 섹션 */
   .pain-num { font-size: 1.8rem; }
 
-  /* AI 데모 카드 — 3장 스택 시 응답 높이 축소 */
-  .ai-response { min-height: 110px; }
+  /* AI 데모 카드 — 응답 최종 높이 선예약 → CLS 방지 */
+  .ai-response { min-height: 300px; }
 
   /* mid-CTA — 세로 스택 */
   .mid-cta .wrap { flex-direction: column; gap: 12px; }
