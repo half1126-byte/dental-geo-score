@@ -5,6 +5,7 @@ const hide = (id) => $(id).classList.add('hidden');
 
 let lastScoreData = null;
 let lastScoredUrl = '';
+let emailGatePassed = false; // 이메일 제출 후 재스캔 시에도 게이트 항목 유지
 
 // URL ?key= 자동 저장 (베타 공유용)
 (function () {
@@ -122,11 +123,18 @@ function render(d) {
   const when = d.measuredAt ? new Date(d.measuredAt).toLocaleString('ko-KR') : '';
   $('meta').textContent = `측정 ${when} · 방법론 ${d.methodologyVersion || 'v0.1'} · 대상 ${d.domain || ''} · ${d.renderMode || ''}`;
 
-  // 이메일 게이트 이하 항목은 제출 전까지 숨김
+  // 이메일 게이트 이하 항목 — 이미 제출했으면 바로 공개, 아니면 숨김
   const _fc = document.getElementById('fixesCard');
   const _rc = document.getElementById('resultCtaCard');
   const _cc = document.getElementById('compareCard');
-  [_fc, _rc, _cc].forEach(el => { if (el) el.classList.add('hidden'); });
+  if (emailGatePassed) {
+    [_fc, _rc, _cc].forEach(el => { if (el) el.classList.remove('hidden'); });
+    hide('leadForm');
+  } else {
+    [_fc, _rc, _cc].forEach(el => { if (el) el.classList.add('hidden'); });
+    show('leadForm');
+    hide('leadOk');
+  }
 
   // 결과 섹션으로 스크롤
   requestAnimationFrame(() => {
@@ -194,6 +202,7 @@ $('leadForm').addEventListener('submit', async (e) => {
     });
     data = await res.json().catch(() => null);
   } catch (_) { /* non-blocking */ }
+  emailGatePassed = true;
   hide('leadForm');
   // 게이트 항목 공개
   const _gfc = document.getElementById('fixesCard');
