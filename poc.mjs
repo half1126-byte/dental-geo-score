@@ -6,7 +6,7 @@ import { runCitationPanel } from './lib/citation.js';
 for (const line of readFileSync('./.env.local', 'utf8').split(/\r?\n/)) {
   if (/^\s*#/.test(line)) continue;
   const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
-  if (m) process.env[m[1]] = m[2].trim();
+  if (m) process.env[m[1]] = m[2].trim().replace(/^(["'])(.*)\1$/, '$2'); // Vercel CLI pull은 값을 따옴표로 감쌈
 }
 
 const clinicDomain = (process.argv[2] || 'haruplant.co.kr').replace(/^https?:\/\//, '');
