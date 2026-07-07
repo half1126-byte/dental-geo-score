@@ -64,32 +64,32 @@ test('topFixes: each item carries note (x.why) so UI can show specific guidance'
   }
 });
 
-// ── KDD 2024 GEO signals ──────────────────────────────────────────────────────
+// ── KDD 2024 GEO signals (v0.2 weights) ──────────────────────────────────────
 
-test('KDD 2024: hasStatistics boosts answer bucket when other signals are partial', () => {
-  // Only h1 present (3pts) → without KDD signal = 3, with statistics = 5
+test('KDD 2024: hasStatistics (statCount band) boosts answer bucket when other signals are partial', () => {
+  // Only h1 present → base answer pts = 2; statCount=1 (1-2 matches) → +1
   const base = { h1Count: 1, h2Count: 0, questionH2: 0, tables: 0, faqBlocks: 0, hasStatistics: false, hasQuotations: false };
-  const withStats = { ...base, hasStatistics: true };
+  const withStats = { ...base, hasStatistics: true, statCount: 1 };
   const robots = { present: false, blocksAny: false, blockedBots: [] };
   const rBase = scorePage({ robots, signals: base });
   const rStats = scorePage({ robots, signals: withStats });
   const answerBase = rBase.breakdown.find((x) => x.key === 'answer').points;
   const answerStats = rStats.breakdown.find((x) => x.key === 'answer').points;
   assert.ok(answerStats > answerBase, `stats boost expected: ${answerBase} → ${answerStats}`);
-  assert.equal(answerStats - answerBase, 2);
+  assert.equal(answerStats - answerBase, 1);
 });
 
-test('KDD 2024: hasQuotations boosts answer bucket independently', () => {
+test('KDD 2024: hasQuotations boosts answer bucket independently (max weight in v0.2)', () => {
   const base = { h1Count: 1, h2Count: 0, questionH2: 0, tables: 0, faqBlocks: 0, hasStatistics: false, hasQuotations: false };
   const withQuotes = { ...base, hasQuotations: true };
   const robots = { present: false, blocksAny: false, blockedBots: [] };
   const b = scorePage({ robots, signals: base }).breakdown.find((x) => x.key === 'answer').points;
   const q = scorePage({ robots, signals: withQuotes }).breakdown.find((x) => x.key === 'answer').points;
-  assert.equal(q - b, 2);
+  assert.equal(q - b, 3);
 });
 
 test('KDD 2024: answer bucket still capped at 20 even with all signals', () => {
-  const allSignals = { h1Count: 1, h2Count: 3, questionH2: 1, tables: 1, faqBlocks: 1, hasStatistics: true, hasQuotations: true };
+  const allSignals = { h1Count: 1, h2Count: 3, questionH2: 1, tables: 1, faqBlocks: 1, hasStatistics: true, hasQuotations: true, statCount: 2, hasCitedSources: true };
   const r = scorePage({ robots: { present: false }, signals: allSignals });
   const pts = r.breakdown.find((x) => x.key === 'answer').points;
   assert.equal(pts, 20);
@@ -109,4 +109,48 @@ test('schema bucket capped at 20 even with hasDental + hasFaq + hasTrust + hasSa
   const signals = { jsonld: { hasDental: true, hasFaq: true, hasTrust: true }, hasSameAsAuthority: true };
   const r = scorePage({ robots: { present: false }, signals });
   assert.equal(r.breakdown.find((x) => x.key === 'schema').points, 20);
+});
+
+// ── v0.2 axes structure ───────────────────────────────────────────────────────
+
+test('axes: result has tech and content axes with correct max values', () => {
+  const r = scorePage({ robots: { present: false }, signals: {} });
+  assert.ok(r.axes, 'axes object present');
+  assert.ok(r.axes.tech, 'axes.tech present');
+  assert.ok(r.axes.content, 'axes.content present');
+  assert.equal(r.axes.tech.max, 55, 'tech max = 55 (crawl15+schema20+extract10+local10)');
+  assert.equal(r.axes.content.max, 45, 'content max = 45 (eeat15+fresh10+answer20)');
+  assert.equal(r.axes.tech.score + r.axes.content.score, r.score, 'axes scores sum to total score');
+});
+
+test('axes: tech keys are crawl/schema/extract/local; content keys are eeat/fresh/answer', () => {
+  const r = scorePage({ robots: { present: false }, signals: {} });
+  const techKeys = ['crawl', 'schema', 'extract', 'local'];
+  const contentKeys = ['eeat', 'fresh', 'answer'];
+  const techSum = r.breakdown.filter((x) => techKeys.includes(x.key)).reduce((a, x) => a + x.points, 0);
+  const contentSum = r.breakdown.filter((x) => contentKeys.includes(x.key)).reduce((a, x) => a + x.points, 0);
+  assert.equal(techSum, r.axes.tech.score);
+  assert.equal(contentSum, r.axes.content.score);
+});
+
+test('axes: needsHeadless caps extract bucket → tech.score drops significantly', () => {
+  const withHeadless = { needsHeadless: true, sn: 0.1, scripts: 5 };
+  const withoutHeadless = { needsHeadless: false, sn: 0.1, scripts: 5 };
+  const robots = { present: false };
+  const rH = scorePage({ robots, signals: withHeadless });
+  const rN = scorePage({ robots, signals: withoutHeadless });
+  assert.ok(rN.axes.tech.score > rH.axes.tech.score, 'headless should lower tech score');
+});
+
+test('axes: label fields present', () => {
+  const r = scorePage({ robots: { present: false }, signals: {} });
+  assert.equal(typeof r.axes.tech.label, 'string');
+  assert.equal(typeof r.axes.content.label, 'string');
+  assert.ok(r.axes.tech.label.length > 0);
+  assert.ok(r.axes.content.label.length > 0);
+});
+
+test('METHODOLOGY_VERSION is v0.2', () => {
+  const r = scorePage({ robots: { present: false }, signals: {} });
+  assert.equal(r.methodologyVersion, 'v0.2');
 });

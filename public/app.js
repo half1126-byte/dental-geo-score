@@ -119,6 +119,20 @@ function render(d) {
     fx.appendChild(el);
   });
 
+  // 두 축 표시 (v0.2+): axes 없으면 조용히 생략 (구 엔트리 하위 호환)
+  const axesEl = document.getElementById('axesDisplay');
+  if (axesEl) {
+    if (d.axes && d.axes.tech && d.axes.content) {
+      const { tech, content } = d.axes;
+      axesEl.innerHTML =
+        `<div class="axis-row"><span class="axis-label">축A 기술 준비도</span><span class="axis-score">${tech.score}<small>/${tech.max}</small></span></div>` +
+        `<div class="axis-row"><span class="axis-label">축B 콘텐츠 인용성</span><span class="axis-score">${content.score}<small>/${content.max}</small></span></div>`;
+      axesEl.style.display = '';
+    } else {
+      axesEl.style.display = 'none';
+    }
+  }
+
   // meta
   const when = d.measuredAt ? new Date(d.measuredAt).toLocaleString('ko-KR') : '';
   $('meta').textContent = `측정 ${when} · 방법론 ${d.methodologyVersion || 'v0.1'} · 대상 ${d.domain || ''} · ${d.renderMode || ''}`;

@@ -1281,12 +1281,22 @@ function renderHygiene(scoreRes) {
       </tbody>
     </table>
   </div>
-  <p class="muted small" style="margin-top:8px">기술 점수 = 위생 합계. GEO·AEO 행은 점수에 포함되지 않는 참고 지표입니다.</p>`;
+  <p class="muted small" style="margin-top:8px">축A 기술 준비도(crawl·schema·extract·local) + 축B 콘텐츠 인용성(eeat·fresh·answer) = 합산 점수. 이 점수는 AI 인용 가능성을 예측하지 않습니다.</p>`;
 
-  const scoreBar = `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 14px">
+  // 두 축 표시 (v0.2+): axes 없으면 조용히 생략 (구 엔트리 하위 호환)
+  let axesBar = '';
+  if (d.axes && d.axes.tech && d.axes.content) {
+    const { tech, content } = d.axes;
+    axesBar = `<div style="display:flex;gap:14px;margin:8px 0 4px;flex-wrap:wrap">
+      <div style="font-size:.78rem;color:var(--text-2)">축A 기술 준비도 <b style="color:var(--text-1)">${tech.score}/${tech.max}</b></div>
+      <div style="font-size:.78rem;color:var(--text-2)">축B 콘텐츠 인용성 <b style="color:var(--text-1)">${content.score}/${content.max}</b></div>
+    </div>`;
+  }
+
+  const scoreBar = `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 6px">
     <div class="score-bar-wrap" style="flex:1"><div class="score-bar-fill" data-pct="${pctVal}" style="width:0%"></div></div>
     <span style="font-size:.8rem;font-weight:700;color:${bandColor};flex-shrink:0">${d.score}pt · ${bandLabel}</span>
-  </div>`;
+  </div>${axesBar}`;
 
   return `<div class="card"><b style="font-size:1rem">GEO 준비도 세부 분석</b>${scoreBar}${table}</div>`;
 }

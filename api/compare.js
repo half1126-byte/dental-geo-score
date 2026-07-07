@@ -48,6 +48,7 @@ async function buildProfile(url, hintedScore) {
     domain: registrableDomain(page.finalUrl),
     finalUrl: page.finalUrl,
     score: hintedScore != null && Number.isFinite(Number(hintedScore)) ? Number(hintedScore) : scored.score,
+    axes: scored.axes || null,
     breakdown: scored.breakdown,
     signals: {
       hasStatistics: signals.hasStatistics,

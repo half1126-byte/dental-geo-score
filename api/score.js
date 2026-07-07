@@ -44,6 +44,7 @@ export default async function handler(req, res) {
       ts:    result.measuredAt,
       score: result.score,
       band:  result.band,
+      axes:  result.axes || null,
     }).catch(() => {});
     result.prevScore = prevScore;
     result.prevBand  = prevBand;
