@@ -6,11 +6,40 @@ const hide = (id) => $(id).classList.add('hidden');
 let lastScoreData = null;
 let lastScoredUrl = '';
 let emailGatePassed = false; // 이메일 제출 후 재스캔 시에도 게이트 항목 유지
+let panelEmailCollected = ''; // 최상단 실측 신청 폼에서 수집된 이메일
 
 // URL ?key= 자동 저장 (베타 공유용)
 (function () {
   const k = new URLSearchParams(location.search).get('key');
   if (k) { localStorage.setItem('opKey', k); history.replaceState(null, '', location.pathname); }
+})();
+
+// 최상단 실측 인용 패널 신청 폼 — URL 진단 없이 이메일만 수집
+// 이후 URL 진단 시 leadForm에서 이 이메일을 재사용해 citation POST
+(function () {
+  const form = $('panelGateForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailEl = $('panelEmailInput');
+    const email = emailEl ? emailEl.value.trim() : '';
+    if (!email) return;
+    panelEmailCollected = email;
+    const btn = $('panelGateBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '신청 중...'; }
+    // 이미 URL이 진단된 상태면 바로 citation POST, 아니면 이메일만 저장
+    if (lastScoredUrl) {
+      try {
+        await fetch('/api/citation', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email, url: lastScoredUrl, clinicName: (lastScoreData && lastScoreData.clinicNameGuess) || '' }),
+        });
+      } catch (_) { /* non-blocking */ }
+    }
+    show('panelGateOk');
+    if (btn) { btn.disabled = false; btn.textContent = '실측 신청'; }
+  });
 })();
 
 // scoreForm submit → URL 검증 후 바로 진단 (value-first: 점수를 먼저 보여주고, 리드는 결과 뒤 이메일 게이트에서)
@@ -54,23 +83,60 @@ function showError(data) {
   const reason = (data && data.reason) || '';
   const detail = (data && data.detail) || '';
   let msg;
+  let showCitationCard = false;
   if (/cert|certificate|TLS|SSL|self.?signed|expired/i.test(detail) || reason === 'tls-cert') {
     msg = '이 사이트는 보안 인증서가 만료·오류 상태라 AI도 안전하게 읽지 못합니다. 점수가 낮은 게 아니라 측정 불가 — 인증서부터 고치면 AI 노출의 기본 조건이 갖춰집니다.';
+    showCitationCard = true;
   } else if (reason === 'blocked-ip' || reason === 'dns-failed' || reason === 'dns-empty' || reason === 'invalid-url') {
     msg = '해당 주소를 찾을 수 없습니다. 홈페이지 주소가 맞는지 확인해 주세요 (존재하지 않거나 내부 주소일 수 있습니다).';
   } else if (reason === 'timeout' || reason === 'connect-failed' || reason === 'read-failed') {
     msg = '사이트 응답이 없어 측정하지 못했습니다 (차단·시간초과). 측정 불가이며 점수 0이 아닙니다 — 잠시 후 다시 시도해 주세요.';
+    showCitationCard = true;
   } else if (reason === 'too-many-redirects') {
     msg = '리다이렉트가 너무 많아 측정하지 못했습니다.';
   } else {
     msg = (data && data.message) || '잠시 후 다시 시도해 주세요.';
   }
   $('errMsg').textContent = msg;
+  // 측정 불가 ≠ 인용 불가: TLS/connect-failed 시 실측 신청 카드 표시 (URL 패스스루)
+  if (showCitationCard) {
+    show('errorCitationCard');
+    // errorCitationForm에 저장된 URL을 data 속성으로 주입 (submit 핸들러가 읽음)
+    const ecForm = $('errorCitationForm');
+    if (ecForm) ecForm.dataset.url = lastScoredUrl;
+  } else {
+    hide('errorCitationCard');
+  }
   show('error');
   requestAnimationFrame(() => {
     $('error').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 }
+
+// 측정 불가 상황의 실측 신청 폼 — 원본 URL 그대로 /api/citation에 POST (백엔드는 도메인만 사용)
+(function () {
+  const form = $('errorCitationForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailEl = $('errorEmailInput');
+    const email = emailEl ? emailEl.value.trim() : '';
+    if (!email) return;
+    const url = form.dataset.url || lastScoredUrl;
+    if (!url) return;
+    const btn = $('errorCitationBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '신청 중...'; }
+    try {
+      await fetch('/api/citation', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, url, clinicName: '' }),
+      });
+    } catch (_) { /* non-blocking */ }
+    show('errorCitationOk');
+    if (btn) { btn.disabled = false; btn.textContent = '실측 신청'; }
+  });
+})();
 
 function render(d) {
   lastScoreData = d;

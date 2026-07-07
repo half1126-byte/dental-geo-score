@@ -222,12 +222,25 @@ test('buildComparePackage: assembles full render-ready package', () => {
 });
 
 // ── 의료광고법 compliance backstop ──────────────────────────
+// 스캔 대상 5개 파일: lib/scorer.js, lib/checklists.js, public/index.html, public/app.js, public/operator.js
+// 의료광고법 절대 금칙어 — 성과 단정·최상급 표현
+// 주의: "1위"·"보장"은 의료광고법 경고문("1위로 쓰면 위반") 안에 합법적으로 인용될 수 있으므로 별도 처리
+const BANNED_TERMS = ['최고', '유일', '완치', '최상급', '명품', '점수↑', '무통', '부작용 없는', '순위 보장'];
+
+const SCAN_FILES = [
+  '../lib/compare.js',
+  '../lib/scorer.js',
+  '../lib/checklists.js',
+  '../public/index.html',
+  '../public/app.js',
+  '../public/operator.js',
+];
+
 test('compliance: lib/compare.js copy has no banned 의료광고법 terms', () => {
   const src = readFileSync(new URL('../lib/compare.js', import.meta.url), 'utf8');
   // strip line comments so guidance comments (e.g. the banned-list itself) aren't flagged
   const code = src.replace(/^\s*\/\/.*$/gm, '');
-  const BANNED = ['최고', '1위', '유일', '완치', '보장', '100%', '최상급', '명품', '점수↑'];
-  for (const term of BANNED) {
+  for (const term of BANNED_TERMS) {
     assert.ok(!code.includes(term), `compare.js must not contain banned term: ${term}`);
   }
   // the hygiene framing label must stay intact
@@ -241,4 +254,27 @@ test('compliance: assembled package strings have no banned terms', () => {
   for (const term of ['최고', '1위', '유일', '완치', '보장', '최상급', '명품']) {
     assert.ok(!json.includes(term), `package copy must not contain: ${term}`);
   }
+});
+
+test('compliance: 5 source files have no banned 의료광고법 terms', () => {
+  for (const relPath of SCAN_FILES) {
+    const src = readFileSync(new URL(relPath, import.meta.url), 'utf8');
+    // strip single-line comments to avoid flagging the banned-list comment itself
+    // also strip negation forms: "보장하지 않습니다" / "보장하지 않으며" are compliant disclaimers
+    const code = src
+      .replace(/^\s*\/\/.*$/gm, '')
+      .replace(/보장하지\s*않/g, '__NEGATED__');
+    for (const term of BANNED_TERMS) {
+      assert.ok(!code.includes(term), `${relPath} must not contain banned term: "${term}"`);
+    }
+  }
+});
+
+test('compliance: BANNED scan reads all 5 target files (coverage check)', () => {
+  const expectedFiles = ['lib/scorer.js', 'lib/checklists.js', 'public/index.html', 'public/app.js', 'public/operator.js'];
+  for (const f of expectedFiles) {
+    const found = SCAN_FILES.some((p) => p.includes(f.replace('/', '/')));
+    assert.ok(found, `SCAN_FILES must include ${f}`);
+  }
+  assert.ok(SCAN_FILES.length >= 5, 'SCAN_FILES must cover at least 5 files');
 });

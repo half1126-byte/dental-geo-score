@@ -1249,7 +1249,7 @@ function renderHygiene(scoreRes) {
 
   // ── Section 3: 추가 메타 ─────────────────────────────────────
   const metaSigs = [
-    { val: d.hasLlmsTxt,    label: 'llms.txt',        layer: 'GEO', note: 'AI 전용 색인 파일' },
+    { val: d.hasLlmsTxt,    label: 'llms.txt',        layer: 'GEO', note: 'AI 전용 색인 파일 (Google 공식 미지원 — 참고용)' },
     { val: d.hasMapEmbed,   label: 'Google Maps 삽입', layer: 'SEO', note: '위치 신호 강화' },
     { val: d.hasPriceInfo,  label: '비급여 가격 안내', layer: 'AEO', note: '가격 키워드 감지' },
   ];

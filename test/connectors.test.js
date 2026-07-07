@@ -77,9 +77,9 @@ test('cf: empty/malformed safe', () => {
 });
 
 // --- client setup checklist ---
-test('client setup: 2 auto-connector + 3 manual, all well-formed', () => {
+test('client setup: 2 auto-connector + 4 manual, all well-formed', () => {
   const items = CLIENT_SETUP_CHECKLIST.items;
   assert.equal(items.filter((i) => i.mode === 'auto-connector').length, 2);
-  assert.equal(items.filter((i) => i.mode === 'manual').length, 3);
+  assert.equal(items.filter((i) => i.mode === 'manual').length, 4);
   assert.ok(items.every((i) => i.id && i.label && i.mode));
 });
