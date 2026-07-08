@@ -23,6 +23,13 @@ test('claude request uses web_search_20260209 (dynamic filtering, GA 2026-02-09)
   assert.equal(r.tools[0].type, 'web_search_20260209');
 });
 
+test('claude request forces tool_choice:{type:tool} to prevent search skip (mirrors OpenAI required)', () => {
+  const r = buildClaudeRequest({ system: 's', user: 'u' }, {});
+  assert.deepEqual(r.tool_choice, { type: 'tool', name: 'web_search' });
+  assert.ok(r.system.includes('반드시 web_search 도구를 사용'), 'system must mandate search');
+  assert.ok(r.system.includes('s'), 'original system preserved');
+});
+
 test('ENGINE_API endpoints + env keys correct', () => {
   assert.equal(ENGINE_API.chatgpt.url, 'https://api.openai.com/v1/responses');
   assert.equal(ENGINE_API.perplexity.url, 'https://api.perplexity.ai/chat/completions');

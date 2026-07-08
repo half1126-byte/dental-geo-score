@@ -19,12 +19,12 @@ if (ok(process.env.OPENAI_API_KEY)) keys.chatgpt = process.env.OPENAI_API_KEY;
 if (ok(process.env.PERPLEXITY_API_KEY)) keys.perplexity = process.env.PERPLEXITY_API_KEY;
 if (ok(process.env.ANTHROPIC_API_KEY)) keys.claude = process.env.ANTHROPIC_API_KEY;
 
+const repeats = parseInt(process.env.POC_REPEATS || '2', 10);
 console.log(`target: ${clinicDomain} | region: ${region} | procedure: ${procedure}`);
 console.log(`engines with keys: ${Object.keys(keys).join(', ') || 'NONE'} | model: ${process.env.OPENAI_SEARCH_MODEL || 'gpt-4o'} | repeats: ${repeats}`);
 if (!Object.keys(keys).length) { console.log('NO KEYS — fill .env.local'); process.exit(1); }
 
 const t0 = Date.now();
-const repeats = parseInt(process.env.POC_REPEATS || '2', 10);
 const panel = await runCitationPanel({ clinicDomain, region, procedure, keys, repeats });
 console.log(`\nmeasuredAt: ${panel.measuredAt} | ${Date.now() - t0}ms`);
 
