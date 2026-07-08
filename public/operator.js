@@ -276,11 +276,11 @@ $('opMeasureBtn').addEventListener('click', async () => {
 
   hide('opError'); hide('opResult');
   if (isMultiRegion) {
-    const nEng = 2; const nQ = selectedQueries.length || 4;
+    const nEng = 3; const nQ = selectedQueries.length || 4;
     const approx = (selectedRegions.length * nEng * nQ * 0.06).toFixed(2);
     $('opLoadMsg').textContent = `${selectedRegions.length}개 지역 × ${nEng}엔진 × ${nQ}쿼리 ≈ $${approx} — 측정 중...`;
   } else {
-    $('opLoadMsg').textContent = 'ChatGPT·Perplexity에 실제 질의 중 (최대 1~2분)...';
+    $('opLoadMsg').textContent = 'ChatGPT·Perplexity·Claude에 실제 질의 중 (최대 1~2분)...';
   }
   show('opLoading');
   $('opMeasureBtn').disabled = true; $('opMeasureBtn').textContent = '측정 중...';
