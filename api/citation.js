@@ -107,11 +107,11 @@ export default async function handler(req, res) {
   try {
     // Build customPrompts early so cache key can include query fingerprint.
     const rawCustom = Array.isArray(queries) && queries.length > 0
-      ? queries.slice(0, 3).map((q) => String(q).trim().slice(0, 300)).filter(Boolean)
+      ? queries.slice(0, 4).map((q) => String(q).trim().slice(0, 300)).filter(Boolean)
       : null;
     const customPrompts = rawCustom && rawCustom.length > 0 ? rawCustom : null;
     const queryFP = customPrompts ? customPrompts.slice().sort().join('§').slice(0, 120) : '';
-    const queryCount = customPrompts ? customPrompts.length : 3;
+    const queryCount = customPrompts ? customPrompts.length : 4;
 
     if (isMulti) {
       // --- Multi-region path ---

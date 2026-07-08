@@ -9,6 +9,7 @@ export function dentalQueryVariants({ district = '', procedure = '', businessTyp
     `${d} ${p} 잘하는 ${bt} 추천해줘`.replace(/\s+/g, ' ').trim(),
     `${d}에서 ${p} ${bt} 비교`.replace(/\s+/g, ' ').trim(),
     `${d} ${bt} 추천`.replace(/\s+/g, ' ').trim(),
+    `${d} ${p} 비용이 얼마예요`.replace(/\s+/g, ' ').trim(),
   ];
 }
 
@@ -26,6 +27,7 @@ export function allQueryVariants({ district = '', procedure = '', businessType =
     `${d} ${p} 잘하는 ${bt} 추천해줘`.replace(/\s+/g, ' ').trim(),
     `${d}에서 ${p} ${bt} 비교`.replace(/\s+/g, ' ').trim(),
     `${d} ${bt} 추천`.replace(/\s+/g, ' ').trim(),
+    `${d} ${p} 비용이 얼마예요`.replace(/\s+/g, ' ').trim(),
   ];
 
   const conversational = [

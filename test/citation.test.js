@@ -100,7 +100,7 @@ test('runCitationPanel: customPrompts string array → {system,user} conversion,
   assert.equal(sentUserMsgs.length, 2, 'exactly customPrompts.length calls, not buildPrompts default 3');
 });
 
-test('runCitationPanel: customPrompts=[] falls back to buildPrompts (3 default queries)', async () => {
+test('runCitationPanel: customPrompts=[] falls back to buildPrompts (4 default queries)', async () => {
   const sentUserMsgs = [];
   const fetchImpl = async (url, opts) => {
     if (url.includes('openai')) {
@@ -112,7 +112,7 @@ test('runCitationPanel: customPrompts=[] falls back to buildPrompts (3 default q
     return { ok: false, status: 404 };
   };
   await runCitationPanel({ clinicDomain: 'x.co.kr', region: '강남', procedure: '임플란트', keys: { chatgpt: 'k' }, customPrompts: [], nowIso: 't', fetchImpl });
-  assert.equal(sentUserMsgs.length, 3, 'empty customPrompts must fall back to buildPrompts 3 queries');
+  assert.equal(sentUserMsgs.length, 4, 'empty customPrompts must fall back to buildPrompts 4 queries');
 });
 
 test('runCitationPanel: all-error engine is measured:false + unmeasurable (C1, no fake 0/N)', async () => {

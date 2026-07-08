@@ -227,7 +227,7 @@ function updateQueryChips() {
   const region = selectedRegions.length ? selectedRegions[0] : $('opRegion').value.trim();
   const variants = allQueryVariants({ district: region, procedure: selectedProcedure });
   // default: first 3 selected (reset on region/procedure change)
-  selectedQueries = variants.slice(0, 3);
+  selectedQueries = variants.slice(0, 4);
   renderQueryChips(variants);
 }
 
@@ -257,7 +257,7 @@ $('opQueryChips').addEventListener('click', (e) => {
     if (selectedQueries.length <= 1) return; // 최소 1개 유지
     selectedQueries = selectedQueries.filter((x) => x !== q);
   } else {
-    if (selectedQueries.length >= 3) return; // 최대 3개
+    if (selectedQueries.length >= 4) return; // 최대 4개
     selectedQueries = [...selectedQueries, q];
   }
   // re-render chips with updated selection
@@ -276,7 +276,7 @@ $('opMeasureBtn').addEventListener('click', async () => {
 
   hide('opError'); hide('opResult');
   if (isMultiRegion) {
-    const nEng = 2; const nQ = selectedQueries.length || 3;
+    const nEng = 2; const nQ = selectedQueries.length || 4;
     const approx = (selectedRegions.length * nEng * nQ * 0.06).toFixed(2);
     $('opLoadMsg').textContent = `${selectedRegions.length}개 지역 × ${nEng}엔진 × ${nQ}쿼리 ≈ $${approx} — 측정 중...`;
   } else {

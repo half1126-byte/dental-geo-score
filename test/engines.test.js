@@ -13,7 +13,7 @@ test('engine config: 5 engines, correct measure modes', () => {
 
 test('buildPrompts produces patient-shaped variants with district+procedure', () => {
   const ps = buildPrompts({ district: '강남', procedure: '임플란트' });
-  assert.equal(ps.length, 3);
+  assert.equal(ps.length, 4);
   assert.ok(ps[0].user.includes('강남') && ps[0].user.includes('임플란트'));
   assert.ok(ps.every((p) => p.system.includes('강남')));
 });

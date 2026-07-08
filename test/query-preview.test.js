@@ -22,11 +22,11 @@ test('preview phrasing is identical to buildPrompts (no drift)', () => {
   }
 });
 
-test('allQueryVariants: district+procedure → ≥6 variants, first 3 identical to dentalQueryVariants', () => {
+test('allQueryVariants: district+procedure → ≥6 variants, first 4 identical to dentalQueryVariants', () => {
   const all = allQueryVariants({ district: '강남', procedure: '임플란트' });
   const base = dentalQueryVariants({ district: '강남', procedure: '임플란트' });
   assert.ok(all.length >= 6, `expected ≥6 variants, got ${all.length}`);
-  assert.deepEqual(all.slice(0, 3), base, 'first 3 must match dentalQueryVariants exactly');
+  assert.deepEqual(all.slice(0, 4), base, 'first 4 must match dentalQueryVariants exactly');
   assert.ok(all.some((q) => q.includes('출퇴근')), 'conversational "출퇴근" variant should be present');
 });
 
@@ -43,9 +43,9 @@ test('allQueryVariants: procedure only (no district) → ≥4 variants, includes
   assert.ok(all.some((q) => q.includes('임플란트') && q.includes('추천')), 'procedure-only conversational variant present');
 });
 
-test('allQueryVariants: both empty → returns exactly 3 base variants', () => {
+test('allQueryVariants: both empty → returns exactly 4 base variants', () => {
   const all = allQueryVariants({ district: '', procedure: '' });
-  assert.equal(all.length, 3, 'empty inputs → only 3 base variants');
+  assert.equal(all.length, 4, 'empty inputs → only 4 base variants');
 });
 
 test('region terms list is non-empty, deduped, trimmed', () => {
