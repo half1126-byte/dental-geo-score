@@ -955,7 +955,13 @@ function renderCitation(citeRes) {
   if (!eng.length) return card('AI 실측', '<p class="muted">측정 결과 없음.</p>');
 
   const logos = eng.map((p) => ENGINE_LOGO[p.engine] || '').filter(Boolean).join('');
-  const note = `<p class="muted small" style="margin-top:12px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
+  const maxReps = eng.reduce((m, p) => Math.max(m, p.validRuns || 0), 0);
+  const repsNote = maxReps > 1 ? `쿼리당 ${maxReps}회 평균` : '쿼리당 1회 측정 (오차 큼)';
+  const note = `<p class="muted small" style="margin-top:12px;text-align:center">
+    측정 엔진: <b>gpt-4o API</b> · <b>sonar API</b> · ${esc(repsNote)} —
+    ChatGPT·Perplexity <b>앱 직접 검색과 모델·버전이 달라 결과 차이 있을 수 있음</b> ·
+    <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b>
+  </p>`;
   const urlMatchHtml = d.citedUrlMatch ? renderCitedUrlMatch(d.citedUrlMatch) : '';
 
   const TH_LABEL = 'padding:11px 16px;font-size:.72rem;font-weight:700;color:var(--text-2);text-align:left;white-space:nowrap;border-right:1px solid var(--border);background:rgba(255,255,255,.02)';
