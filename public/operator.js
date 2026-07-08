@@ -895,9 +895,10 @@ function renderResultHeader(scoreRes, citeRes, q) {
     const logo = ENGINE_LOGO[p.engine] || '';
     const name = ENGINE_SHORT[p.engine] || p.engine;
     if (!p.measured) return `<div class="result-dash-engine-row">${logo}<span class="rdname">${esc(name)}</span><span style="color:var(--text-2);font-size:.8rem">—</span></div>`;
-    const color = p.cited ? 'var(--teal)' : 'var(--text-2)';
-    const icon  = p.cited ? '✅' : '❌';
-    const stat  = p.cited ? `${p.citedRuns}/${p.validRuns}회` : '미인용';
+    const named = p.namedRuns || 0;
+    const color = p.cited ? 'var(--teal)' : named ? 'var(--gold-2,#e6a817)' : 'var(--text-2)';
+    const icon  = p.cited ? '✅' : named ? '🟡' : '❌';
+    const stat  = p.cited ? `${p.citedRuns}/${p.validRuns}회` : named ? `이름언급 ${named}회` : '미인용';
     return `<div class="result-dash-engine-row">${logo}<span class="rdname">${esc(name)}</span><span style="font-weight:700;color:${color};font-size:.82rem">${icon} ${esc(stat)}</span></div>`;
   }).join('') : '';
 
@@ -905,11 +906,14 @@ function renderResultHeader(scoreRes, citeRes, q) {
   const eng = Array.isArray(d.perEngine) ? d.perEngine : [];
   const measuredAny = eng.some((p) => p.measured);
   const citedNames = eng.filter((p) => p.cited).map((p) => ENGINE_SHORT[p.engine] || p.engine);
+  const namedNames = eng.filter((p) => !p.cited && (p.namedRuns || 0) > 0).map((p) => ENGINE_SHORT[p.engine] || p.engine);
   const verdictLine = (eng.length && measuredAny)
     ? (citedNames.length
-        ? `<div class="result-verdict ok"><span class="rv-icon">✅</span><span class="rv-text"><b>AI 추천됨</b> — ${esc(citedNames.join('·'))}에 이 치과가 인용되고 있습니다.</span></div>`
-        : `<div class="result-verdict bad"><span class="rv-icon">❌</span><span class="rv-text"><b>AI 미추천</b> — ChatGPT·Perplexity 추천 목록에 이 치과가 없습니다. 아래 ‘② 진단’에서 무엇이 부족한지 확인하세요.</span></div>`)
-    : '';
+        ? `<div class="result-verdict ok"><span class="rv-icon">✅</span><span class="rv-text"><b>AI 추천됨</b> — ${esc(citedNames.join(‘·’))}에 이 치과가 인용되고 있습니다.</span></div>`
+        : namedNames.length
+          ? `<div class="result-verdict warn" style="background:rgba(230,168,23,.08);border-color:rgba(230,168,23,.25)"><span class="rv-icon">🟡</span><span class="rv-text"><b>이름 언급됨</b> — ${esc(namedNames.join(‘·’))}이 답변에서 이 치과를 언급했지만 링크 인용은 없습니다.</span></div>`
+          : `<div class="result-verdict bad"><span class="rv-icon">❌</span><span class="rv-text"><b>AI 미추천</b> — ChatGPT·Perplexity 추천 목록에 이 치과가 없습니다. 아래 ‘② 진단’에서 무엇이 부족한지 확인하세요.</span></div>`)
+    : ‘’;
 
   return `${verdictLine}<div class="result-dash">
     ${scoreBlock}
@@ -983,6 +987,12 @@ function renderCitation(citeRes) {
       <div style="font-size:1.4rem;line-height:1">✅</div>
       <div style="font-size:.88rem;font-weight:700;color:#1fcec4;margin-top:5px">${p.citedRuns}/${p.validRuns}회 인용</div>
       <div style="font-size:.73rem;color:#1fcec4;margin-top:2px;opacity:.8">AI가 추천했습니다</div>
+    </td>`;
+    const named = p.namedRuns || 0;
+    if (named > 0) return `<td style="padding:16px 20px;text-align:center;background:rgba(230,168,23,.06)">
+      <div style="font-size:1.4rem;line-height:1">🟡</div>
+      <div style="font-size:.88rem;font-weight:700;color:#e6a817;margin-top:5px">이름 언급 ${named}회</div>
+      <div style="font-size:.73rem;color:#e6a817;margin-top:2px;opacity:.8">링크 인용 없음</div>
     </td>`;
     return `<td style="padding:16px 20px;text-align:center">
       <div style="font-size:1.4rem;line-height:1">❌</div>
