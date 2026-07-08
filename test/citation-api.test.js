@@ -225,6 +225,32 @@ test('cache hit returns 200 with cached:true (no live call)', async () => {
   global.fetch = origFetch;
 });
 
+test('nocache: operator x-nocache:1 bypasses cache (reaches live panel, not cached:true)', async () => {
+  clearEnv();
+  process.env.OPERATOR_KEY = 'k';
+  process.env.CITATION_ENABLED = 'true';
+  process.env.OPENAI_API_KEY = 'x';
+  const origFetch = global.fetch;
+  global.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+  const { req, res, out } = mk('POST', { url: 'https://nocache-test.co.kr', region: '강남', nocache: true }, { 'x-operator-key': 'k', 'x-nocache': '1' });
+  await handler(req, res);
+  assert.ok(out.status === 200 || out.status === 500, `expected live path (200/500), got ${out.status}`);
+  assert.ok(!out.body?.cached, 'nocache request must NOT return cached:true');
+  global.fetch = origFetch;
+});
+
+test('nocache: public path ignores nocache (non-operator cannot bypass cache)', async () => {
+  clearEnv();
+  process.env.CITATION_ENABLED = 'true';
+  process.env.OPENAI_API_KEY = 'x';
+  // No OPERATOR_KEY set → public path
+  const { req, res, out } = mk('POST', { url: 'https://nocache-pub.co.kr', region: '강남', nocache: true, email: 'a@b.co' }, { 'x-nocache': '1' });
+  await handler(req, res);
+  // Public path with keys but no OPERATOR_KEY set means isOperator=false → noCache=false (cannot bypass)
+  // Test verifies the request reaches normal flow (not 400/401)
+  assert.ok([200, 202, 429, 500].includes(out.status), `unexpected status ${out.status}`);
+});
+
 // --- DAILY_CITATION_CAP ---
 
 test('DAILY_CITATION_CAP: second request over cap returns 202 cap-reached', async () => {

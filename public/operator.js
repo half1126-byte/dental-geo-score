@@ -285,12 +285,13 @@ $('opMeasureBtn').addEventListener('click', async () => {
   show('opLoading');
   $('opMeasureBtn').disabled = true; $('opMeasureBtn').textContent = '측정 중...';
   try {
-    const headers = { 'content-type': 'application/json', 'x-operator-key': key };
+    const nocache = !!($('opNocache') && $('opNocache').checked);
+    const headers = { 'content-type': 'application/json', 'x-operator-key': key, ...(nocache ? { 'x-nocache': '1' } : {}) };
     const queriesToSend = selectedQueries.length > 0 ? selectedQueries : undefined;
     const cName = (lastScoreRes && lastScoreRes.d && lastScoreRes.d.clinicNameGuess) || '';
     const body = isMultiRegion
-      ? { url: lastUrl, regions: selectedRegions, procedure, queries: queriesToSend, clinicName: cName }
-      : { url: lastUrl, region: effectiveRegion, procedure, queries: queriesToSend, clinicName: cName };
+      ? { url: lastUrl, regions: selectedRegions, procedure, queries: queriesToSend, clinicName: cName, ...(nocache ? { nocache: true } : {}) }
+      : { url: lastUrl, region: effectiveRegion, procedure, queries: queriesToSend, clinicName: cName, ...(nocache ? { nocache: true } : {}) };
     const citeRes = await fetch('/api/citation', {
       method: 'POST', headers,
       body: JSON.stringify(body),

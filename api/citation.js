@@ -48,6 +48,12 @@ export default async function handler(req, res) {
   // --- operator gate (internal tool) ---
   const operatorKeySet = !!process.env.OPERATOR_KEY;
   const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
+  // Operator-only cache bypass: x-nocache:1 header or ?nocache=1 / body.nocache:true
+  const noCache = isOperator && (
+    req.headers['x-nocache'] === '1' ||
+    req.query?.nocache === '1' ||
+    req.body?.nocache === true
+  );
   // Non-operator (public) path: allow through with email gate (Path A). toPublicView masks competitors.
   // DAILY_CITATION_CAP=20 guards cost. Operators (x-operator-key) get full private report.
   if (!isOperator) {
@@ -112,7 +118,7 @@ export default async function handler(req, res) {
       const costNote = buildCostNote(effectiveRegions.length, Object.keys(keys).length, queryCount);
       // Cache key uses sorted region list so order-invariant
       const cacheKey = `multi|${domain}|${effectiveRegions.slice().sort().join('‖')}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
-      const cached = await store.cacheGet(cacheKey);
+      const cached = noCache ? null : await store.cacheGet(cacheKey);
       if (cached) {
         const byRegion = buildByRegionView(cached.panelsByRegion, effectiveRegions, view);
         res.status(200).json({ clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion, measuredAt: cached.measuredAt, costNote, view: isOperator ? 'private' : 'public', cached: true });
@@ -170,7 +176,7 @@ export default async function handler(req, res) {
 
     // --- Single-region path (existing behavior) ---
     const cacheKey = `${domain}|${(effectiveRegions[0] || '').toLowerCase()}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
-    const cached = await store.cacheGet(cacheKey);
+    const cached = noCache ? null : await store.cacheGet(cacheKey);
     if (cached) {
       res.status(200).json({ ...view(cached), cached: true });
       return;
