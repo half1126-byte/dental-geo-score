@@ -655,13 +655,17 @@ async function loadCompare(compDomain, compUrl, _retrying = false) {
 
   if (!pkg || !pkg.signalDiff) {
     const side = errData && errData.side;
+    const reason = errData && errData.reason;
+    const reasonTag = reason
+      ? `<br><code style="font-size:.73rem;color:#555;background:#f5f5f5;padding:2px 7px;border-radius:3px;letter-spacing:.01em">${esc(reason)}</code>`
+      : '';
     const sideNote = side === 'comp'
       ? '<br><span class="muted small" style="font-size:.78rem">경쟁 병원 사이트가 느리거나 일시 차단된 것 같습니다. 잠시 후 재시도해 보세요.</span>'
       : side === 'user'
       ? '<br><span class="muted small" style="font-size:.78rem">분석 대상 사이트를 다시 불러오지 못했습니다. "분석" 버튼으로 재측정 후 시도하세요.</span>'
       : '';
     sec.innerHTML = `<div class="compare-panel">${compCloseBtn()}
-      <p style="margin-bottom:12px">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}${sideNote}</p>
+      <p style="margin-bottom:12px">비교 분석 실패 — ${esc(errMsg || '데이터 없음')}${reasonTag}${sideNote}</p>
       <button type="button" class="btn p" data-compare-retry data-retry-domain="${esc(compDomain)}" data-retry-url="${esc(compFullUrl)}" style="min-width:140px">🔄 다시 시도</button></div>`;
     return;
   }
