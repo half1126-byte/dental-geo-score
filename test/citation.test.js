@@ -30,6 +30,22 @@ test('claude request forces tool_choice:{type:tool} to prevent search skip (mirr
   assert.ok(r.system.includes('s'), 'original system preserved');
 });
 
+test('callEngine: claude HTTP-200 tool_result is_error → throws (not inconclusive)', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => ({
+      content: [
+        { type: 'tool_use', name: 'web_search', id: 'x', input: { query: 'q' } },
+        { type: 'tool_result', tool_use_id: 'x', is_error: true, content: [{ type: 'text', text: 'too_many_requests' }] },
+      ],
+    }),
+  });
+  await assert.rejects(
+    () => import('../lib/citation.js').then(({ callEngine }) => callEngine('claude', { user: 'u' }, { key: 'k', fetchImpl })),
+    /web_search_tool_result error.*too_many_requests/,
+  );
+});
+
 test('ENGINE_API endpoints + env keys correct', () => {
   assert.equal(ENGINE_API.chatgpt.url, 'https://api.openai.com/v1/responses');
   assert.equal(ENGINE_API.perplexity.url, 'https://api.perplexity.ai/chat/completions');
