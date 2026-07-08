@@ -154,3 +154,9 @@ test('METHODOLOGY_VERSION is v0.2', () => {
   const r = scorePage({ robots: { present: false }, signals: {} });
   assert.equal(r.methodologyVersion, 'v0.2');
 });
+
+test('disclaimer: score result includes non-prediction disclaimer', () => {
+  const r = scorePage({ robots: { present: false }, signals: {} });
+  assert.ok(typeof r.disclaimer === 'string' && r.disclaimer.length > 10, 'disclaimer must be a non-empty string');
+  assert.ok(r.disclaimer.includes('AI 인용을 예측하지 않'), 'disclaimer must state non-prediction');
+});
