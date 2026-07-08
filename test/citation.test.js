@@ -18,9 +18,9 @@ test('perplexity request sets web_search_options.user_location KR', () => {
   assert.equal(r.web_search_options.user_location.city, '강남');
 });
 
-test('claude request uses web_search_20260209 (dynamic filtering, GA 2026-02-09)', () => {
+test('claude request uses web_search_20250305 (direct-call allowed; 20260209+ requires code_execution)', () => {
   const r = buildClaudeRequest({ user: 'u' }, {});
-  assert.equal(r.tools[0].type, 'web_search_20260209');
+  assert.equal(r.tools[0].type, 'web_search_20250305');
 });
 
 test('claude request forces tool_choice:{type:tool} to prevent search skip (mirrors OpenAI required)', () => {
