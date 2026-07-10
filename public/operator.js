@@ -300,7 +300,7 @@ $('opMeasureBtn').addEventListener('click', async () => {
       // 패스코드 오류 — 안내를 명확히
       localStorage.removeItem('opKey');
       initKeyState();
-      hide('analyzeSection'); hide('confirmSection');
+      hide('confirmSection');
       showError('패스코드가 맞지 않습니다. ① 패스코드를 다시 입력해주세요.<br><small style="color:var(--text-2)">.env.local의 <code>OPERATOR_KEY=</code> 값을 확인하세요 (OpenAI/Perplexity API 키가 아닙니다)</small>');
       return;
     }
