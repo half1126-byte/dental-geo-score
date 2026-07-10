@@ -116,6 +116,7 @@ $('opBtn').addEventListener('click', async () => {
   $('opLoadMsg').textContent = '페이지 분석 중 (지역·진료 자동 감지)...';
   show('opLoading');
   $('opBtn').disabled = true; $('opBtn').textContent = '분석 중...';
+  requestAnimationFrame(() => { const el = $('opLoading'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
   try {
     const scoreRes = await fetch('/api/score', {
       method: 'POST',
@@ -132,6 +133,7 @@ $('opBtn').addEventListener('click', async () => {
     lastScoreRes = scoreRes;
     populateConfirm(scoreRes.d);
     show('confirmSection');
+    requestAnimationFrame(() => { const el = $('confirmSection'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   } catch {
     hide('opLoading'); showError('네트워크 오류. 잠시 후 다시.');
   } finally {
@@ -311,7 +313,10 @@ $('opMeasureBtn').addEventListener('click', async () => {
   }
 });
 
-function showError(msg) { $('opErrMsg').innerHTML = msg; show('opError'); }
+function showError(msg) {
+  $('opErrMsg').innerHTML = msg; show('opError');
+  requestAnimationFrame(() => { const el = $('opError'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+}
 window.printReport = function () { window.print(); };
 
 function render(scoreRes, citeRes, q) {
