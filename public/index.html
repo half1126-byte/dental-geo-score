@@ -483,8 +483,8 @@
     <!-- ── 실측 인용 패널 신청 — 최상단 제안 (실측이 증거, 점수는 진단) ── -->
     <div style="background:rgba(128,82,255,.10);border:1px solid rgba(128,82,255,.30);border-radius:14px;padding:20px 22px;margin:0 auto 28px;max-width:480px">
       <p style="font-size:.82rem;font-weight:700;color:var(--plum,#8052ff);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px">실측이 증거, 점수는 진단</p>
-      <p style="font-size:.93rem;font-weight:600;margin-bottom:6px">ChatGPT·Perplexity·Gemini에 실제로 뜨는지 확인하려면</p>
-      <p class="small muted" style="margin-bottom:14px">이메일을 남겨두시면 아래 URL 진단 후 실측 인용 결과를 함께 보내드립니다. 점수는 기술 위생 진단 — 실제 노출 여부는 실측으로만 확인됩니다.</p>
+      <p style="font-size:.93rem;font-weight:600;margin-bottom:6px">ChatGPT·Perplexity·Claude에 실제로 뜨는지 확인하려면</p>
+      <p class="small muted" style="margin-bottom:14px">이메일을 남기시면 URL 진단 후 AI 실측 결과를 함께 보내드립니다.</p>
       <form class="form" id="panelGateForm" style="max-width:none;margin:0">
         <input type="email" id="panelEmailInput" placeholder="이메일 주소 (실측 결과 수신)" autocomplete="email" />
         <button class="btn p" type="submit" id="panelGateBtn" style="white-space:nowrap">실측 신청</button>
@@ -541,8 +541,14 @@
 
   <section id="loading" class="hidden">
     <div class="prog">
-      <div class="row"><span class="spin"></span> 홈페이지를 안전하게 불러오는 중...</div>
-      <div class="row">구조화 데이터·전문성 신호·answer-first 구조 분석 중...</div>
+      <div class="row"><span class="spin"></span> <span id="loadingMsg">홈페이지 가져오는 중...</span></div>
+      <div class="load-steps">
+        <span id="ls1" class="load-step active">크롤</span>
+        <span class="load-step-sep">›</span>
+        <span id="ls2" class="load-step">분석</span>
+        <span class="load-step-sep">›</span>
+        <span id="ls3" class="load-step">채점</span>
+      </div>
     </div>
   </section>
 
@@ -606,8 +612,8 @@
 
     <!-- 이메일 게이트 — 항상 표시, 제출 후 아래 항목 공개 -->
     <div class="card gate">
-      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:6px">개선 우선순위 + AI 실측 결과 받기</h3>
-      <p>구조 개선 가이드 3가지와 ChatGPT·Perplexity·Gemini의 <b>실제 추천 여부</b>를 이메일로 보내드립니다.</p>
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:6px">AI 실측 결과 받기</h3>
+      <p>이메일 한 줄 → ChatGPT·Perplexity·Claude가 지금 추천하는지 알려드립니다.</p>
       <form class="form" id="leadForm">
         <input type="email" id="emailInput" placeholder="이메일 주소" autocomplete="email" required />
         <button class="btn p" type="submit" id="leadBtn">결과 받기</button>
@@ -654,7 +660,7 @@
   <div class="wrap">
     <h2>AI 검색 마케팅은<br/><strong>메디앤메디</strong>와 상의하세요.</h2>
     <a href="https://www.medinmedi.com/" target="_blank" rel="noopener" class="btn-cta-large">문의하기</a>
-    <p class="cta-sub">GEO 진단 · 콘텐츠 구축 · AI 노출 전략 · 블로그 운영</p>
+    <p class="cta-sub">GEO 진단 · AI 인용 전략 · 콘텐츠 운영</p>
   </div>
 </section>
 

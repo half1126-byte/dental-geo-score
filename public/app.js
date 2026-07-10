@@ -59,6 +59,19 @@ async function runScan() {
   if (!url) return;
   hide('result'); hide('error'); show('loading');
   $('goBtn').disabled = true; $('goBtn').textContent = '진단 중...';
+
+  // 3단계 로딩 진행
+  const loadMsgs = ['홈페이지 가져오는 중...', '구조·신호 분석 중...', 'GEO 점수 계산 중...'];
+  const stepIds = ['ls1', 'ls2', 'ls3'];
+  let loadStage = 0;
+  function setLoadStage(i) {
+    const msgEl = $('loadingMsg');
+    if (msgEl) msgEl.textContent = loadMsgs[i];
+    stepIds.forEach((id, j) => { const el = $(id); if (el) el.classList.toggle('active', j <= i); });
+  }
+  setLoadStage(0);
+  const loadTimer = setInterval(() => { loadStage = Math.min(loadStage + 1, 2); setLoadStage(loadStage); }, 1800);
+
   try {
     const res = await fetch('/api/score', {
       method: 'POST',
@@ -71,8 +84,9 @@ async function runScan() {
     render(data);
   } catch (err) {
     hide('loading');
-    showError({ message: '네트워크 오류로 측정하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
+    showError({ message: '네트워크 오류. 잠시 후 다시 시도해 주세요.' });
   } finally {
+    clearInterval(loadTimer);
     $('goBtn').disabled = false; $('goBtn').textContent = '진단받기';
   }
 }
@@ -85,15 +99,15 @@ function showError(data) {
   let msg;
   let showCitationCard = false;
   if (/cert|certificate|TLS|SSL|self.?signed|expired/i.test(detail) || reason === 'tls-cert') {
-    msg = '이 사이트는 보안 인증서가 만료·오류 상태라 AI도 안전하게 읽지 못합니다. 점수가 낮은 게 아니라 측정 불가 — 인증서부터 고치면 AI 노출의 기본 조건이 갖춰집니다.';
+    msg = '보안 인증서 오류 — AI도 읽지 못하는 상태입니다. 인증서를 갱신하면 AI 노출 기본 조건이 갖춰집니다.';
     showCitationCard = true;
   } else if (reason === 'blocked-ip' || reason === 'dns-failed' || reason === 'dns-empty' || reason === 'invalid-url') {
-    msg = '해당 주소를 찾을 수 없습니다. 홈페이지 주소가 맞는지 확인해 주세요 (존재하지 않거나 내부 주소일 수 있습니다).';
+    msg = '주소를 찾을 수 없습니다. 홈페이지 주소를 확인해 주세요.';
   } else if (reason === 'timeout' || reason === 'connect-failed' || reason === 'read-failed') {
-    msg = '사이트 응답이 없어 측정하지 못했습니다 (차단·시간초과). 측정 불가이며 점수 0이 아닙니다 — 잠시 후 다시 시도해 주세요.';
+    msg = '응답 없음 · 잠시 후 다시 시도하거나 실측을 신청하세요.';
     showCitationCard = true;
   } else if (reason === 'too-many-redirects') {
-    msg = '리다이렉트가 너무 많아 측정하지 못했습니다.';
+    msg = '리다이렉트 과다 — 사이트 설정 확인이 필요합니다.';
   } else {
     msg = (data && data.message) || '잠시 후 다시 시도해 주세요.';
   }
