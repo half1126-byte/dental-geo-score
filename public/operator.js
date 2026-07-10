@@ -28,7 +28,6 @@ if (_urlKey) { localStorage.setItem('opKey', _urlKey); history.replaceState(null
 function showKeyEntry(errMsg) {
   hide('keySaved');
   $('setupCard').classList.remove('hidden');
-  hide('analyzeSection');
   hide('confirmSection');
   const note = $('keyValidationNote');
   if (note) {
