@@ -27,7 +27,6 @@ if (_urlKey) { localStorage.setItem('opKey', _urlKey); history.replaceState(null
 // ── 패스코드 상태 초기화 ────────────────────────────────────────
 function showKeyEntry(errMsg) {
   hide('keySaved');
-  $('setupCard').classList.remove('hidden');
   hide('confirmSection');
   const note = $('keyValidationNote');
   if (note) {
@@ -2054,3 +2053,9 @@ async function runBatch() {
 
   batchRunning = false;
 }
+
+// module → global (inline onclick handlers need window scope)
+window.switchTab = switchTab;
+window.batchAddUrl = batchAddUrl;
+window.batchRemoveUrl = batchRemoveUrl;
+window.runBatch = runBatch;
