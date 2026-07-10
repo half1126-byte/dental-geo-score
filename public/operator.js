@@ -1629,7 +1629,7 @@ const SOLUTIONS = [
 function renderProductRecommend(citeRes, scoreRes) {
   const cited = citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine)
     && citeRes.d.perEngine.some((p) => p.cited);
-  const score = scoreRes?.score ?? 100;
+  const score = scoreRes?.d?.score ?? 100;
   const count = selectedProducts.length;
 
   const cards = PRODUCTS.map((p) => {
@@ -1754,7 +1754,7 @@ async function submitLead() {
     const key = localStorage.getItem('opKey') || '';
     let domain = '';
     try { domain = new URL(lastUrl).hostname.replace(/^www\./, ''); } catch {}
-    const geoScore = lastScoreRes?.score ?? null;
+    const geoScore = lastScoreRes?.d?.score ?? null;
     const aiCited = !!(lastCiteRes && lastCiteRes.d && Array.isArray(lastCiteRes.d.perEngine)
       && lastCiteRes.d.perEngine.some((p) => p.cited));
 
@@ -2064,3 +2064,4 @@ window.switchTab = switchTab;
 window.batchAddUrl = batchAddUrl;
 window.batchRemoveUrl = batchRemoveUrl;
 window.runBatch = runBatch;
+window.saveNaverManual = saveNaverManual;

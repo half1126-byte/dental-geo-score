@@ -54,7 +54,7 @@ describe('normalizePlace', () => {
 
   it('builds naverUrl from id', () => {
     const n = normalizePlace(raw);
-    assert.equal(n.naverUrl, 'https://place.naver.com/hospital/1234567');
+    assert.equal(n.naverUrl, 'https://map.naver.com/v5/entry/place/1234567');
   });
   it('parses review counts as integers', () => {
     const n = normalizePlace(raw);
