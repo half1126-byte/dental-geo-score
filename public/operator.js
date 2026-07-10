@@ -913,11 +913,11 @@ function renderResultHeader(scoreRes, citeRes, q) {
   const namedNames = eng.filter((p) => !p.cited && (p.namedRuns || 0) > 0).map((p) => ENGINE_SHORT[p.engine] || p.engine);
   const verdictLine = (eng.length && measuredAny)
     ? (citedNames.length
-        ? `<div class="result-verdict ok"><span class="rv-icon">✅</span><span class="rv-text"><b>AI 추천됨</b> — ${esc(citedNames.join(‘·’))}에 이 치과가 인용되고 있습니다.</span></div>`
+        ? `<div class="result-verdict ok"><span class="rv-icon">✅</span><span class="rv-text"><b>AI 추천됨</b> — ${esc(citedNames.join('·'))}에 이 치과가 인용되고 있습니다.</span></div>`
         : namedNames.length
-          ? `<div class="result-verdict warn" style="background:rgba(230,168,23,.08);border-color:rgba(230,168,23,.25)"><span class="rv-icon">🟡</span><span class="rv-text"><b>이름 언급됨</b> — ${esc(namedNames.join(‘·’))}이 답변에서 이 치과를 언급했지만 링크 인용은 없습니다.</span></div>`
-          : `<div class="result-verdict bad"><span class="rv-icon">❌</span><span class="rv-text"><b>AI 미추천</b> — ChatGPT·Perplexity 추천 목록에 이 치과가 없습니다. 아래 ‘② 진단’에서 무엇이 부족한지 확인하세요.</span></div>`)
-    : ‘’;
+          ? `<div class="result-verdict warn" style="background:rgba(230,168,23,.08);border-color:rgba(230,168,23,.25)"><span class="rv-icon">🟡</span><span class="rv-text"><b>이름 언급됨</b> — ${esc(namedNames.join('·'))}이 답변에서 이 치과를 언급했지만 링크 인용은 없습니다.</span></div>`
+          : `<div class="result-verdict bad"><span class="rv-icon">❌</span><span class="rv-text"><b>AI 미추천</b> — ChatGPT·Perplexity 추천 목록에 이 치과가 없습니다. 아래 '② 진단'에서 무엇이 부족한지 확인하세요.</span></div>`)
+    : '';
 
   return `${verdictLine}<div class="result-dash">
     ${scoreBlock}
