@@ -171,6 +171,29 @@ function render(d) {
     bd.appendChild(el);
   }
 
+  // radar chart
+  const radarWrap = document.getElementById('radarWrap');
+  if (radarWrap) radarWrap.innerHTML = renderRadar(d.breakdown || []);
+
+  // fix teaser — preview potential improvement before email gate
+  const teaserCard = document.getElementById('fixTeaserCard');
+  const teaserContent = document.getElementById('fixTeaserContent');
+  if (teaserCard && teaserContent) {
+    const totalGain = (d.topFixes || []).reduce((s, f) => s + (f.gain || 0), 0);
+    if (totalGain > 0) {
+      const proj = Math.min(100, score + totalGain);
+      teaserContent.innerHTML =
+        `<div class="teaser-row">` +
+        `<span class="teaser-gain">+${totalGain}점</span>` +
+        `<span class="teaser-arrow">${score}점 → <b>${proj}점</b> 개선 가능</span>` +
+        `<span class="teaser-hint small muted">개선 항목 3가지와 AI 실측 결과 ↓</span>` +
+        `</div>`;
+      teaserCard.classList.remove('hidden');
+    } else {
+      teaserCard.classList.add('hidden');
+    }
+  }
+
   // fixes
   const fx = $('fixes');
   fx.innerHTML = '';
@@ -203,15 +226,14 @@ function render(d) {
   const when = d.measuredAt ? new Date(d.measuredAt).toLocaleString('ko-KR') : '';
   $('meta').textContent = `측정 ${when} · 방법론 ${d.methodologyVersion || 'v0.1'} · 대상 ${d.domain || ''} · ${d.renderMode || ''}`;
 
-  // 이메일 게이트 이하 항목 — 이미 제출했으면 바로 공개, 아니면 숨김
+  // 이메일 게이트 이하 항목 — compareCard는 항상 공개, fixesCard·resultCtaCard만 게이트
   const _fc = document.getElementById('fixesCard');
   const _rc = document.getElementById('resultCtaCard');
-  const _cc = document.getElementById('compareCard');
   if (emailGatePassed) {
-    [_fc, _rc, _cc].forEach(el => { if (el) el.classList.remove('hidden'); });
+    [_fc, _rc].forEach(el => { if (el) el.classList.remove('hidden'); });
     hide('leadForm');
   } else {
-    [_fc, _rc, _cc].forEach(el => { if (el) el.classList.add('hidden'); });
+    [_fc, _rc].forEach(el => { if (el) el.classList.add('hidden'); });
     show('leadForm');
     hide('leadOk');
   }
@@ -225,8 +247,8 @@ function render(d) {
   const _opKey = localStorage.getItem('opKey');
   if (_opKey) {
     hide('leadForm');
-    [_fc, _rc, _cc].forEach(el => { if (el) el.classList.remove('hidden'); });
-    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity·Gemini)...</p>';
+    [_fc, _rc].forEach(el => { if (el) el.classList.remove('hidden'); });
+    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity·Claude)...</p>';
     show('citationPanel');
     autoFetchCitation(_opKey);
   }
@@ -252,6 +274,35 @@ async function autoFetchCitation(key) {
     hide('citationPanel');
     show('leadForm');
   }
+}
+
+function renderRadar(breakdown) {
+  if (!breakdown || !breakdown.length) return '';
+  const n = breakdown.length;
+  const cx = 100, cy = 100, r = 68;
+  const toRad = d => d * Math.PI / 180;
+  const angles = breakdown.map((_, i) => toRad(360 / n * i - 90));
+  const vals = breakdown.map(x => x.max > 0 ? Math.min(1, x.points / x.max) : 0);
+  const statusCol = s => s === 'ok' ? '#1fcec4' : s === 'warn' ? '#e5a023' : '#e05252';
+  const pt = (a, dist) => [cx + dist * Math.cos(a), cy + dist * Math.sin(a)];
+  const poly = frac => angles.map(a => pt(a, r * frac).join(',')).join(' ');
+  const grids = [.33, .66, 1].map(f =>
+    `<polygon points="${poly(f)}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`).join('');
+  const axes = angles.map(a => {
+    const [x2, y2] = pt(a, r);
+    return `<line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`;
+  }).join('');
+  const dataPoints = angles.map((a, i) => pt(a, r * vals[i]));
+  const dataPoly = dataPoints.map(p => p.join(',')).join(' ');
+  const dots = dataPoints.map((p, i) =>
+    `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${statusCol(breakdown[i].status)}"/>`).join('');
+  const lblNames = ['AI 크롤러', '구조화', '전문성', '신선도', 'FAQ', '모바일', '렌더링'];
+  const lblEls = angles.map((a, i) => {
+    const [lx, ly] = pt(a, r + 14);
+    const anchor = lx < cx - 4 ? 'end' : lx > cx + 4 ? 'start' : 'middle';
+    return `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" font-size="7.5" fill="${statusCol(breakdown[i].status)}" opacity=".9">${lblNames[i] || ''}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="radar-svg" aria-hidden="true">${grids}${axes}<polygon points="${dataPoly}" fill="rgba(128,82,255,.22)" stroke="rgba(128,82,255,.75)" stroke-width="1.5"/>${dots}${lblEls}</svg>`;
 }
 
 // Opportunity framing — never grades/낙제, attribute gaps to page structure, not the dentist.
@@ -287,8 +338,7 @@ $('leadForm').addEventListener('submit', async (e) => {
   // 게이트 항목 공개
   const _gfc = document.getElementById('fixesCard');
   const _grc = document.getElementById('resultCtaCard');
-  const _gcc = document.getElementById('compareCard');
-  [_gfc, _grc, _gcc].forEach(el => { if (el) el.classList.remove('hidden'); });
+  [_gfc, _grc].forEach(el => { if (el) el.classList.remove('hidden'); });
   if (_gfc) _gfc.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   if (data && Array.isArray(data.perEngine) && data.perEngine.length) {
@@ -398,26 +448,30 @@ function renderComparePanel(compData) {
 
 // 4 honest states. Never a bare "측정 안 됨"=0; never a CI/upper-bound next to 0 cited (의료광고법 A-2).
 function renderCitation(d) {
-  const label = { chatgpt: 'ChatGPT (API)', perplexity: 'Perplexity (API)', claude: 'Claude (API)' };
+  const label = { chatgpt: 'ChatGPT', perplexity: 'Perplexity', claude: 'Claude' };
   const pct = (x) => Math.round((x || 0) * 100);
   const rows = (d.perEngine || []).map((p) => {
-    let v;
+    let badge, detail;
     if (!p.measured) {
-      const why = p.unmeasurable === 'engine-error' ? '엔진 오류로 측정 실패'
-        : p.unmeasurable === 'no-search' ? '엔진이 이 회차 검색을 안 함'
-        : '측정 전 (키 필요)';
-      v = `측정 안 됨 — ${why} · 0% 아님`;
+      const why = p.unmeasurable === 'engine-error' ? '엔진 오류'
+        : p.unmeasurable === 'no-search' ? '검색 미실행'
+        : '측정 전';
+      badge = `<span class="cite-badge none">— 미측정</span>`;
+      detail = why + ' · 0% 아님';
     } else if (p.cited) {
-      const ci = p.ci ? ` · 신뢰구간 ${pct(p.ci.low)}–${pct(p.ci.high)}%` : '';
-      v = `✓ ${p.validRuns}회 중 ${p.citedRuns}회 추천 (${pct(p.hitRate)}%${ci}) · N=${p.validRuns} 소표본`;
+      const ci = p.ci ? ` · ${pct(p.ci.low)}–${pct(p.ci.high)}%` : '';
+      badge = `<span class="cite-badge yes">✓ 인용됨</span>`;
+      detail = `${p.validRuns}회 중 ${p.citedRuns}회 · ${pct(p.hitRate)}%${ci}`;
     } else if (p.namedRuns > 0) {
-      v = `≈ 이름으로 ${p.namedRuns}회 언급 (직접 링크는 없음) — 노출은 되나 출처 연결이 약함`;
+      badge = `<span class="cite-badge partial">≈ 언급됨</span>`;
+      detail = `이름 ${p.namedRuns}회 언급 · 링크 없음`;
     } else {
-      v = `이 표본엔 미인용 (0/${p.validRuns}) — "추천 안 함"이 아니라 이번 표본 미관측`;
+      badge = `<span class="cite-badge no">✗ 미인용</span>`;
+      detail = `${p.validRuns}회 질의 · 0회`;
     }
-    return `<div style="padding:5px 0;border-top:1px solid var(--border)"><b>${esc(label[p.engine] || p.engine)}</b> — ${esc(v)}</div>`;
+    return `<div class="cite-row"><span class="cite-engine">${esc(label[p.engine] || p.engine)}</span>${badge}<span class="cite-detail">${esc(detail)}</span></div>`;
   }).join('');
-  return `<div><b>실측 인용 결과 — ${esc(d.clinicDomain || d.domain || '')}</b>${rows}` +
-    `<div class="muted small" style="margin-top:8px">이 수치는 <b>개발자 API</b> 기준이며 일반 ChatGPT 앱 결과와 다를 수 있습니다. 특정 시점 관측이라 규제 업종(의료 등) 광고에 "추천·1위·인증"으로 인용 금지(의료광고법).</div>` +
+  return `<div><b style="font-size:.85rem;color:var(--text-2)">AI 실측 — ${esc(d.clinicDomain || d.domain || '')}</b><div style="margin-top:10px">${rows}</div>` +
+    `<div class="muted small" style="margin-top:10px">API 기준 · 일반 앱과 결과 다를 수 있음 · 규제 업종 광고에 "추천·1위·인증"으로 인용 금지(의료광고법).</div>` +
     (d.note ? `<div class="muted small">${esc(d.note)}</div>` : '') + `</div>`;
 }

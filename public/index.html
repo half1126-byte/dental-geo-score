@@ -572,6 +572,7 @@
           <span class="band" id="bandLabel">—</span>
           <p class="small muted" id="verdict" style="margin-top:5px">—</p>
         </div>
+        <div class="score-banner-right" id="radarWrap"></div>
       </div>
       <div class="bar" style="margin-top:12px"><i id="scoreBar" style="width:0"></i></div>
       <div class="rendernote hidden" id="renderNote"></div>
@@ -583,6 +584,25 @@
       <b>신호별 진단</b>
       <div class="bd" id="breakdown"></div>
     </div>
+
+    <!-- 개선 예상 미리보기 — 이메일 게이트 전 표시 -->
+    <div class="card fix-teaser hidden" id="fixTeaserCard">
+      <div id="fixTeaserContent"></div>
+    </div>
+
+    <!-- 경쟁사 GEO 비교 — 점수 측정 후 바로 공개 -->
+    <div class="card cmp-card" id="compareCard">
+      <b>경쟁사 GEO 비교</b>
+      <p class="small muted" style="margin:6px 0 14px">AI가 다른 업체를 더 추천하는 이유를 구조로 파악합니다.<br>비교하고 싶은 경쟁 홈페이지 주소를 입력하면 신호별로 비교해드립니다.</p>
+      <form class="form" id="compareForm" style="max-width:none;margin-bottom:0">
+        <input type="url" id="compareUrl" placeholder="https://경쟁업체.co.kr" autocomplete="off" />
+        <button class="btn s" type="submit" id="compareBtn">비교 분석</button>
+      </form>
+    </div>
+    <div id="compareLoading" class="hidden">
+      <div class="prog"><div class="row"><span class="spin"></span> 경쟁사 분석 중...</div></div>
+    </div>
+    <div id="compareResult"></div>
 
     <!-- 이메일 게이트 — 항상 표시, 제출 후 아래 항목 공개 -->
     <div class="card gate">
@@ -611,19 +631,6 @@
     </div>
 
     <p class="small muted" id="meta"></p>
-
-    <div class="card cmp-card hidden" id="compareCard">
-      <b>경쟁사 GEO 비교</b>
-      <p class="small muted" style="margin:6px 0 14px">AI가 다른 업체를 더 추천하는 이유를 구조로 파악합니다.<br>비교하고 싶은 경쟁 홈페이지 주소를 입력하면 신호별로 비교해드립니다.</p>
-      <form class="form" id="compareForm" style="max-width:none;margin-bottom:0">
-        <input type="url" id="compareUrl" placeholder="https://경쟁업체.co.kr" autocomplete="off" />
-        <button class="btn s" type="submit" id="compareBtn">비교 분석</button>
-      </form>
-    </div>
-    <div id="compareLoading" class="hidden">
-      <div class="prog"><div class="row"><span class="spin"></span> 경쟁사 분석 중...</div></div>
-    </div>
-    <div id="compareResult"></div>
 
   </section>
 
