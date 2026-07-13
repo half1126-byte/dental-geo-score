@@ -1386,7 +1386,7 @@ async function loadNaverPlace(q) {
       sec.innerHTML = '<div class="naver-place-card"><p class="muted small">네이버 플레이스 조회 실패 — 잠시 후 재시도하세요.</p></div>';
       return;
     }
-    const html = renderNaverPlace(data, q);
+    const html = renderNaverPlace(data);
     if (!html) { hide('naverSection'); return; }
     sec.innerHTML = html;
     sec.classList.remove('reveal'); void sec.offsetWidth; sec.classList.add('reveal');
@@ -1395,87 +1395,7 @@ async function loadNaverPlace(q) {
   }
 }
 
-// ── 네이버면 — AI탭·플레이스·예약 (영업 섹션) ──────────────────
-// 판정 → 격차 → 수동 확인 → 상품 매핑. AI검색면(①~③)과 같은 셀링 구조.
-let aitabVerdicts = [];
-
-function npGapBars(target, top) {
-  if (!target || !top) return '';
-  const row = (label, mine, theirs) => {
-    const m = Number(mine || 0), t = Number(theirs || 0);
-    const max = Math.max(m, t, 1);
-    const ratio = m > 0 ? (t / m) : null;
-    const gapTxt = t > m && m > 0 ? `격차 ×${ratio.toFixed(1)}` : t > m ? '격차 큼' : '우위';
-    const gapColor = t > m ? '#f05e6a' : '#1fcec4';
-    const bar = (v, color) => `<div style="height:8px;border-radius:4px;background:${color};width:${Math.max(2, (v / max) * 100).toFixed(1)}%"></div>`;
-    return `<div style="margin-top:8px">
-      <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-2)">
-        <span>${label}</span><span style="color:${gapColor};font-weight:700">${gapTxt}</span>
-      </div>
-      <div style="display:grid;grid-template-columns:52px 1fr 60px;gap:6px;align-items:center;margin-top:3px;font-size:.7rem;color:var(--text-2)">
-        <span>우리</span>${bar(m, 'rgba(31,206,196,.75)')}<span style="text-align:right">${m.toLocaleString('ko-KR')}</span>
-        <span>경쟁 1위</span>${bar(t, 'rgba(240,94,106,.6)')}<span style="text-align:right">${t.toLocaleString('ko-KR')}</span>
-      </div>
-    </div>`;
-  };
-  return `<div style="margin-top:10px;padding-top:4px">
-    ${row('방문자리뷰', target.visitorReviews, top.visitorReviews)}
-    ${row('블로그리뷰', target.blogReviews, top.blogReviews)}
-  </div>`;
-}
-
-function renderAitabCheck(q) {
-  aitabVerdicts = [];
-  const region = (q && q.region) ? q.region.split('·')[0].trim() : '';
-  const proc = (q && q.procedure) || '';
-  const queries = [
-    `${region} ${proc} 잘하는 치과 추천해줘`.replace(/\s+/g, ' ').trim(),
-    `이번 주 토요일에 예약 가능한 ${region} ${proc} 치과 찾아줘`.replace(/\s+/g, ' ').trim(),
-    `${region} 치과 ${proc} 후기 정리해줘`.replace(/\s+/g, ' ').trim(),
-  ];
-  const rows = queries.map((v, i) => `
-    <div style="padding:12px 0;border-top:1px solid var(--border)">
-      <div style="font-size:.88rem;font-weight:600;color:var(--text-1);margin-bottom:8px;line-height:1.4">"${esc(v)}"</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button type="button" class="chip" data-gcopy="${esc(v)}">📋 복사</button>
-        <a class="chip" href="https://search.naver.com/search.naver?query=${encodeURIComponent(v)}" target="_blank" rel="noopener noreferrer">네이버 열기 ↗ <span class="muted" style="font-size:.68rem">(AI탭 선택)</span></a>
-        <span style="flex:1 0 100%;height:4px"></span>
-        <button type="button" class="chip" data-nset="${i}:cited">✓ 병원 확인</button>
-        <button type="button" class="chip" data-nset="${i}:not">— 병원 없음</button>
-        <button type="button" class="chip" data-nset="${i}:unsure">❓ 불확실</button>
-      </div>
-    </div>`).join('');
-  return `<div class="card gate" style="margin-top:12px">
-    <b style="font-size:1rem">🤖 AI탭·AI브리핑 — 직접 확인 (수동)</b>
-    <p class="muted small" style="margin:6px 0 4px">네이버 AI는 자동 측정이 어렵습니다(약관·차단). 같은 질의를 AI탭에서 직접 확인하고 기록하세요. 두 번째 질의는 <b>예약 실행형</b> — AI탭 특화 질의입니다. 인용 출처(플레이스·블로그·홈페이지)는 화면 캡처로 함께 보관하세요.</p>
-    ${rows}
-    <p class="small muted" id="nTally" style="margin-top:12px;text-align:center">아직 기록 없음</p>
-  </div>`;
-}
-
-function renderNaverProductMap({ bookingOk, targetFound, social, reviewGapBig }) {
-  const rows = [];
-  if (!bookingOk) rows.push({ gap: targetFound ? '네이버 예약 리뷰 0건 — 예약 미운영 또는 이용 초기' : '플레이스 매칭 실패 — 기본 정보 정합부터', act: '예약 오픈 + 플레이스 정보(NAP·진료시간·사진) 완결성 정비', prod: '예약·플레이스 세팅' });
-  if ((social || 0) < 1) rows.push({ gap: '홈페이지에 연결된 블로그·SNS 자산 0건', act: '정보형(원인·방법·주의사항) 구조의 블로그 발행 — 임상사진·경험담 배제, 출처 명시', prod: '네이버 블로그 포스팅(AI브리핑형)' });
-  if (reviewGapBig) rows.push({ gap: '경쟁 상위 대비 리뷰 수 격차', act: '진료 후 케어 메시지에 실환자 리뷰 요청 연동(대가 제공 없음)', prod: '실환자 리뷰 자동화' });
-  rows.push({ gap: 'AI 추천은 고정·로테이션이 섞여 매번 변동', act: '월 1회 같은 조건 재측정으로 변화 추적', prod: '월간 AI 관측 리포트' });
-  const TH = 'padding:8px 10px;font-size:.75rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border);text-align:left';
-  const TD = 'padding:8px 10px;font-size:.83rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top';
-  return `<div class="card" style="margin-top:12px">
-    <b style="font-size:1rem">네이버면 개선 → 담당 상품</b>
-    <p class="muted small" style="margin:4px 0 6px">네이버 공식 발표 기준: AI브리핑 인용 콘텐츠의 70%가 블로그·카페 등 자사 UGC · AI탭은 예약까지 실행하는 검색입니다. 아래 항목은 노출 조건 정비이며 특정 노출을 보장하지 않습니다.</p>
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
-      <thead><tr><th style="${TH}">관찰된 갭</th><th style="${TH}">액션</th><th style="${TH};white-space:nowrap">담당 상품</th></tr></thead>
-      <tbody>${rows.map((r) => `<tr>
-        <td style="${TD}">${esc(r.gap)}</td>
-        <td style="${TD}">${esc(r.act)}</td>
-        <td style="${TD};white-space:nowrap"><span class="action-tag tag-proven">${esc(r.prod)}</span></td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-  </div>`;
-}
-
-function renderNaverPlace(data, q) {
+function renderNaverPlace(data) {
   if (!data) return '';
   const fmt = (n) => n != null ? Number(n).toLocaleString('ko-KR') : '—';
   const target = data.target;
@@ -1485,26 +1405,6 @@ function renderNaverPlace(data, q) {
   const parsedAt = data.parsedAt
     ? new Date(data.parsedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '';
-
-  // ── 판정: 예약(AI탭 실행 플로우) + 인용 자산(블로그·SNS) ──
-  const booking = target ? Number(target.bookingReviews || 0) : 0;
-  const bookingOk = !!target && booking > 0;
-  const social = (lastScoreRes && lastScoreRes.d && lastScoreRes.d.signals && lastScoreRes.d.signals.social) || 0;
-  const top = comps[0] || null;
-  const reviewGapBig = !!(target && top && (Number(top.visitorReviews || 0) >= Number(target.visitorReviews || 0) * 2
-    || Number(top.blogReviews || 0) >= Number(target.blogReviews || 0) * 2));
-
-  const verdict = !target
-    ? `<div class="result-verdict warn" style="background:rgba(255,255,255,.04);border:1px solid var(--border)"><span class="rv-icon">—</span><span class="rv-text"><b>플레이스에서 이 치과를 식별하지 못했습니다</b> — 이름·전화 정합부터 확인이 필요합니다. AI탭은 플레이스·예약 데이터로 실행하는 검색이라, 여기서 안 잡히면 시작점이 없습니다.</span></div>`
-    : bookingOk
-      ? `<div class="result-verdict ok"><span class="rv-icon">✓</span><span class="rv-text"><b>네이버 예약 운영 확인</b> — 예약리뷰 ${fmt(booking)}건. AI탭의 "예약 가능한 치과" 실행 질의에서 후보 조건을 갖췄습니다. 다음 단계는 인용 자산(블로그·리뷰) 축적입니다.</span></div>`
-      : `<div class="result-verdict warn" style="background:rgba(230,168,23,.08);border-color:rgba(230,168,23,.25)"><span class="rv-icon">🟡</span><span class="rv-text"><b>네이버 예약 리뷰 0건</b> — 예약 미운영 또는 이용 초기로 보입니다. AI탭은 예약까지 실행하는 검색이라, "예약 가능한" 조건이 붙는 질의에서 후보가 되기 어렵습니다. 예약 연동 여부를 확인하세요.</span></div>`;
-
-  const assetLine = `<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:.8rem;color:var(--text-2)">
-    네이버 인용 자산: 홈페이지 연결 블로그·SNS(sameAs) <b style="color:${social > 0 ? '#1fcec4' : '#f05e6a'}">${social}건</b>
-    · 블로그리뷰 <b>${target ? fmt(target.blogReviews) : '—'}</b>
-    <span style="display:block;margin-top:4px">네이버 공식: AI브리핑 인용의 <b>70%가 블로그·카페 등 자사 UGC</b> — 병원 소유 콘텐츠가 없으면 인용될 풀 자체가 없습니다.</span>
-  </div>`;
 
   const targetBlock = target
     ? `<div class="np-target">
@@ -1518,7 +1418,6 @@ function renderNaverPlace(data, q) {
           <span>예약리뷰 <b>${fmt(target.bookingReviews)}</b></span>
           <span>사진 <b>${fmt(target.photos)}</b>장</span>
         </div>
-        ${npGapBars(target, top)}
       </div>`
     : `<div class="np-no-target">"${esc(data.query)}" 검색 결과에서 이 치과를 찾지 못했습니다${total != null ? ` (총 ${total}개 중)` : ''}<br><span style="font-size:.76rem">전화번호·치과명 매칭 실패 — 거래처 전화번호를 확인하세요.</span></div>`;
 
@@ -1534,10 +1433,7 @@ function renderNaverPlace(data, q) {
       </div>`
     : '';
 
-  return `
-  <div class="result-section-label" style="margin-top:20px"><span class="rsl-num" style="background:#03c75a;color:#04170b">N</span> 네이버면 — AI탭·플레이스·예약 <span class="muted" style="font-weight:400;font-size:.78rem">(추천을 예약까지 실행하는 채널)</span></div>
-  ${verdict}
-  <div class="naver-place-card">
+  return `<div class="naver-place-card">
     <div class="np-head">
       <span class="np-title">📍 플레이스 현황</span>
       <span class="np-query">"${esc(data.query)}"</span>
@@ -1545,33 +1441,9 @@ function renderNaverPlace(data, q) {
     </div>
     ${targetBlock}
     ${compBlock}
-    ${assetLine}
     <p class="np-note">${parsedAt ? `파싱 기준 ${parsedAt} · ` : ''}${esc(data.dataNote || '')}</p>
-  </div>
-  ${renderAitabCheck(q)}
-  ${renderNaverProductMap({ bookingOk, targetFound: !!target, social, reviewGapBig })}`;
+  </div>`;
 }
-
-// AI탭 수동 확인 기록 + 복사 (naverSection은 opResult 밖의 형제 섹션이라 별도 위임)
-$('naverSection') && $('naverSection').addEventListener('click', (e) => {
-  const cp = e.target.closest('[data-gcopy]');
-  if (cp) {
-    const t = cp.getAttribute('data-gcopy');
-    if (navigator.clipboard) navigator.clipboard.writeText(t).catch(() => {});
-    cp.textContent = '📋 복사됨'; setTimeout(() => { cp.textContent = '📋 복사'; }, 1200);
-    return;
-  }
-  const set = e.target.closest('[data-nset]');
-  if (set) {
-    const [idx, val] = set.getAttribute('data-nset').split(':');
-    aitabVerdicts[+idx] = val;
-    set.parentElement.querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === set));
-    const n = aitabVerdicts.filter(Boolean).length;
-    const cited = aitabVerdicts.filter((v) => v === 'cited').length;
-    const el = $('nTally');
-    if (el) el.textContent = `네이버 AI(수동): ${n}개 기록 · 병원 확인 ${cited}건`;
-  }
-});
 
 function renderScoreSparkline(history) {
   if (!history || history.length < 2) return '';
