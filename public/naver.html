@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>네이버 AI 진단 · 운영자 | 메디앤메디</title>
+<link rel="stylesheet" href="/style.css?v=4" />
+<style>
+.hidden { display: none !important; }
+.sr-only { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important; }
+
+:root { --ngreen: #03c75a; --ngreen-dim: rgba(3,199,90,.14); --ngreen-border: rgba(3,199,90,.35); }
+
+body { background:var(--bg-1); }
+.nv-wrap { max-width:860px; margin:0 auto; padding:0 20px 80px; }
+
+/* hero */
+.nv-hero { text-align:center; padding:52px 0 30px; }
+.nv-hero .kicker { font-size:.72rem; font-weight:700; letter-spacing:.14em; color:var(--ngreen); text-transform:uppercase; }
+.nv-hero h1 { font-size:clamp(1.7rem,4vw,2.4rem); font-weight:600; color:var(--text-1); margin:10px 0 8px; }
+.nv-hero .sub { font-size:.9rem; color:var(--text-2); }
+.nv-draft-badge { display:inline-block; margin-top:12px; font-size:.72rem; font-weight:700; color:#ffb829; border:1px solid rgba(255,184,41,.4); border-radius:20px; padding:4px 12px; }
+
+/* cards */
+.nv-card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:22px 24px; margin-top:14px; }
+.nv-card b { color:var(--text-1); }
+.nv-label { display:block; font-size:.8rem; font-weight:700; color:var(--text-2); margin:14px 0 6px; }
+.nv-label:first-child { margin-top:0; }
+.nv-input { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:10px; color:var(--text-1); font-size:.92rem; padding:11px 13px; }
+.nv-input:focus { outline:none; border-color:var(--ngreen); }
+.nv-row { display:flex; gap:8px; }
+.nv-row .nv-input { min-width:0; }
+.nv-btn { flex-shrink:0; background:var(--ngreen); color:#04170b; border:none; border-radius:10px; font-size:.92rem; font-weight:800; padding:11px 22px; cursor:pointer; }
+.nv-btn:hover { filter:brightness(1.08); }
+.nv-btn:disabled { opacity:.5; cursor:default; }
+.nv-btn-ghost { background:rgba(3,199,90,.12); color:var(--ngreen); border:1px solid var(--ngreen-border); }
+
+/* chips */
+.chip-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+.chip { background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:20px; color:var(--text-2); font-size:.8rem; padding:6px 13px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+.chip:hover { border-color:var(--ngreen); color:var(--text-1); }
+.chip.on { background:var(--ngreen-dim); color:var(--ngreen); border-color:var(--ngreen-border); font-weight:700; }
+
+/* verdict */
+.result-verdict { display:flex; align-items:center; gap:13px; padding:15px 18px; border-radius:14px; margin-top:14px; }
+.result-verdict.ok { background:var(--ngreen-dim); border:1px solid var(--ngreen-border); }
+.result-verdict.warn { background:rgba(230,168,23,.08); border:1px solid rgba(230,168,23,.25); }
+.result-verdict.na { background:rgba(255,255,255,.04); border:1px solid var(--border); }
+.rv-icon { font-size:1.6rem; flex-shrink:0; line-height:1; }
+.rv-text { font-size:.92rem; color:var(--text-1); line-height:1.5; }
+.rv-text b { font-size:1.05rem; font-weight:700; color:#fff; }
+
+/* section label */
+.nv-section-label { display:flex; align-items:center; gap:9px; margin:28px 0 4px; font-size:1.02rem; font-weight:700; color:var(--text-1); border-bottom:1px solid var(--border); padding-bottom:9px; }
+.nv-section-label .num { flex-shrink:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--ngreen); color:#04170b; border-radius:8px; font-size:.8rem; font-weight:800; }
+
+/* place block */
+.np-target { border:1px solid var(--ngreen-border); background:var(--ngreen-dim); border-radius:12px; padding:14px 16px; margin-top:12px; }
+.np-target-head { display:flex; align-items:center; gap:10px; }
+.np-name { font-size:1rem; font-weight:700; color:var(--text-1); text-decoration:none; }
+.np-name:hover { text-decoration:underline; }
+.np-rank-badge { font-size:.74rem; font-weight:800; background:var(--ngreen); color:#04170b; border-radius:8px; padding:2px 9px; }
+.np-rank-na { font-size:.74rem; color:var(--text-2); }
+.np-stats { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:9px; font-size:.8rem; color:var(--text-2); }
+.np-stats b { color:var(--text-1); }
+.np-no-target { border:1px solid rgba(240,94,106,.3); background:rgba(240,94,106,.07); border-radius:12px; padding:14px 16px; margin-top:12px; font-size:.86rem; color:var(--text-1); line-height:1.5; }
+.np-comp-section { margin-top:14px; }
+.np-comp-label { font-size:.74rem; font-weight:700; color:var(--text-2); letter-spacing:.05em; margin-bottom:6px; }
+.np-comp-row { display:flex; align-items:center; gap:9px; padding:7px 0; border-top:1px solid rgba(255,255,255,.05); font-size:.84rem; }
+.np-comp-num { flex-shrink:0; width:20px; height:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.08); border-radius:6px; font-size:.7rem; font-weight:700; color:var(--text-2); }
+.np-comp-name { color:var(--text-1); text-decoration:none; }
+.np-comp-name:hover { text-decoration:underline; }
+.np-comp-stats { margin-left:auto; font-size:.74rem; color:var(--text-2); white-space:nowrap; }
+.np-note { margin-top:12px; font-size:.72rem; color:var(--text-2); }
+
+/* table */
+.nv-table { width:100%; border-collapse:collapse; }
+.nv-table th { padding:8px 10px; font-size:.75rem; font-weight:700; color:var(--text-2); border-bottom:1px solid var(--border); text-align:left; }
+.nv-table td { padding:9px 10px; font-size:.84rem; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:top; color:var(--text-1); line-height:1.45; }
+.nv-tag { display:inline-block; font-size:.72rem; font-weight:700; color:var(--ngreen); background:var(--ngreen-dim); border:1px solid var(--ngreen-border); border-radius:6px; padding:2px 8px; white-space:nowrap; }
+
+.muted { color:var(--text-2); }
+.small { font-size:.78rem; }
+.spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.2); border-top-color:var(--ngreen); border-radius:50%; animation:nvspin .8s linear infinite; }
+@keyframes nvspin { to { transform:rotate(360deg); } }
+
+/* login */
+.key-saved { display:flex; align-items:center; gap:10px; background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:13px 16px; margin-top:14px; font-size:.82rem; }
+.key-saved .badge { font-weight:700; color:var(--ngreen); }
+.key-saved .change { font:inherit; font-size:.78rem; color:var(--text-2); cursor:pointer; text-decoration:underline; background:none; border:0; padding:3px; }
+
+/* print */
+#printBar { text-align:center; margin-top:26px; }
+@media print {
+  body { background:#fff; }
+  .nv-hero, #setupCard, #keySaved, #inputCard, #printBar, .chip, .nv-btn { display:none !important; }
+  .nv-card, .np-target, .np-no-target { border-color:#ccc; background:#fff; }
+  * { color:#111 !important; }
+}
+@media (max-width:560px) {
+  .nv-row { flex-direction:column; }
+  .nv-btn { width:100%; min-height:46px; }
+}
+</style>
+</head>
+<body>
+<div class="nv-wrap">
+
+  <header class="nv-hero">
+    <p class="kicker">MEDINMEDI · 내부 사용</p>
+    <h1>네이버 <span style="color:var(--ngreen)">AI 진단</span></h1>
+    <p class="sub">AI탭·플레이스·예약 — 추천을 예약까지 실행하는 채널의 준비도를 진단합니다</p>
+    <span class="nv-draft-badge">내부 구성 중 · 거래처 제시 전 검토</span>
+  </header>
+
+  <!-- 로그인 -->
+  <div id="keySaved" class="key-saved hidden">
+    <span class="badge">운영자 세션 활성</span>
+    <span class="muted small">8시간 자동 로그인</span>
+    <button type="button" class="change" id="keyChangeBtn" style="margin-left:auto">로그아웃</button>
+  </div>
+  <div id="setupCard" class="nv-card">
+    <b>운영자 로그인</b>
+    <p class="muted small" style="margin:6px 0 4px">GEO 진단 도구와 같은 비밀번호입니다. 세션은 공유됩니다.</p>
+    <div class="nv-row" style="margin-top:10px">
+      <label class="sr-only" for="opKey">운영자 비밀번호</label>
+      <input type="password" id="opKey" class="nv-input" placeholder="비밀번호" autocomplete="current-password" />
+      <button type="button" id="keySaveBtn" class="nv-btn">로그인</button>
+    </div>
+    <p class="muted small hidden" id="keyValidationNote" style="margin-top:8px;color:#f05e6a"></p>
+  </div>
+
+  <!-- 입력 -->
+  <section id="inputCard" class="nv-card hidden">
+    <b>거래처 정보</b>
+    <label class="nv-label" for="nvRegion" style="margin-top:14px">측정 지역</label>
+    <input id="nvRegion" class="nv-input" list="regionList" placeholder="예: 강동" />
+    <datalist id="regionList"></datalist>
+
+    <label class="nv-label">진료 과목</label>
+    <div class="chip-wrap" id="nvProcChips"></div>
+
+    <label class="nv-label" for="nvName">치과명 <span class="muted" style="font-weight:400">(플레이스 표기와 가깝게)</span></label>
+    <input id="nvName" class="nv-input" placeholder="예: 트리움치과의원" />
+
+    <label class="nv-label" for="nvPhone">전화번호 <span class="muted" style="font-weight:400">(선택 — 매칭 정확도 향상)</span></label>
+    <input id="nvPhone" class="nv-input" inputmode="tel" placeholder="02-000-0000" />
+
+    <div class="nv-row" style="margin-top:18px">
+      <button type="button" id="nvRunBtn" class="nv-btn" style="width:100%">네이버 AI 진단 시작</button>
+    </div>
+    <p class="muted small" style="margin-top:8px">플레이스 공개 데이터 파싱 + AI탭 수동 확인 체크리스트 · 유료 API 호출 없음</p>
+  </section>
+
+  <div id="nvLoading" class="nv-card hidden"><p class="muted small" style="display:flex;align-items:center;gap:8px"><span class="spin"></span>네이버 플레이스 조회 중...</p></div>
+  <div id="nvError" class="nv-card hidden" style="border-color:rgba(240,94,106,.35)"></div>
+
+  <!-- 결과 -->
+  <section id="nvResult" class="hidden"></section>
+
+  <div id="printBar" class="hidden">
+    <button type="button" class="nv-btn nv-btn-ghost" onclick="window.print()">🖶 리포트 인쇄 / PDF 저장</button>
+  </div>
+
+  <footer style="text-align:center;margin-top:48px;font-size:.72rem;color:var(--text-2)">
+    메디앤메디 내부 사용(noindex) · 공개 파싱 데이터 기준 · 결과를 의료 광고에 "추천·인증·1위"로 이용 금지(의료광고법)
+  </footer>
+</div>
+
+<script type="module" src="/naver.js"></script>
+</body>
+</html>
