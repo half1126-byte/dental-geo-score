@@ -7,12 +7,9 @@ let lastScoreData = null;
 let lastScoredUrl = '';
 let emailGatePassed = false; // 이메일 제출 후 재스캔 시에도 게이트 항목 유지
 let panelEmailCollected = ''; // 최상단 실측 신청 폼에서 수집된 이메일
-
-// URL ?key= 자동 저장 (베타 공유용)
-(function () {
-  const k = new URLSearchParams(location.search).get('key');
-  if (k) { localStorage.setItem('opKey', k); history.replaceState(null, '', location.pathname); }
-})();
+const operatorSessionPromise = fetch('/api/auth-check', { method: 'POST' })
+  .then((r) => r.ok)
+  .catch(() => false);
 
 // 최상단 실측 인용 패널 신청 폼 — URL 진단 없이 이메일만 수집
 // 이후 URL 진단 시 leadForm에서 이 이메일을 재사용해 citation POST
@@ -61,7 +58,7 @@ async function runScan() {
   $('goBtn').disabled = true; $('goBtn').textContent = '진단 중...';
 
   // 3단계 로딩 진행
-  const loadMsgs = ['홈페이지 가져오는 중...', '구조·신호 분석 중...', 'GEO 점수 계산 중...'];
+  const loadMsgs = ['홈페이지 가져오는 중...', '구조·신호 분석 중...', '페이지 위생 지표 계산 중...'];
   const stepIds = ['ls1', 'ls2', 'ls3'];
   let loadStage = 0;
   function setLoadStage(i) {
@@ -257,24 +254,24 @@ function render(d) {
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  // 운영자 키 있으면 이메일 게이트 생략 — 직접 실측 패널 + 게이트 항목 표시
-  const _opKey = localStorage.getItem('opKey');
-  if (_opKey) {
+  // An authenticated operator gets the private panel without exposing a key to JS.
+  operatorSessionPromise.then((isOperator) => {
+    if (!isOperator) return;
     hide('leadForm');
     [_fc, _rc].forEach(el => { if (el) el.classList.remove('hidden'); });
     $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity·Claude)...</p>';
     show('citationPanel');
-    autoFetchCitation(_opKey);
-  }
+    autoFetchCitation();
+  });
 }
 
-async function autoFetchCitation(key) {
+async function autoFetchCitation() {
   const url = lastScoredUrl || $('urlInput').value.trim();
   if (!url) return;
   try {
     const res = await fetch('/api/citation', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ url, clinicName: (lastScoreData && lastScoreData.clinicNameGuess) || '' }),
     });
     const data = await res.json().catch(() => null);
@@ -452,11 +449,11 @@ function renderComparePanel(compData) {
       </div>
     </div>
     <div style="font-size:.72rem;color:var(--text-2);margin-bottom:4px;text-align:right">${esc(uDomain)} · ${esc(cDomain)}</div>
-    ${gaps.length ? secHead(`⬆️ 경쟁사에 있고 우리에 없는 항목 (${gaps.length}개)`) + `<div class="cmp-note">이 항목들이 AI 추천 격차의 구조적 원인일 수 있습니다</div>` + gaps.map((g) => row(g.label, false, true)).join('') : ''}
+    ${gaps.length ? secHead(`⬆️ 비교 대상에 있고 우리에 없는 항목 (${gaps.length}개)`) + `<div class="cmp-note">구조 차이는 개선 가설이며 AI 인용·추천의 원인으로 단정할 수 없습니다</div>` + gaps.map((g) => row(g.label, false, true)).join('') : ''}
     ${same.length ? secHead(`✅ 양쪽 모두 통과 (${same.length}개)`) + same.map((g) => row(g.label, true, true)).join('') : ''}
     ${uBetter.length ? secHead(`📌 우리만 통과 (${uBetter.length}개)`) + uBetter.map((g) => row(g.label, true, false)).join('') : ''}
     ${!gaps.length && !same.length && !uBetter.length ? '<p class="muted small" style="margin-top:8px">비교 가능한 신호 데이터가 없습니다.</p>' : ''}
-    <p class="small muted" style="margin-top:12px;font-size:.73rem">기술 점수 비교 — AI 추천과 직접 인과관계 없음 (구조 위생 지표)</p>
+    <p class="small muted" style="margin-top:12px;font-size:.73rem">기술 점수 비교 — AI 인용·추천과 직접 인과관계 없음 (페이지 위생 지표)</p>
   </div>`;
 }
 

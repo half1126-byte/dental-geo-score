@@ -8,6 +8,7 @@ import { extractSignals, extractTeardown } from '../lib/extract.js';
 import { scorePage } from '../lib/scorer.js';
 import { registrableDomain } from '../lib/normalize.js';
 import { buildComparePackage, embeddableFromHeaders } from '../lib/compare.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 40 };
 
@@ -87,9 +88,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'method-not-allowed' }); return; }
 
   // Operator gate (mirrors api/page-source.js).
-  const isOperator = !!process.env.OPERATOR_KEY &&
-    req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
-  if (!isOperator) {
+  if (!isOperatorRequest(req)) {
     res.status(401).json({ error: 'operator-key-required' });
     return;
   }
@@ -123,7 +122,7 @@ export default async function handler(req, res) {
         reason: err.reason || null,
         message: failed === 'user'
           ? '측정 대상 사이트를 다시 불러오지 못했습니다 (느리거나 일시적 차단). 잠시 후 다시 시도해 주세요.'
-          : '경쟁 치과 사이트를 불러오지 못했습니다 (느리거나 일시적 차단). 잠시 후 다시 시도해 주세요.',
+          : '비교 대상 사이트를 불러오지 못했습니다 (느리거나 일시적 차단). 잠시 후 다시 시도해 주세요.',
       });
       return;
     }

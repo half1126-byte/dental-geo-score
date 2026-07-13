@@ -4,6 +4,7 @@
 
 import { getNaverPlaceData } from '../lib/naver-place.js';
 import { sendAlert } from '../lib/alert.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 export const config = { maxDuration: 20 };
 
@@ -13,8 +14,7 @@ export default async function handler(req, res) {
   }
 
   // Operator gate — primary security boundary; no further rate cap needed for operator path
-  const key = req.headers['x-operator-key'] || '';
-  if (!key || key !== process.env.OPERATOR_KEY) {
+  if (!isOperatorRequest(req)) {
     return res.status(401).json({ error: 'unauthorized' });
   }
 

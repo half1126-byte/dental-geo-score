@@ -20,13 +20,11 @@ let lastCiteRes = null; // saved from last citation measurement
 
 $('regionList').innerHTML = REGION_TERMS.map((r) => `<option value="${esc(r)}">`).join('');
 
-// ── URL ?key= 자동 주입 ──────────────────────────────────────────
-const _urlKey = new URLSearchParams(location.search).get('key');
-if (_urlKey) { localStorage.setItem('opKey', _urlKey); history.replaceState(null, '', location.pathname); }
-
-// ── 패스코드 상태 초기화 ────────────────────────────────────────
+// ── 운영자 세션 상태 초기화 ─────────────────────────────────────
 function showKeyEntry(errMsg) {
   hide('keySaved');
+  show('setupCard');
+  hide('analyzeSection');
   hide('confirmSection');
   const note = $('keyValidationNote');
   if (note) {
@@ -35,21 +33,17 @@ function showKeyEntry(errMsg) {
   }
 }
 
-function showKeyValid(key) {
+function showKeyValid() {
   $('keySaved').classList.remove('hidden');
   hide('setupCard');
-  $('keyMasked').textContent = key.slice(0, 2) + '•'.repeat(Math.max(0, key.length - 2));
   show('analyzeSection');
   const note = $('keyValidationNote');
   if (note) note.style.display = 'none';
 }
 
-async function validateKey(key) {
+async function validateSession() {
   try {
-    const r = await fetch('/api/auth-check', {
-      method: 'POST',
-      headers: { 'x-operator-key': key },
-    });
+    const r = await fetch('/api/auth-check', { method: 'POST' });
     return r.status === 200;
   } catch {
     return false;
@@ -57,15 +51,12 @@ async function validateKey(key) {
 }
 
 async function initKeyState() {
-  const saved = localStorage.getItem('opKey') || '';
-  if (!saved) { showKeyEntry(); return; }
-  // Re-validate saved key on every page load — catches key rotation without UI lag
-  const ok = await validateKey(saved);
+  // The HttpOnly cookie is re-validated on every page load and is not readable by JS.
+  const ok = await validateSession();
   if (ok) {
-    showKeyValid(saved);
+    showKeyValid();
   } else {
-    localStorage.removeItem('opKey');
-    showKeyEntry('저장된 패스코드가 유효하지 않습니다. 다시 입력해주세요.');
+    showKeyEntry();
   }
 }
 initKeyState();
@@ -76,32 +67,41 @@ $('keySaveBtn').addEventListener('click', async () => {
   if (!val) return;
   const btn = $('keySaveBtn');
   btn.disabled = true; btn.textContent = '확인 중...';
-  const ok = await validateKey(val);
+  let response = null;
+  try {
+    response = await fetch('/api/unlock', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: val }),
+    });
+  } catch { /* handled below */ }
+  const ok = response && response.ok;
   btn.disabled = false; btn.textContent = '저장';
   if (!ok) {
-    showKeyEntry('패스코드가 맞지 않습니다. .env.local의 OPERATOR_KEY 값을 확인하세요.');
+    showKeyEntry(response && response.status === 503
+      ? '운영자 로그인이 아직 설정되지 않았습니다. 관리자에게 문의하세요.'
+      : '비밀번호가 맞지 않습니다. 다시 확인해주세요.');
     return;
   }
-  localStorage.setItem('opKey', val);
-  showKeyValid(val);
+  $('opKey').value = '';
+  showKeyValid();
 });
 $('opKey').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('keySaveBtn').click(); });
 
 // 변경 버튼
-$('keyChangeBtn').addEventListener('click', () => {
+$('keyChangeBtn').addEventListener('click', async () => {
+  try { await fetch('/api/logout', { method: 'POST' }); } catch { /* local UI still resets */ }
   showKeyEntry();
-  $('opKey').value = localStorage.getItem('opKey') || '';
+  $('opKey').value = '';
   $('opKey').focus();
 });
 
 $('keyShareBtn').addEventListener('click', () => {
-  const key = localStorage.getItem('opKey') || '';
-  if (!key) return;
-  const shareUrl = `${location.origin}/operator.html?key=${encodeURIComponent(key)}`;
+  const shareUrl = `${location.origin}/operator.html`;
   navigator.clipboard.writeText(shareUrl).then(() => {
     const btn = $('keyShareBtn');
     btn.textContent = '복사됨!';
-    setTimeout(() => { btn.textContent = '링크 복사'; }, 2000);
+    setTimeout(() => { btn.textContent = '도구 링크 복사'; }, 2000);
   }).catch(() => { prompt('이 URL을 복사하세요:', shareUrl); });
 });
 
@@ -226,8 +226,9 @@ $('opRegionChips') && document.body.addEventListener('click', (e) => {
 function updateQueryChips() {
   const region = selectedRegions.length ? selectedRegions[0] : $('opRegion').value.trim();
   const variants = allQueryVariants({ district: region, procedure: selectedProcedure });
-  // default: first 3 selected (reset on region/procedure change)
-  selectedQueries = variants.slice(0, 4);
+  // Default to three prompts. The API applies these indexes to each region so a
+  // multi-region sweep never reuses the first region's literal query text.
+  selectedQueries = variants.slice(0, 3);
   renderQueryChips(variants);
 }
 
@@ -247,7 +248,7 @@ function renderQueryChips(variants) {
 function updateQueryHint() {
   const h = $('opQueryHint');
   const n = selectedQueries.length;
-  if (h) h.textContent = `${n}개 선택됨 (최대 3개) · 선택된 질의로만 AI에게 질문합니다.`;
+  if (h) h.textContent = `${n}개 선택됨 (최대 3개) · 다지역 측정 시 각 지역명으로 자동 치환됩니다.`;
 }
 
 $('opQueryChips').addEventListener('click', (e) => {
@@ -257,7 +258,7 @@ $('opQueryChips').addEventListener('click', (e) => {
     if (selectedQueries.length <= 1) return; // 최소 1개 유지
     selectedQueries = selectedQueries.filter((x) => x !== q);
   } else {
-    if (selectedQueries.length >= 4) return; // 최대 4개
+    if (selectedQueries.length >= 3) return; // 최대 3개
     selectedQueries = [...selectedQueries, q];
   }
   // re-render chips with updated selection
@@ -267,7 +268,6 @@ $('opQueryChips').addEventListener('click', (e) => {
 
 // ── PHASE 2: 측정 (/api/citation) ──────────────────────────────
 $('opMeasureBtn').addEventListener('click', async () => {
-  const key = localStorage.getItem('opKey') || '';
   const region = $('opRegion').value.trim();
   const procedure = selectedProcedure;
   const isMultiRegion = selectedRegions.length > 1;
@@ -276,9 +276,8 @@ $('opMeasureBtn').addEventListener('click', async () => {
 
   hide('opError'); hide('opResult');
   if (isMultiRegion) {
-    const nEng = 3; const nQ = selectedQueries.length || 4;
-    const approx = (selectedRegions.length * nEng * nQ * 0.06).toFixed(2);
-    $('opLoadMsg').textContent = `${selectedRegions.length}개 지역 × ${nEng}엔진 × ${nQ}쿼리 ≈ $${approx} — 측정 중...`;
+    const nQ = selectedQueries.length || 3;
+    $('opLoadMsg').textContent = `${selectedRegions.length}개 지역 × ${nQ}개 질의 × 반복 측정 — 유료 AI 검색 호출 중...`;
   } else {
     $('opLoadMsg').textContent = 'ChatGPT·Perplexity·Claude에 실제 질의 중 (최대 1~2분)...';
   }
@@ -286,23 +285,32 @@ $('opMeasureBtn').addEventListener('click', async () => {
   $('opMeasureBtn').disabled = true; $('opMeasureBtn').textContent = '측정 중...';
   try {
     const nocache = !!($('opNocache') && $('opNocache').checked);
-    const headers = { 'content-type': 'application/json', 'x-operator-key': key, ...(nocache ? { 'x-nocache': '1' } : {}) };
-    const queriesToSend = selectedQueries.length > 0 ? selectedQueries : undefined;
+    const headers = { 'content-type': 'application/json', ...(nocache ? { 'x-nocache': '1' } : {}) };
+    const queryRegion = selectedRegions.length ? selectedRegions[0] : effectiveRegion;
+    const currentVariants = allQueryVariants({ district: queryRegion, procedure });
+    const queryIndexes = selectedQueries
+      .map((query) => currentVariants.indexOf(query))
+      .filter((index) => index >= 0)
+      .slice(0, 3);
     const cName = (lastScoreRes && lastScoreRes.d && lastScoreRes.d.clinicNameGuess) || '';
     const body = isMultiRegion
-      ? { url: lastUrl, regions: selectedRegions, procedure, queries: queriesToSend, clinicName: cName, ...(nocache ? { nocache: true } : {}) }
-      : { url: lastUrl, region: effectiveRegion, procedure, queries: queriesToSend, clinicName: cName, ...(nocache ? { nocache: true } : {}) };
+      ? { url: lastUrl, regions: selectedRegions, procedure, queryIndexes, clinicName: cName, ...(nocache ? { nocache: true } : {}) }
+      : { url: lastUrl, region: effectiveRegion, procedure, queryIndexes, clinicName: cName, ...(nocache ? { nocache: true } : {}) };
     const citeRes = await fetch('/api/citation', {
       method: 'POST', headers,
       body: JSON.stringify(body),
     }).then((r) => r.json().then((d) => ({ ok: r.ok, status: r.status, d }))).catch(() => null);
     hide('opLoading');
     if (citeRes && citeRes.status === 401) {
-      // 패스코드 오류 — 안내를 명확히
-      localStorage.removeItem('opKey');
-      initKeyState();
+      // Session expired or was invalidated by a secret rotation.
+      showKeyEntry('로그인 세션이 만료되었습니다. 비밀번호를 다시 입력해주세요.');
       hide('confirmSection');
-      showError('패스코드가 맞지 않습니다. ① 패스코드를 다시 입력해주세요.<br><small style="color:var(--text-2)">.env.local의 <code>OPERATOR_KEY=</code> 값을 확인하세요 (OpenAI/Perplexity API 키가 아닙니다)</small>');
+      showError('로그인 세션이 만료되었습니다. ① 비밀번호를 다시 입력해주세요.');
+      return;
+    }
+    if (!citeRes || !citeRes.ok) {
+      const message = citeRes && citeRes.d && (citeRes.d.message || citeRes.d.error);
+      showError(`AI 인용 측정 실패${message ? ` — ${esc(message)}` : ''}`);
       return;
     }
     render(lastScoreRes, citeRes, { region: isMultiRegion ? selectedRegions.join('·') : (effectiveRegion || region), procedure });
@@ -334,7 +342,7 @@ function render(scoreRes, citeRes, q) {
 
   const citeOk = citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine)
     && citeRes.d.perEngine.some((p) => p.cited);
-  // 미추천 시 '인용 얻는 법' 전략 카드 → 결과 위가 아니라 부가(접기)로 이동
+  // 인용이 관찰되지 않았을 때 점검 가설을 부가 카드로 제공한다.
   const strategy = (citeRes && citeRes.d && Array.isArray(citeRes.d.perEngine) && citeRes.d.perEngine.length && !citeOk)
     ? renderContentStrategy(q) : '';
 
@@ -347,7 +355,7 @@ function render(scoreRes, citeRes, q) {
   // IA: 결론(hero) → ① 실측 → ② 진단 → ③ 솔루션 → ④ 부가(접기)
   $('opResult').innerHTML = `
     ${header}
-    ${label('①', 'AI 실측 — 실제로 추천하나요?')}
+    ${label('①', 'AI 실측 — 홈페이지가 출처로 인용되나요?')}
     ${citation}
     ${label('②', '진단 — 무엇이 부족한가')}
     <div class="result-2col">
@@ -390,23 +398,23 @@ function renderContentStrategy(q) {
   const items = [
     {
       num: '01',
-      label: '네이버 블로그 실명 포스팅',
-      desc: `"${region} 치과 ${proc} 후기", "추천 치과 방문기" 등 이 치과 이름이 명시된 블로그 글이 ChatGPT·Perplexity의 핵심 인용 소스입니다. lifeinsightspost.com 같은 헬스 콘텐츠 사이트가 치과를 언급한 기사를 AI가 그대로 인용하는 방식입니다.`,
+      label: '외부 콘텐츠의 사실 기반 언급',
+      desc: `실측 답변에 블로그·기사 등이 출처로 등장했는지 확인합니다. ${region}·${proc} 관련 콘텐츠는 광고성 표현이 아닌 검증 가능한 병원 정보와 출처를 갖춰야 합니다.`,
     },
     {
       num: '02',
       label: '의료 미디어 기고 · 원장 인터뷰',
-      desc: '헬스조선·코메디닷컴·닥터Q 등 의료 전문 도메인에 원장님 이름·치과명이 함께 실린 기사나 인터뷰. 권위 있는 도메인의 언급은 AI 인용 가중치가 가장 높습니다.',
+      desc: '의료진 자격·설명·인용문이 사실 확인과 승인을 거친 외부 기사인지 점검합니다. 특정 매체 게재만으로 AI 인용 효과를 단정하지 않습니다.',
     },
     {
       num: '03',
       label: '지역 커뮤니티 자연 언급',
-      desc: `${region} 맘카페·지역 온라인 커뮤니티에서 치과 이름이 자연스럽게 거론될수록 AI가 "${region} 추천 치과"로 학습합니다. 직접 홍보 글보다 자연 언급이 효과적입니다.`,
+      desc: `${region} 지역 커뮤니티 언급은 실측 원문에 실제 출처로 나타났을 때만 참고합니다. 임의 게시·후기 유도 대신 환자 경험과 플랫폼 정책을 우선합니다.`,
     },
     {
       num: '04',
       label: '리뷰 플랫폼 · GBP 축적',
-      desc: '카카오맵·네이버 지도 리뷰 수·평점이 높을수록 AI가 신뢰받는 치과로 인식합니다. Google Business Profile 리뷰도 AI가 "지역 인기 치과"를 판단하는 제3자 신호입니다.',
+      desc: '플레이스·지도 정보의 상호·주소·전화·진료시간 정합성과 리뷰 운영 상태를 확인합니다. 리뷰 수·평점과 AI 인용 사이의 직접 인과는 별도로 검증해야 합니다.',
     },
   ];
 
@@ -414,14 +422,13 @@ function renderContentStrategy(q) {
     <div class="strategy-card-hd">
       <div class="strategy-card-icon">⚡</div>
       <div>
-        <div class="strategy-card-title">AI 인용을 얻는 방법</div>
-        <div class="strategy-card-sub">기술 점수와 별개 · 외부 콘텐츠 언급이 핵심입니다</div>
+        <div class="strategy-card-title">인용 격차 점검 가설</div>
+        <div class="strategy-card-sub">실측 원문과 출처를 확인한 뒤 우선순위를 정합니다</div>
       </div>
     </div>
     <div class="strategy-card-lead">
-      ChatGPT·Perplexity는 치과 홈페이지를 직접 순위화하지 않습니다.<br>
-      <b>제3자 콘텐츠(블로그·기사·리뷰·커뮤니티)가 이 치과를 언급한 횟수</b>와 출처의 권위를 기준으로 추천합니다.<br>
-      기술 점수 89점이어도 외부 언급이 없으면 미인용 — 34점 사이트가 추천되는 이유입니다.
+      한 번의 미인용 측정만으로 원인을 확정할 수 없습니다.<br>
+      <b>실제 답변에 등장한 출처, 공식 홈페이지의 읽기 가능성, 외부 정보 정합성</b>을 함께 확인하고 개입 후 같은 조건으로 재측정합니다.
     </div>
     <div class="strategy-items">
       ${items.map((it) => `<div class="strategy-item">
@@ -444,14 +451,14 @@ function renderGemini(q) {
         <button type="button" class="chip" data-gcopy="${esc(v)}">📋 복사</button>
         <a class="chip" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer">Gemini 열기 ↗</a>
         <span style="flex:1 0 100%;height:4px"></span>
-        <button type="button" class="chip" data-gset="${i}:cited">✅ 추천됨</button>
-        <button type="button" class="chip" data-gset="${i}:not">❌ 추천 안 됨</button>
+        <button type="button" class="chip" data-gset="${i}:cited">✅ 병원명 확인</button>
+        <button type="button" class="chip" data-gset="${i}:not">— 병원명 없음</button>
         <button type="button" class="chip" data-gset="${i}:unsure">❓ 불확실</button>
       </div>
     </div>`).join('');
   return `<div class="card gate">
     <b style="font-size:1rem">Gemini — 직접 확인</b>
-    <p class="muted small" style="margin:6px 0 4px">Gemini는 자동 측정이 어렵습니다. 아래 검색어를 복사해 Gemini에 붙여넣고 이 치과가 나오면 <b>추천됨</b>을 클릭하세요.</p>
+    <p class="muted small" style="margin:6px 0 4px">Gemini는 자동 측정이 어렵습니다. 같은 검색어로 직접 확인하고 병원명이 답변에 있으면 <b>병원명 확인</b>을 클릭하세요. 긍정 추천 여부와 출처 인용은 원문에서 별도 기록해야 합니다.</p>
     ${rows}
     <p class="small muted" id="gTally" style="margin-top:12px;text-align:center">아직 기록 없음</p>
   </div>`;
@@ -613,7 +620,6 @@ async function loadCompare(compDomain, compUrl, _retrying = false) {
   show('compareSection');
   sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  const key = localStorage.getItem('opKey') || '';
   const compFullUrl = compUrl || (compDomain.startsWith('http') ? compDomain : `https://${compDomain}`);
   const userScore = lastScoreRes && lastScoreRes.d ? lastScoreRes.d.score : null;
   const userCited = !!(lastCiteRes && lastCiteRes.d && Array.isArray(lastCiteRes.d.perEngine)
@@ -637,7 +643,7 @@ async function loadCompare(compDomain, compUrl, _retrying = false) {
     try {
       r = await fetch('/api/compare', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-operator-key': key },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ userUrl: lastUrl, compUrl: compFullUrl, userScore, userCited, userProfile }),
         signal: ctrl.signal,
       });
@@ -649,7 +655,7 @@ async function loadCompare(compDomain, compUrl, _retrying = false) {
     if (r.ok) pkg = errData;
     else errMsg = (errData && errData.message) ? errData.message : `분석 실패 (${r.status})`;
   } catch (e) {
-    errMsg = (e && e.name === 'AbortError') ? '분석 시간 초과 (35초) — 경쟁 병원 사이트 응답이 느린 것 같습니다' : '네트워크 오류';
+    errMsg = (e && e.name === 'AbortError') ? '분석 시간 초과 (35초) — 비교 대상 사이트 응답이 느린 것 같습니다' : '네트워크 오류';
   }
 
   // Auto-retry once on transient server/network errors (502 fetch-failed, 504 timeout, 0 network)
@@ -664,7 +670,7 @@ async function loadCompare(compDomain, compUrl, _retrying = false) {
       ? `<br><code style="font-size:.73rem;color:#555;background:#f5f5f5;padding:2px 7px;border-radius:3px;letter-spacing:.01em">${esc(reason)}</code>`
       : '';
     const sideNote = side === 'comp'
-      ? '<br><span class="muted small" style="font-size:.78rem">경쟁 병원 사이트가 느리거나 일시 차단된 것 같습니다. 잠시 후 재시도해 보세요.</span>'
+      ? '<br><span class="muted small" style="font-size:.78rem">비교 대상 사이트가 느리거나 일시 차단된 것 같습니다. 잠시 후 재시도해 보세요.</span>'
       : side === 'user'
       ? '<br><span class="muted small" style="font-size:.78rem">분석 대상 사이트를 다시 불러오지 못했습니다. "분석" 버튼으로 재측정 후 시도하세요.</span>'
       : '';
@@ -680,14 +686,14 @@ async function loadCompare(compDomain, compUrl, _retrying = false) {
 
 function renderCompare(pkg, compDomain) {
   const userDomain = (pkg.domains && pkg.domains.user) || '측정 대상';
-  const cDomain = compDomain || (pkg.domains && pkg.domains.comp) || '경쟁 치과';
+  const cDomain = compDomain || (pkg.domains && pkg.domains.comp) || '비교 도메인';
   const uScore = pkg.scores ? pkg.scores.user : '?';
   const cScore = pkg.scores ? pkg.scores.comp : '?';
 
   return `<div class="compare-panel">
     ${compCloseBtn()}
-    <div class="compare-title">🔬 심층 경쟁 비교 — ${esc(short(cDomain, 28))}</div>
-    <p class="muted small" style="margin:2px 0 12px">측정 대상과 AI가 인용한 경쟁 치과의 코드·구조를 나란히 분해합니다.</p>
+    <div class="compare-title">🔬 인용 출처 구조 비교 — ${esc(short(cDomain, 28))}</div>
+    <p class="muted small" style="margin:2px 0 12px">측정 대상과 AI 답변에 함께 인용된 도메인의 코드·구조를 나란히 봅니다. 이 도메인이 경쟁 병원인지는 별도 확인이 필요합니다.</p>
     ${renderPreviewRow(pkg, userDomain, cDomain, uScore, cScore)}
     ${renderSignalDiff(pkg.signalDiff, userDomain, cDomain)}
     ${renderSchemaDiff(pkg.schemaDiff, userDomain, cDomain)}
@@ -695,7 +701,7 @@ function renderCompare(pkg, compDomain) {
     ${renderPlanTable(pkg)}
     ${renderSolutionCTA(pkg)}
     ${renderTeardown(pkg.teardown, userDomain, cDomain)}
-    <p class="muted small" style="margin-top:14px">기술·구조 비교는 AI 인용과 직접 인과관계가 없는 <b>필요조건·위생 지표</b>입니다. 인용은 외부 언급(블로그·기사·커뮤니티)에 좌우됩니다.</p>
+    <p class="muted small" style="margin-top:14px">기술·구조 비교는 AI 인용과 직접 인과관계가 없는 <b>위생 지표</b>입니다. 차이는 개선 가설이며, 효과는 같은 조건의 재측정으로 확인합니다.</p>
   </div>`;
 }
 
@@ -721,7 +727,7 @@ function renderPreviewRow(pkg, userDomain, cDomain, uScore, cScore) {
   };
   return `<div class="compare-preview-cols">
     ${cell(userDomain, uScore, urls.user, emb.user, 'compare-tag-user', '<span class="compare-mini-badge">측정 대상</span>')}
-    ${cell(cDomain, cScore, urls.comp, emb.comp, 'compare-tag-comp', '<span class="compare-mini-badge gold">🏆 AI 인용</span>')}
+    ${cell(cDomain, cScore, urls.comp, emb.comp, 'compare-tag-comp', '<span class="compare-mini-badge gold">AI 출처</span>')}
   </div>`;
 }
 
@@ -867,7 +873,7 @@ function renderTeardown(td, userDomain, cDomain) {
         <pre class="compare-pre">${formatTeardown(td.user, userDomain)}</pre>
       </div>
       <div class="compare-code-box">
-        <div class="compare-code-header compare-tag-comp">🏆 ${esc(short(cDomain))} (AI 인용됨)</div>
+        <div class="compare-code-header compare-tag-comp">${esc(short(cDomain))} (AI 답변 출처)</div>
         <pre class="compare-pre">${formatTeardown(td.comp, cDomain)}</pre>
       </div>
     </div>`;
@@ -891,7 +897,7 @@ function renderResultHeader(scoreRes, citeRes, q) {
     <div class="result-dash-score">
       <div class="result-dash-score-num">${score}</div>
       ${deltaHtml}
-      <div style="font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-top:3px">GEO 준비도</div>
+      <div style="font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-top:3px">페이지 위생</div>
       <div style="font-size:.9rem;font-weight:700;color:${bandColor};margin-top:6px">${esc(band)}</div>
     </div>` : '';
 
@@ -913,17 +919,17 @@ function renderResultHeader(scoreRes, citeRes, q) {
   const namedNames = eng.filter((p) => !p.cited && (p.namedRuns || 0) > 0).map((p) => ENGINE_SHORT[p.engine] || p.engine);
   const verdictLine = (eng.length && measuredAny)
     ? (citedNames.length
-        ? `<div class="result-verdict ok"><span class="rv-icon">✅</span><span class="rv-text"><b>AI 추천됨</b> — ${esc(citedNames.join('·'))}에 이 치과가 인용되고 있습니다.</span></div>`
+        ? `<div class="result-verdict ok"><span class="rv-icon">✓</span><span class="rv-text"><b>홈페이지 출처 인용 확인</b> — ${esc(citedNames.join('·'))} 답변이 이 도메인을 출처로 사용했습니다. 추천 여부는 답변 문맥에서 별도 확인하세요.</span></div>`
         : namedNames.length
           ? `<div class="result-verdict warn" style="background:rgba(230,168,23,.08);border-color:rgba(230,168,23,.25)"><span class="rv-icon">🟡</span><span class="rv-text"><b>이름 언급됨</b> — ${esc(namedNames.join('·'))}이 답변에서 이 치과를 언급했지만 링크 인용은 없습니다.</span></div>`
-          : `<div class="result-verdict bad"><span class="rv-icon">❌</span><span class="rv-text"><b>AI 미추천</b> — ChatGPT·Perplexity 추천 목록에 이 치과가 없습니다. 아래 '② 진단'에서 무엇이 부족한지 확인하세요.</span></div>`)
+          : `<div class="result-verdict warn" style="background:rgba(255,255,255,.04);border:1px solid var(--border)"><span class="rv-icon">—</span><span class="rv-text"><b>이번 패널에서 인용 관찰 없음</b> — 실패 판정이 아닙니다. 질의·시점·모델에 따라 달라질 수 있으므로 아래 진단을 가설로 보고 같은 조건에서 재측정하세요.</span></div>`)
     : '';
 
   return `${verdictLine}<div class="result-dash">
     ${scoreBlock}
     <div class="result-dash-info">
       <div class="result-dash-domain"><a class="result-dash-link" href="${esc(lastUrl || ('https://'+domain))}" target="_blank" rel="noopener noreferrer">${esc(domain)}<span style="font-size:.7em;margin-left:3px;opacity:.5">↗</span></a></div>
-      <div class="result-dash-region">${esc(q.region || '')} · ${esc(q.procedure || '')} · AI 추천 실측</div>
+      <div class="result-dash-region">${esc(q.region || '')} · ${esc(q.procedure || '')} · AI 검색 인용 실측</div>
     </div>
     ${engRows ? `<div class="result-dash-engines">${engRows}</div>` : ''}
   </div>`;
@@ -963,10 +969,11 @@ function renderCitation(citeRes) {
   if (!eng.length) return card('AI 실측', '<p class="muted">측정 결과 없음.</p>');
 
   const logos = eng.map((p) => ENGINE_LOGO[p.engine] || '').filter(Boolean).join('');
-  const maxReps = eng.reduce((m, p) => Math.max(m, p.validRuns || 0), 0);
-  const repsNote = maxReps > 1 ? `쿼리당 ${maxReps}회 평균` : '쿼리당 1회 측정 (오차 큼)';
+  const maxValidRuns = eng.reduce((m, p) => Math.max(m, p.validRuns || 0), 0);
+  const repsNote = maxValidRuns > 0 ? `엔진별 최대 유효 응답 ${maxValidRuns}건` : '유효 응답 없음';
+  const costText = d.costNote ? ` · ${esc(d.costNote)}` : '';
   const note = `<p class="muted small" style="margin-top:12px;text-align:center">
-    측정 엔진: <b>gpt-4o API</b> · <b>sonar API</b> · ${esc(repsNote)} —
+    측정 엔진: <b>ChatGPT·Perplexity·Claude 검색 API</b> · ${esc(repsNote)}${costText} —
     ChatGPT·Perplexity <b>앱 직접 검색과 모델·버전이 달라 결과 차이 있을 수 있음</b> ·
     <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b>
   </p>`;
@@ -984,13 +991,13 @@ function renderCitation(citeRes) {
     return `<th style="padding:11px 20px;font-size:.85rem;font-weight:700;color:${accent};text-align:center;${borderAccent}">${logo} ${esc(name)}</th>`;
   }).join('');
 
-  // Row 1 — AI 추천 결과
+  // Row 1 — homepage citation result (not a recommendation classifier)
   const resultCells = eng.map((p) => {
     if (!p.measured) return `<td style="padding:16px 20px;text-align:center;color:var(--text-2)"><div style="font-size:.9rem">—</div><div style="font-size:.72rem;margin-top:3px">측정불가</div></td>`;
     if (p.cited) return `<td style="padding:16px 20px;text-align:center;background:rgba(31,206,196,.06)">
-      <div style="font-size:1.4rem;line-height:1">✅</div>
+      <div style="font-size:1.4rem;line-height:1">✓</div>
       <div style="font-size:.88rem;font-weight:700;color:#1fcec4;margin-top:5px">${p.citedRuns}/${p.validRuns}회 인용</div>
-      <div style="font-size:.73rem;color:#1fcec4;margin-top:2px;opacity:.8">AI가 추천했습니다</div>
+      <div style="font-size:.73rem;color:#1fcec4;margin-top:2px;opacity:.8">홈페이지가 출처로 사용됨</div>
     </td>`;
     const named = p.namedRuns || 0;
     if (named > 0) return `<td style="padding:16px 20px;text-align:center;background:rgba(230,168,23,.06)">
@@ -999,13 +1006,13 @@ function renderCitation(citeRes) {
       <div style="font-size:.73rem;color:#e6a817;margin-top:2px;opacity:.8">링크 인용 없음</div>
     </td>`;
     return `<td style="padding:16px 20px;text-align:center">
-      <div style="font-size:1.4rem;line-height:1">❌</div>
+      <div style="font-size:1.4rem;line-height:1">—</div>
       <div style="font-size:.88rem;color:var(--text-2);margin-top:5px">0/${p.validRuns}회 인용</div>
-      <div style="font-size:.73rem;color:var(--text-2);margin-top:2px;opacity:.7">미추천</div>
+      <div style="font-size:.73rem;color:var(--text-2);margin-top:2px;opacity:.7">이번 측정에서 인용 없음</div>
     </td>`;
   }).join('');
 
-  // Row 2 — 대신 추천된 경쟁 도메인 (클릭 → 심층 비교: 무엇이 부족한지)
+  // Row 2 — other cited domains. They are sources, not verified competitors.
   const compCells = eng.map((p) => {
     const comp = (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain);
     if (!p.measured || !comp.length) return `<td style="padding:14px 20px;text-align:center;color:rgba(255,255,255,.2);font-size:.82rem">—</td>`;
@@ -1023,8 +1030,8 @@ function renderCitation(citeRes) {
   const qLabel = [d.region, d.procedure].filter(Boolean).join(' ');
   const compareHint = (recHomes.length && anyNotCited)
     ? `<div class="compare-invite">
-        <div class="compare-invite-head">🔍 경쟁 병원 홈페이지, 비교해보시겠어요?</div>
-        <p class="compare-invite-sub">AI가 ${qLabel ? `"${esc(qLabel)} 치과 추천"` : '이 검색'}에서 <b>실제로 추천한 홈페이지 ${recHomes.length}곳</b>입니다. 클릭하면 우리 홈페이지를 나란히 띄우고 코드를 뜯어 <b>무엇이 다른지</b> 한눈에 보여드립니다.</p>
+        <div class="compare-invite-head">🔍 함께 인용된 출처 도메인을 비교합니다</div>
+        <p class="compare-invite-sub">${qLabel ? `"${esc(qLabel)}" 관련 답변` : '이 답변'}에서 확인된 <b>다른 출처 ${recHomes.length}곳</b>입니다. 병원·디렉터리·미디어가 섞일 수 있으며, 구조 차이는 원인이 아닌 개선 가설로만 사용합니다.</p>
         <div class="compare-invite-list">
           ${recHomes.map((x, i) => { const href = /^https?:\/\//.test(x) ? x : `https://${x}`; return `<a class="compare-invite-item" href="${esc(href)}" target="_blank" rel="noopener" data-compare="${esc(x)}"><span class="ci-rank">${i + 1}</span><span class="ci-domain">${esc(x)}</span><span class="ci-cta">비교 분석 →</span></a>`; }).join('')}
         </div>
@@ -1044,11 +1051,11 @@ function renderCitation(citeRes) {
       </thead>
       <tbody>
         <tr>
-          <td style="${TD_LABEL}">AI 추천</td>
+          <td style="${TD_LABEL}">도메인 인용</td>
           ${resultCells}
         </tr>
         <tr>
-          <td style="${TD_LABEL}">대신<br>추천됨</td>
+          <td style="${TD_LABEL}">다른<br>출처</td>
           ${compCells}
         </tr>
       </tbody>
@@ -1058,7 +1065,7 @@ function renderCitation(citeRes) {
   return `<div class="card gate" style="margin-top:16px">
     <div class="engine-title-row">
       <div class="engine-title-logos">${logos}</div>
-      <b style="font-size:1rem">AI 실측 — 이 치과를 실제로 추천하나요?</b>
+      <b style="font-size:1rem">AI 실측 — 홈페이지를 출처로 인용하나요?</b>
     </div>
     ${table}
     ${compareHint}
@@ -1078,8 +1085,8 @@ function renderCitationAnswers(eng, clinicDomain) {
     const logo = ENGINE_LOGO[p.engine] || '';
     const items = p.sampleAnswers.map((a) => {
       const badge = a.cited
-        ? '<span style="color:#1fcec4;font-weight:700">✅ 이 치과 언급됨</span>'
-        : '<span style="color:var(--text-2)">이 치과 미언급</span>';
+        ? '<span style="color:#1fcec4;font-weight:700">✓ 홈페이지 출처 인용</span>'
+        : '<span style="color:var(--text-2)">홈페이지 출처 미인용</span>';
       return `<div style="margin-bottom:14px">
         <div style="font-size:.78rem;color:var(--text-2);margin-bottom:5px">💬 "${esc(a.prompt)}" · ${badge}</div>
         <div style="font-size:.82rem;line-height:1.65;color:var(--text-1);white-space:pre-wrap;word-break:break-word;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;max-height:320px;overflow:auto">${esc(a.answer || '(빈 응답)')}</div>
@@ -1093,7 +1100,7 @@ function renderCitationAnswers(eng, clinicDomain) {
     </div>`;
   }).join('');
   return `<div style="margin-top:16px">
-    <div class="compare-section-head" style="margin-bottom:4px">🔎 AI 답변 원문 — 실제로 무엇을 추천했나</div>
+    <div class="compare-section-head" style="margin-bottom:4px">🔎 AI 답변 원문 — 언급과 출처 문맥 확인</div>
     <p class="muted small" style="margin:0 0 8px">ChatGPT·Perplexity가 각 질의에 실제로 생성한 답변입니다(운영자 전용). 환자 광고에 인용 금지 — 의료광고법.</p>
     ${blocks}
   </div>`;
@@ -1130,7 +1137,7 @@ function renderRegionHitmap(d) {
 
   const CELL_STYLE = {
     cited: 'background:rgba(31,206,196,.15);color:#1fcec4',
-    notCited: 'background:rgba(240,94,106,.10);color:#f05e6a',
+    notCited: 'background:rgba(255,255,255,.04);color:var(--text-2)',
     unmeasured: 'background:rgba(255,255,255,.05);color:#8da0bb',
   };
 
@@ -1146,7 +1153,7 @@ function renderRegionHitmap(d) {
       if (!ep || !ep.measured) {
         return `<td style="padding:6px 10px;text-align:center;${CELL_STYLE.unmeasured}">—</td>`;
       }
-      const icon = ep.cited ? '✅' : '❌';
+      const icon = ep.cited ? '✓' : '—';
       const stat = `${ep.citedRuns}/${ep.validRuns}`;
       const style = ep.cited ? CELL_STYLE.cited : CELL_STYLE.notCited;
       return `<td style="padding:6px 10px;text-align:center;${style}"><span style="font-size:1rem">${icon}</span><div style="font-size:.7rem;margin-top:2px">${stat}</div></td>`;
@@ -1166,7 +1173,7 @@ function renderRegionHitmap(d) {
     : '';
   const note = `<p class="muted small" style="margin-top:6px;text-align:center">개발자 API 기준 · 일반 앱과 다를 수 있음 · <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b></p>`;
   return `<div class="card gate">
-    <b style="font-size:1rem">AI 실측 — 지역별 인용 현황 (${regions.length}개 지역)</b>
+    <b style="font-size:1rem">AI 검색 — 지역별 홈페이지 출처 인용 (${regions.length}개 지역)</b>
     ${table}
     ${costHtml}
     ${note}
@@ -1178,13 +1185,13 @@ function renderImprovements(scoreRes) {
   const TH = 'padding:8px 10px;font-size:.75rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border,rgba(255,255,255,.07));text-align:left;white-space:nowrap';
   const TD = 'padding:8px 10px;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top';
 
-  const provenRow = `<tr style="background:rgba(31,206,196,.05)">
+  const evidenceRow = `<tr style="background:rgba(31,206,196,.05)">
     <td style="${TD};text-align:center;font-weight:800;color:var(--teal)">1</td>
     <td style="${TD}"><span style="font-weight:700">콘텐츠에 출처·통계·전문의 인용 추가</span>
-      <div style="font-size:.78rem;color:var(--text-2);margin-top:3px">진료 페이지 본문에 "연구에 따르면…", 의료진 자격·경력, 실제 수치를 넣습니다</div>
+      <div style="font-size:.78rem;color:var(--text-2);margin-top:3px">검증된 공공통계·논문 원문과 승인된 의료진 자격만 출처 URL과 함께 사용합니다. 임의 수치·경력 생성 금지</div>
     </td>
-    <td style="${TD};white-space:nowrap"><span class="action-tag tag-proven">인과 입증 레버</span></td>
-    <td style="${TD};text-align:right;color:var(--teal);font-weight:700">최우선</td>
+    <td style="${TD};white-space:nowrap"><span class="action-tag tag-proven">사실 검증 필수</span></td>
+    <td style="${TD};text-align:right;color:var(--teal);font-weight:700">검증 후 적용</td>
   </tr>`;
 
   const hygieneRows = fixes.map((f, i) => `<tr>
@@ -1204,10 +1211,10 @@ function renderImprovements(scoreRes) {
         <th style="${TH}">유형</th>
         <th style="${TH};text-align:right">효과</th>
       </tr></thead>
-      <tbody>${provenRow}${hygieneRows}</tbody>
+      <tbody>${evidenceRow}${hygieneRows}</tbody>
     </table>
   </div>
-  <p class="muted small" style="margin-top:8px">1번이 AI 인용에 가장 직접적인 영향을 줍니다. 2번 이하는 홈페이지 구조 개선이며 인용을 직접 보장하지 않습니다.</p>`;
+  <p class="muted small" style="margin-top:8px">통계·자격·인용문은 확인 가능한 원문과 의료진 승인이 있을 때만 추가합니다. 모든 항목은 개선 가설이며 인용 효과는 같은 조건의 재측정으로 확인합니다.</p>`;
 
   return `<div class="card"><b style="font-size:1rem">개선 실행 목록</b>${table}</div>`;
 }
@@ -1220,7 +1227,7 @@ function renderAgentActionability(scoreRes) {
 function renderHygiene(scoreRes) {
   if (!scoreRes || !scoreRes.ok) {
     const reason = scoreRes && scoreRes.d && (scoreRes.d.reason || scoreRes.d.message);
-    return card('GEO 준비도 분석', `<p class="muted">${reason ? esc(reason) : '분석 불가'}</p>`);
+    return card('페이지 위생 분석', `<p class="muted">${reason ? esc(reason) : '분석 불가'}</p>`);
   }
   const d = scoreRes.d;
   const s = d.signals || {};
@@ -1257,9 +1264,9 @@ function renderHygiene(scoreRes) {
 
   // ── Section 2: 콘텐츠 인용성 신호 ───────────────────────────
   const geoSigs = [
-    { val: s.hasStatistics,      label: '수치·통계 ≥2개',               layer: 'GEO', note: 'AI 인용 +33% (KDD 2024)' },
-    { val: s.hasQuotations,      label: '인용문 (blockquote·따옴표)',    layer: 'GEO', note: 'AI 인용 +41% (KDD 2024)' },
-    { val: s.hasCitedSources,    label: '출처 표기 (cite·[1]·참고문헌)', layer: 'GEO', note: 'AI 인용 +27% (KDD 2024)' },
+    { val: s.hasStatistics,      label: '수치·통계 ≥2개',               layer: 'GEO', note: '원문 출처·검증 상태를 함께 확인' },
+    { val: s.hasQuotations,      label: '인용문 (blockquote·따옴표)',    layer: 'GEO', note: '실제 발언·승인 여부를 함께 확인' },
+    { val: s.hasCitedSources,    label: '출처 표기 (cite·[1]·참고문헌)', layer: 'GEO', note: '출처 존재만 점검 · 품질은 별도 검수' },
     { val: j.hasSameAsAuthority, label: 'SameAs 권위 URL',               layer: 'AEO', note: 'Wikidata·건강보험공단·의협' },
     { val: j.hasAggregateRating, label: 'AggregateRating 스키마',        layer: 'AEO', note: '리뷰 점수 구조화' },
     { val: j.hasMedicalWebPage,  label: 'MedicalWebPage 스키마',         layer: 'AEO', note: '의료 페이지 타입 명시' },
@@ -1322,7 +1329,7 @@ function renderHygiene(scoreRes) {
     <span style="font-size:.8rem;font-weight:700;color:${bandColor};flex-shrink:0">${d.score}pt · ${bandLabel}</span>
   </div>${axesBar}`;
 
-  return `<div class="card"><b style="font-size:1rem">GEO 준비도 세부 분석</b>${scoreBar}${table}</div>`;
+  return `<div class="card"><b style="font-size:1rem">페이지 크롤·콘텐츠 위생 세부 분석</b>${scoreBar}${table}</div>`;
 }
 
 function card(title, bodyHtml, cls) {
@@ -1333,10 +1340,7 @@ function card(title, bodyHtml, cls) {
 async function fetchAndRenderHistory(url) {
   try {
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-    const key = localStorage.getItem('opKey') || '';
-    const r = await fetch(`/api/history?domain=${encodeURIComponent(domain)}`, {
-      headers: { 'x-operator-key': key },
-    });
+    const r = await fetch(`/api/history?domain=${encodeURIComponent(domain)}`);
     if (!r.ok) return;
     const data = await r.json();
     const { scoreHistory = [], citationHistory = [], backedByKv } = data;
@@ -1354,7 +1358,6 @@ let _naverAbort = null;
 async function loadNaverPlace(q) {
   const sec = $('naverSection');
   if (!sec) return;
-  const key = localStorage.getItem('opKey') || '';
   const region = (q.region || '').split('·')[0].trim();
   const procedure = (q.procedure || '').trim();
   if (!region || !procedure) return;
@@ -1371,7 +1374,7 @@ async function loadNaverPlace(q) {
   try {
     const r = await fetch('/api/naver-place', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ region, procedure, clinicPhone, clinicName }),
       signal: _naverAbort.signal,
     });
@@ -1483,7 +1486,7 @@ function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
       <table style="width:100%;border-collapse:collapse">
         <thead><tr>
           <th style="${TH}">날짜</th>
-          <th style="${TH};text-align:right">GEO 점수</th>
+          <th style="${TH};text-align:right">페이지 위생</th>
           <th style="${TH}">등급</th>
         </tr></thead>
         <tbody>
@@ -1497,7 +1500,7 @@ function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
           }).join('')}
         </tbody>
       </table>
-    </div>` : '<p class="muted small">점수 이력 없음</p>';
+    </div>` : '<p class="muted small">페이지 위생 이력 없음</p>';
 
   // Citation history table — engines from first record
   let citationTable = '<p class="muted small">인용 이력 없음</p>';
@@ -1538,7 +1541,7 @@ function renderHistorySection(scoreHistory, citationHistory, backedByKv) {
     <b style="font-size:1rem">📈 측정 이력</b>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;margin-top:14px;align-items:start">
       <div>
-        <div style="font-size:.75rem;font-weight:700;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">GEO 점수 추이</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">페이지 위생 추이</div>
         ${scoreTable}
       </div>
       <div>
@@ -1751,7 +1754,6 @@ async function submitLead() {
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '제출 중...'; }
 
   try {
-    const key = localStorage.getItem('opKey') || '';
     let domain = '';
     try { domain = new URL(lastUrl).hostname.replace(/^www\./, ''); } catch {}
     const geoScore = lastScoreRes?.d?.score ?? null;
@@ -1760,7 +1762,7 @@ async function submitLead() {
 
     const r = await fetch('/api/lead', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-operator-key': key },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ domain, clinicName, contactName, phone, email, selectedProducts, notes, geoScore, aiCited }),
     });
     const data = await r.json().catch(() => ({}));
@@ -1784,12 +1786,10 @@ let _nmAbort = null;
 async function loadNaverManual(domain) {
   const sec = $('naverManualSection');
   if (!sec || !domain) return;
-  const key = localStorage.getItem('opKey') || '';
   _nmAbort?.abort();
   _nmAbort = new AbortController();
   try {
     const r = await fetch(`/api/naver-manual?domain=${encodeURIComponent(domain)}&months=6`, {
-      headers: { 'x-operator-key': key },
       signal: _nmAbort.signal,
     });
     if (!r.ok) { hide('naverManualSection'); return; }
@@ -1864,7 +1864,6 @@ function renderNaverManual(data, domain) {
 }
 
 async function saveNaverManual(domain) {
-  const opKey = localStorage.getItem('opKey') || '';
   const period = ($('nmPeriod') || {}).value || '';
   const msg = $('nmSaveMsg');
   if (!/^\d{4}-\d{2}$/.test(period)) {
@@ -1882,7 +1881,7 @@ async function saveNaverManual(domain) {
   try {
     const r = await fetch('/api/naver-manual', {
       method: 'PUT',
-      headers: { 'content-type': 'application/json', 'x-operator-key': opKey },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ domain, period, data }),
     });
     const result = await r.json().catch(() => ({}));
@@ -1942,7 +1941,7 @@ function renderBatch() {
       <div class="batch-section-head">측정 결과 <span class="muted small">${batchResults.length}개</span></div>
       <div class="batch-table-wrap">
         <table class="batch-table">
-          <thead><tr><th>도메인</th><th>점수</th><th>변화량</th><th>밴드</th><th>측정 시각</th></tr></thead>
+          <thead><tr><th>도메인</th><th>페이지 위생</th><th>변화량</th><th>밴드</th><th>측정 시각</th></tr></thead>
           <tbody>${batchResults.map(r => _batchRow(r)).join('')}</tbody>
         </table>
       </div>
@@ -1952,7 +1951,7 @@ function renderBatch() {
     <div class="batch-card">
       <div class="batch-head">
         <span class="batch-title">배치 대시보드</span>
-        <span class="batch-sub">거래처 URL 목록을 저장하고 일괄 점수 조회 · 변화량을 모아봅니다</span>
+        <span class="batch-sub">거래처 URL 목록을 저장하고 페이지 위생 지표의 변화량을 모아봅니다</span>
       </div>
       <div class="batch-add-row">
         <input class="batch-url-input" id="batchUrlInput" type="url" placeholder="https://거래처치과.co.kr" />

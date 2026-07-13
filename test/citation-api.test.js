@@ -146,6 +146,17 @@ test('regions[] clamped to 5; not-enabled → 202', async () => {
   assert.equal((out.json.regions || []).length, 5, 'clamped to max 5');
 });
 
+test('regions are deduplicated before clamping to 5', async () => {
+  process.env.CITATION_ENABLED = 'false';
+  process.env.OPERATOR_KEY = 'k';
+  const { req, res, out } = mk('POST', {
+    url: 'https://x.co.kr',
+    regions: ['강남', '강남', '서초', '송파', '강서', '마포', '영등포'],
+  }, { 'x-operator-key': 'k' });
+  await handler(req, res);
+  assert.deepEqual(out.json.regions, ['강남', '서초', '송파', '강서', '마포']);
+});
+
 test('regions: empty strings filtered out; single valid → single-region path (no .regions in 202)', async () => {
   clearEnv();
   process.env.OPERATOR_KEY = 'k';
@@ -307,12 +318,12 @@ test('multi-region: second identical request returns cached:true (200)', async (
 
 // --- buildCostNote (via multi-region response) ---
 
-test('buildCostNote: multi-region response costNote shows region × engine × query format', async () => {
+test('buildCostNote: multi-region response shows actual call count without a stale price estimate', async () => {
   clearEnv();
   process.env.OPERATOR_KEY = 'k';
   process.env.CITATION_ENABLED = 'true';
   process.env.OPENAI_API_KEY = 'x';
-  // Only OPENAI key → 1 engine; default 3 queries; 3 regions → $3×1×3×0.06=$0.54
+  // Only OPENAI key → 1 engine; 4 default queries × 3 repeats × 3 regions = 36 paid calls.
   const origFetch = global.fetch;
   global.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
 
@@ -326,7 +337,8 @@ test('buildCostNote: multi-region response costNote shows region × engine × qu
   assert.ok(typeof out.json.costNote === 'string', 'costNote must be a string');
   assert.ok(out.json.costNote.includes('3지역'), `costNote: ${out.json.costNote}`);
   assert.ok(out.json.costNote.includes('엔진'), `costNote: ${out.json.costNote}`);
-  assert.ok(out.json.costNote.includes('$'), `costNote: ${out.json.costNote}`);
+  assert.ok(out.json.costNote.includes('36회 호출'), `costNote: ${out.json.costNote}`);
+  assert.ok(!out.json.costNote.includes('$'), `costNote must not hardcode model pricing: ${out.json.costNote}`);
 
   global.fetch = origFetch;
 });

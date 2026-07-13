@@ -6,6 +6,7 @@
 
 import { kv } from '../lib/kv.js';
 import { registrableDomain } from '../lib/normalize.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
@@ -36,8 +37,7 @@ export function sanitize(raw) {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 function gate(req, res) {
-  const k = req.headers['x-operator-key'] || '';
-  if (!k || k !== process.env.OPERATOR_KEY) {
+  if (!isOperatorRequest(req)) {
     res.status(401).json({ error: 'unauthorized' });
     return false;
   }

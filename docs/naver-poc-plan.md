@@ -60,7 +60,7 @@ POC 목표: place.naver.com 공개 데이터를 파싱해 현재 `lib/naver.js`�
 
 ```
 POST /api/naver-place
-  x-operator-key: half1126
+  Cookie: HttpOnly operator session
   { clinicName, region, procedure }
 
 → 쿼리: "{region} {procedure} 치과"
@@ -90,7 +90,7 @@ POST /api/naver-place
 
 ```
 PUT /api/naver-manual
-  x-operator-key: half1126
+  Cookie: HttpOnly operator session
   { clinicDomain, period: "2026-06", data: { naturalVisitRate, callClicks, directionClicks, reservations } }
 
 GET /api/naver-manual?domain=example.com

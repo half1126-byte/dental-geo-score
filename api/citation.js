@@ -14,23 +14,40 @@
 import { createHash } from 'node:crypto';
 import { sendAlert } from '../lib/alert.js';
 import { runCitationPanel } from '../lib/citation.js';
-import { AUTO_ENGINES } from '../lib/engines.js';
+import { AUTO_ENGINES, allQueryVariants } from '../lib/engines.js';
 import { checkNaverLocal, naverApiAvailable } from '../lib/naver.js';
 import { registrableDomain, isKnownPlatformDomain } from '../lib/normalize.js';
 import { toPublicView, toPrivateReport } from '../lib/redact.js';
 import { makeStore } from '../lib/store.js';
 import { kv } from '../lib/kv.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 120 };
 
 const ENV_KEYS = { chatgpt: 'OPENAI_API_KEY', perplexity: 'PERPLEXITY_API_KEY', claude: 'ANTHROPIC_API_KEY' };
 const DAY = 86_400_000;
+const MAX_CUSTOM_QUERIES = 3;
 // Repeat each query N× to stabilize the noisy single-shot rate (Wilson CI needs N≥2). Clamp 1–3.
 // Cost: requests = engines × prompts × repeats. Override with CITATION_REPEATS env.
 const REPEATS = Math.max(1, Math.min(parseInt(process.env.CITATION_REPEATS || '3', 10) || 3, 3));
 const store = makeStore({ kv }); // kv = Upstash when KV_REST_API_URL+TOKEN set, else in-memory
 
 const maskEmail = (e) => String(e || '').replace(/^(.).*(@.*)$/, '$1***$2');
+
+export function sanitizeQueryIndexes(value, maxExclusive = 20) {
+  if (!Array.isArray(value)) return [];
+  const upperBound = Number.isInteger(maxExclusive) && maxExclusive > 0 ? maxExclusive : 20;
+  return [...new Set(value.map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n < upperBound))]
+    .slice(0, MAX_CUSTOM_QUERIES);
+}
+
+export function selectedPromptsForRegion({ indexes = [], customPrompts = null, region = '', procedure = '', businessType = '치과' } = {}) {
+  if (indexes.length) {
+    const variants = allQueryVariants({ district: region, procedure, businessType });
+    return indexes.map((index) => variants[index]).filter(Boolean);
+  }
+  return customPrompts;
+}
 
 // Stable 16-char hex digest of the raw IP string — never log or expose the raw IP.
 function hashIp(raw) {
@@ -43,11 +60,10 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'method-not-allowed' });
     return;
   }
-  const { url, email, region, regions, procedure, queries, clinicName, businessType } = req.body || {};
+  const { url, email, region, regions, procedure, queries, queryIndexes, clinicName, businessType } = req.body || {};
 
   // --- operator gate (internal tool) ---
-  const operatorKeySet = !!process.env.OPERATOR_KEY;
-  const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
+  const isOperator = isOperatorRequest(req);
   // Operator-only cache bypass: x-nocache:1 header or ?nocache=1 / body.nocache:true
   const noCache = isOperator && (
     req.headers['x-nocache'] === '1' ||
@@ -82,7 +98,7 @@ export default async function handler(req, res) {
 
   // Multi-region: `regions` overrides `region`. Clamped to 5, empty strings filtered out.
   const rawRegions = Array.isArray(regions) && regions.length > 0
-    ? regions.slice(0, 5).map((r) => String(r).trim()).filter(Boolean)
+    ? [...new Set(regions.map((r) => String(r).trim().slice(0, 40)).filter(Boolean))].slice(0, 5)
     : null;
   const effectiveRegions = rawRegions || (region ? [String(region).trim()] : ['']);
   const isMulti = effectiveRegions.length > 1;
@@ -106,16 +122,24 @@ export default async function handler(req, res) {
 
   try {
     // Build customPrompts early so cache key can include query fingerprint.
-    const rawCustom = Array.isArray(queries) && queries.length > 0
-      ? queries.slice(0, 4).map((q) => String(q).trim().slice(0, 300)).filter(Boolean)
+    const variantCount = allQueryVariants({
+      district: effectiveRegions[0] || '',
+      procedure: procedure || '',
+      businessType: businessType || '치과',
+    }).length;
+    const selectedIndexes = sanitizeQueryIndexes(queryIndexes, variantCount);
+    const rawCustom = !selectedIndexes.length && Array.isArray(queries) && queries.length > 0
+      ? queries.slice(0, MAX_CUSTOM_QUERIES).map((q) => String(q).trim().slice(0, 300)).filter(Boolean)
       : null;
     const customPrompts = rawCustom && rawCustom.length > 0 ? rawCustom : null;
-    const queryFP = customPrompts ? customPrompts.slice().sort().join('§').slice(0, 120) : '';
-    const queryCount = customPrompts ? customPrompts.length : 4;
+    const queryFP = selectedIndexes.length
+      ? `indexes:${selectedIndexes.join(',')}`
+      : (customPrompts ? customPrompts.slice().sort().join('§').slice(0, 120) : '');
+    const queryCount = selectedIndexes.length || (customPrompts ? customPrompts.length : 4);
 
     if (isMulti) {
       // --- Multi-region path ---
-      const costNote = buildCostNote(effectiveRegions.length, Object.keys(keys).length, queryCount);
+      const costNote = buildCostNote(effectiveRegions.length, Object.keys(keys).length, queryCount, REPEATS);
       // Cache key uses sorted region list so order-invariant
       const cacheKey = `multi|${domain}|${effectiveRegions.slice().sort().join('‖')}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
       const cached = noCache ? null : await store.cacheGet(cacheKey);
@@ -138,7 +162,13 @@ export default async function handler(req, res) {
           loc: { city: r },
           repeats: REPEATS,
           clinicName: clinicName || '',
-          customPrompts,
+          customPrompts: selectedPromptsForRegion({
+            indexes: selectedIndexes,
+            customPrompts,
+            region: r,
+            procedure: procedure || '',
+            businessType: businessType || '치과',
+          }),
         }))
       );
 
@@ -175,10 +205,11 @@ export default async function handler(req, res) {
     }
 
     // --- Single-region path (existing behavior) ---
+    const costNote = buildCostNote(1, Object.keys(keys).length, queryCount, REPEATS);
     const cacheKey = `${domain}|${(effectiveRegions[0] || '').toLowerCase()}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
     const cached = noCache ? null : await store.cacheGet(cacheKey);
     if (cached) {
-      res.status(200).json({ ...view(cached), cached: true });
+      res.status(200).json({ ...view(cached), costNote, cached: true });
       return;
     }
 
@@ -193,7 +224,13 @@ export default async function handler(req, res) {
       loc: { city: effectiveRegions[0] || '' },
       repeats: REPEATS,
       clinicName: clinicName || '',
-      customPrompts,
+      customPrompts: selectedPromptsForRegion({
+        indexes: selectedIndexes,
+        customPrompts,
+        region: effectiveRegions[0] || '',
+        procedure: procedure || '',
+        businessType: businessType || '치과',
+      }),
     });
     // Naver Local API check (non-blocking, parallel with cache write)
     let naverResult = null;
@@ -224,7 +261,7 @@ export default async function handler(req, res) {
     };
     store.histAppend(`c:${domain}`, histRecord).catch(() => {});
 
-    res.status(200).json(view(enriched));
+    res.status(200).json({ ...view(enriched), costNote });
   } catch (e) {
     res.status(500).json({ error: 'internal', message: String(e?.message || e).slice(0, 200) });
   }
@@ -241,9 +278,10 @@ function buildByRegionView(panelsByRegion, regions, viewFn) {
 }
 
 // Rough cost estimate string shown alongside multi-region results.
-function buildCostNote(nRegions, nEngines, nQueries) {
-  const approx = (nRegions * nEngines * nQueries * 0.06).toFixed(2);
-  return `${nRegions}지역 × ${nEngines}엔진 × ${nQueries}쿼리 ≈ $${approx}`;
+export function buildCostNote(nRegions, nEngines, nQueries, repeats = REPEATS) {
+  const calls = nRegions * nEngines * nQueries * repeats;
+  // 엔진·모델별 단가가 다르고 수시로 바뀌므로 달러 금액을 하드코딩하지 않는다.
+  return `${nRegions}지역 × ${nEngines}엔진 × ${nQueries}질의 × ${repeats}회 = ${calls}회 호출`;
 }
 
 // Returns true and sends the 429/202 response if the request should be blocked by rate caps.

@@ -1,29 +1,29 @@
 # dental-geo-score — 서비스 마스터 문서
 
 > 정본. 이 파일 하나로 서비스 정의·아키텍처·기능·전략·로드맵·운영 규칙 전체를 파악할 수 있어야 한다.
-> 최종 갱신: 2026-06-30
+> 최종 갱신: 2026-07-13
 
 ---
 
 ## 1. 서비스 정의
 
 ### 한 줄 정의
-> **"치과 홈페이지 URL을 넣으면, 지금 AI(ChatGPT·Perplexity)가 그 병원을 추천하고 있는지 실제로 물어보고 증거로 보여주는 도구"**
+> **"치과 홈페이지의 페이지 위생을 점검하고, 고정 질의 패널에서 병원명 언급과 공식 홈페이지 출처 인용을 반복 측정하는 도구"**
 
 ### 위치와 역할
 - **라이브 URL**: dental-geo-score.vercel.app
 - **실제 역할**: 메디앤메디 **영업 리드젠 웨지(Lead-gen Wedge)**
 - **진짜 상품**: GEO칼럼 서비스(세팅비 + 월 운영비, 3개월 사이클)
-- **트리거**: "우리 병원이 AI에 안 나온다"는 충격 → 상담 예약콜
+- **트리거**: 현재 상태를 기준선으로 확인 → 승인된 개선안 상담
 
 ### 전환 퍼널
 ```
 URL 입력
   → /api/score (휴리스틱 위생 점수, 무료·즉시)
-  → 충격 — "지금 AI가 귀원을 추천 안 하고 있습니다"
+  → 페이지 위생 결과 (AI 인용 예측 아님)
   → 이메일 게이트 (Path A 공개용)
   → /api/citation (실측: ChatGPT·Perplexity에 실제 질문)
-  → 진단서 (어떤 신호가 부족한지 breakdown)
+  → 진단서 (업체명 언급·출처 인용·측정 불가를 구분 + 페이지 위생 breakdown)
   → 예약콜 CTA
 ```
 
@@ -82,7 +82,7 @@ dental-geo-score/
   │    → 200 { score, band, breakdown, signals }
   │
   └─ POST /api/citation { url, email?, region?, regions?, procedure? }
-       → 이메일 검증 (공개) 또는 x-operator-key 검증 (운영자)
+       → 이메일 검증 (공개) 또는 HttpOnly 세션 검증 (운영자)
        → isKnownPlatformDomain 가드
        → KV cache check (24h)
        → enforceRateCaps (PER_IP_DAILY_CAP, DAILY_CITATION_CAP)
@@ -99,11 +99,11 @@ dental-geo-score/
 
 | 기능 | 파일 | 비고 |
 |---|---|---|
-| 휴리스틱 GEO 점수 (0-100) | `lib/scorer.js` | 7신호, SSRF-safe, 무료 |
+| 페이지 크롤·콘텐츠 위생 점수 (0-100) | `lib/scorer.js` | 7신호, SSRF-safe, 인용 예측 아님 |
 | 실측 인용 패널 (ChatGPT·Perplexity) | `lib/citation.js` | 24h KV 캐시 |
 | 공개 이메일 게이트 (Path A) | `public/app.js` | 이메일 필수, toPublicView |
-| 운영자 전용 풀리포트 | `public/operator.js` | x-operator-key 헤더 |
-| 경쟁사 비교 패널 | `public/operator.js:loadCompare` | 운영자 전용, 공개뷰 노출 금지 |
+| 운영자 전용 풀리포트 | `public/operator.js` | HttpOnly 8시간 세션 |
+| 인용 출처 구조 비교 패널 | `public/operator.js:loadCompare` | 운영자 전용, 공개뷰 노출 금지 |
 | 다지역 비교 (`regions[]`) | `api/citation.js` | 최대 5지역 병렬 |
 | 플랫폼 URL 가드 | `lib/normalize.js:isKnownPlatformDomain` | place.naver.com 등 차단 |
 | Naver Local API rank check | `lib/naver.js` | top-5, sort=comment |
@@ -126,8 +126,8 @@ Error:    400 missing-url | 400 platform-url | 422 fetch-blocked | 500 internal
 
 ### `POST /api/citation`
 ```
-Request:  { url, email?, region?, regions?: string[], procedure?, queries?: string[], clinicName?, businessType? }
-Headers:  x-operator-key: <OPERATOR_KEY>  (운영자 경로)
+Request:  { url, email?, region?, regions?: string[], procedure?, queries?: string[], queryIndexes?: number[], clinicName?, businessType? }
+Auth:     HttpOnly operator session (브라우저) | x-operator-key (서버 간 자동화만)
 
 Response (공개): toPublicView — 경쟁사 실명 마스킹
 Response (운영자): toPrivateReport — 경쟁사 실명·증거 URL 포함
@@ -187,13 +187,14 @@ Status:   200 ok | 202 pending (키 없음) | 202 cap-reached | 400 email-requir
 ### 시크릿 관리
 ```
 절대 커밋 금지:
-  OPERATOR_KEY          (프로덕션: half1126)
-  ADVANCED_GATE_PASSWORD (Gwwwwang94)
-  medi2026poc           (로컬 전용)
+  OPERATOR_KEY
+  OPERATOR_SESSION_SECRET
+  ADVANCED_GATE_PASSWORD
+  모든 API provider key/token
   .fixclean_* 파일      (라이브 API 키 포함, gitignored)
 
 배포 전 필수 스캔:
-  git diff | grep -iE "half1126|Gwwwwang94|medi2026poc|sk-[A-Za-z0-9]{8}|pplx-"
+  npm run check:secrets
 ```
 
 ### 의료광고법 제56조 LAW_HARD (0건 유지)
@@ -209,9 +210,11 @@ NODE_OPTIONS=--use-system-ca  # Avast HTTPS MITM 우회
 
 ### 운영자 인증 흐름
 ```
-x-operator-key 헤더 == OPERATOR_KEY env
-  → isOperator = true → toPrivateReport (경쟁사 실명 포함)
-  → isOperator = false → email 게이트 → toPublicView (마스킹)
+POST /api/unlock에서 ADVANCED_GATE_PASSWORD 서버 검증
+  → 서명된 8시간 HttpOnly·SameSite=Strict 쿠키 발급
+  → isOperatorRequest = true → toPrivateReport (비공개 원문 포함)
+  → 세션 없음 → email 게이트 → toPublicView (마스킹)
+  → x-operator-key는 서버 간 자동화 호환용; 브라우저 저장·URL 공유 금지
 ```
 
 ---
@@ -277,7 +280,7 @@ x-operator-key 헤더 == OPERATOR_KEY env
 | 점수-인용 상관관계 | **역상관** — 최고점(63) 병원이 미인용, 저점 병원이 인용 |
 | 측정 불가율 | 인용된 사이트의 40%가 TLS/cert 차단으로 점수 측정 불가 |
 | 점수 안정성 | 동일 사이트 재측정: 15↔45 불안정 |
-| 실제 인용 드라이버 | 멀티 디렉토리 등재 + 전문의 entity 명시 |
+| 인용 사례에서 함께 관찰된 요소 | 멀티 디렉토리 등재 + 전문의 entity 명시(제한 표본의 동시 관찰이며 인과 미확정) |
 
 **시사점**: 휴리스틱 점수는 "페이지 위생" 지표일 뿐, AI 인용 예측력 없음.
 실측 인용 패널(`/api/citation`)이 세일즈 핵심 증거.
@@ -288,13 +291,15 @@ x-operator-key 헤더 == OPERATOR_KEY env
 
 | 단계 | 내용 | 상태 |
 |---|---|---|
-| Phase 1 | 휴리스틱 점수 + SSRF 가드 + 32 tests | ✅ 완료 |
-| Phase A | 실측 인용 패널 + 이메일 게이트 + 운영자 모드 + 201 tests | ✅ 라이브 |
-| **Naver POC** | place.naver.com 파싱(`api/naver-place.js`) + 수동 입력 폼(`api/naver-manual.js`) | 📋 다음 |
-| 재측정 이력 그래프 | `prevScore` API + 히스토리 차트 (operator.js) | 📋 8월 내 |
-| Export 리포트 | 인쇄 버튼 + `@media print` A4 CSS | 📋 Now |
-| /api/compare | 경쟁사 심층 diff (스키마·메타·신호 필드 단위) | 📋 보류 |
-| 배치 대시보드 | 거래처 5개+ 시 localStorage + batch `/api/score` | 📋 나중 |
+| Phase 1 | 페이지 위생 점검 + SSRF 가드 | ✅ 완료 |
+| Phase A | 실측 인용 패널 + 이메일 게이트 + 운영자 모드 | ✅ 구현 |
+| **Naver POC** | 플레이스 조회(`api/naver-place.js`) + 수동 입력(`api/naver-manual.js`) | ✅ 운영자 기능 구현 |
+| 재측정 이력 그래프 | `prevScore` API + 히스토리 차트 | ✅ 구현 |
+| Export 리포트 | 인쇄 버튼 + `@media print` A4 CSS | ✅ 구현 |
+| /api/compare | 출처 도메인 구조 diff (스키마·메타·신호 필드 단위) | ✅ 구현 |
+| 배치 대시보드 | localStorage URL 목록 + batch `/api/score` | ✅ 구현 |
+
+현재 회귀 테스트: **277개 통과** (2026-07-13).
 
 ### Naver POC 설계 (다음 단계)
 ```
@@ -338,14 +343,14 @@ NODE_OPTIONS=--use-system-ca npx vercel dev
 NODE_OPTIONS=--use-system-ca node --test test/*.test.js
 
 # 배포 전 시크릿 스캔
-git diff | grep -iE "half1126|Gwwwwang94|medi2026poc|sk-[A-Za-z0-9]{8}|pplx-"
+npm run check:secrets
 
 # 프로덕션 배포
 NODE_OPTIONS=--use-system-ca npx vercel --prod
 
 # 라이브 확인
 # https://dental-geo-score.vercel.app
-# 운영자: x-operator-key 헤더 + /operator.html
+# 운영자: /operator.html 비밀번호 로그인 → HttpOnly 세션
 ```
 
 ---

@@ -4,6 +4,7 @@
 // Graceful degradation: if NOTION_TOKEN/NOTION_LEADS_DB_ID missing → KV only.
 import { kv } from '../lib/kv.js';
 import { sendAlert } from '../lib/alert.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 const NOTION_API = 'https://api.notion.com/v1/pages';
 const NOTION_VERSION = '2022-06-28';
@@ -17,9 +18,7 @@ export default async function handler(req, res) {
   }
 
   // Operator gate (same pattern as citation.js)
-  const operatorKeySet = !!process.env.OPERATOR_KEY;
-  const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
-  if (operatorKeySet && !isOperator) {
+  if (!isOperatorRequest(req)) {
     res.status(401).json({ error: 'operator-key-required', message: '운영자 키가 필요합니다.' });
     return;
   }

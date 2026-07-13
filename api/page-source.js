@@ -2,6 +2,7 @@
 // Fetches a URL (SSRF-safe) and returns sanitized HTML sections for side-by-side comparison:
 // title, key meta tags, canonical, JSON-LD blocks, body text snippet.
 import { safeFetch, FetchBlockedError } from '../lib/fetcher.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 12 };
 
@@ -10,9 +11,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'method-not-allowed' }); return; }
 
   // Operator gate
-  const operatorKeySet = !!process.env.OPERATOR_KEY;
-  const isOperator = operatorKeySet && req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
-  if (operatorKeySet && !isOperator) {
+  if (!isOperatorRequest(req)) {
     res.status(401).json({ error: 'operator-key-required' });
     return;
   }

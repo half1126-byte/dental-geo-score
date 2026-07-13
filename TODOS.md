@@ -56,7 +56,7 @@ _Last updated: 2026-06-30_
 
 ## Engineering Constraints (항상 적용)
 
-- 배포 전: `git diff | grep -iE "half1126|Gwwwwang94|medi2026poc|sk-[A-Za-z0-9]{8}|pplx-"` 스캔
+- 배포 전: `npm run check:secrets` 통과
 - 의료광고법 제56조 LAW_HARD 0건 (최고·1위·유일·완치·보장·100%·최상급·명품)
 - 경쟁사 비교 데이터 = operator-key 게이트 전용, 공개뷰 노출 금지
 - `NODE_OPTIONS=--use-system-ca` (Avast MITM)

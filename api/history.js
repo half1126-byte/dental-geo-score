@@ -4,6 +4,7 @@
 import { makeStore } from '../lib/store.js';
 import { kv } from '../lib/kv.js';
 import { registrableDomain } from '../lib/normalize.js';
+import { isOperatorRequest } from '../lib/operator-auth.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
@@ -13,9 +14,7 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') { res.status(405).json({ error: 'method-not-allowed' }); return; }
 
-  const isOperator = !!process.env.OPERATOR_KEY &&
-    req.headers['x-operator-key'] === process.env.OPERATOR_KEY;
-  if (!isOperator) {
+  if (!isOperatorRequest(req)) {
     res.status(401).json({ error: 'operator-key-required' });
     return;
   }

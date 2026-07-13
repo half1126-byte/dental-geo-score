@@ -1891,13 +1891,25 @@ footer.site-footer {
   .wrap-wide { padding: 0 20px; }
 }
 
-/* 2. 히어로 강제 줄바꿈 제거 → 모바일 자연 흐름 ────────
-   h1의 <br>이 세 줄을 "이제 AI가 / 고객을 / 보냅니다"로 끊어
-   중앙 정렬 시 줄 길이가 제각각이라 시각적으로 삐뚤어 보임 */
+/* 2. 현재 카피의 의미 단위를 모바일에서도 유지하고 긴 부제만 자연 줄바꿈 */
 @media (max-width: 560px) {
-  .hero-text h1 br,
+  .hero-text h1 br { display: block; }
   .hero-text .sub br { display: none; }
-  .hero-text .sub { max-width: 100%; }
+  .hero-text,
+  .hero-text .sub { max-width: 100%; min-width: 0; }
+  .hero-text h1 {
+    font-size: clamp(2rem, 10vw, 2.7rem);
+    overflow-wrap: anywhere;
+  }
+  .btn-hero-scroll { width: 100%; max-width: 100%; }
+
+  .nav-inner { gap: 10px; }
+  .nav-logo { font-size: .68rem; letter-spacing: .08em; }
+  .nav-cta {
+    flex-shrink: 0;
+    font-size: .7rem !important;
+    padding: 8px 12px !important;
+  }
 }
 
 /* 3. kicker 장문 줄 넘침 방지 */

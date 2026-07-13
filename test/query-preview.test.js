@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { dentalQueryVariants, allQueryVariants } from '../public/query-preview.js';
-import { buildPrompts } from '../lib/engines.js';
+import { allQueryVariants as backendQueryVariants, buildPrompts } from '../lib/engines.js';
+import { sanitizeQueryIndexes, selectedPromptsForRegion } from '../api/citation.js';
 import { REGION_TERMS } from '../public/kr-regions.js';
 
 // The operator's "이 문구로 측정합니다" preview MUST be byte-identical to what the backend queries.
@@ -20,6 +21,25 @@ test('preview phrasing is identical to buildPrompts (no drift)', () => {
     const backend = buildPrompts(c).map((u) => u.user);
     assert.deepEqual(preview, backend, `mismatch for ${JSON.stringify(c)}`);
   }
+});
+
+test('extended preview variants are identical to backend variants (no multi-region drift)', () => {
+  for (const c of CASES) assert.deepEqual(allQueryVariants(c), backendQueryVariants(c));
+});
+
+test('query indexes are deduped, clamped to 3, and invalid indexes are dropped', () => {
+  assert.deepEqual(sanitizeQueryIndexes([2, '1', 2, -1, 99, 0, 3]), [2, 1, 0]);
+  assert.deepEqual(sanitizeQueryIndexes([0, 7, 8], 8), [0, 7]);
+});
+
+test('multi-region query indexes rebuild literal prompts with each target region', () => {
+  const indexes = [0, 2, 4];
+  const gangnam = selectedPromptsForRegion({ indexes, region: '강남', procedure: '임플란트' });
+  const songpa = selectedPromptsForRegion({ indexes, region: '송파', procedure: '임플란트' });
+  assert.equal(gangnam.length, 3);
+  assert.equal(songpa.length, 3);
+  assert.ok(gangnam.every((q) => q.includes('강남')));
+  assert.ok(songpa.every((q) => q.includes('송파') && !q.includes('강남')));
 });
 
 test('allQueryVariants: district+procedure → ≥6 variants, first 4 identical to dentalQueryVariants', () => {
