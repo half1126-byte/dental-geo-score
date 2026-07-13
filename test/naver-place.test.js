@@ -111,6 +111,32 @@ describe('findTargetClinic', () => {
     const r = findTargetClinic(items, { clinicPhone: '000-000-0000', clinicName: '없는치과' });
     assert.equal(r, null);
   });
+  it('title-derived guess with location prefix finds the official place name (트리움 regression)', () => {
+    const places = [
+      { id: 'x', name: '닥터재일치과의원', phone: null },
+      { id: 'y', name: '트리움치과의원', phone: null },
+    ];
+    const r = findTargetClinic(places, { clinicName: '둔촌동 트리움치과' });
+    assert.equal(r?.id, 'y');
+  });
+  it('strips chained specialty suffixes (교정과치과의원)', () => {
+    const places = [{ id: 's', name: '시그니처치과교정과치과의원', phone: null }];
+    const r = findTargetClinic(places, { clinicName: '시그니처치과' });
+    assert.equal(r?.id, 's');
+  });
+  it('exact core equality beats fuzzy includes ordering', () => {
+    const places = [
+      { id: 'fuzzy', name: '강남서울미소치과의원', phone: null },
+      { id: 'exact', name: '서울미소치과의원', phone: null },
+    ];
+    const r = findTargetClinic(places, { clinicName: '서울미소치과' });
+    assert.equal(r?.id, 'exact');
+  });
+  it('does not match on degenerate short cores', () => {
+    const places = [{ id: 'z', name: '치과의원', phone: null }];
+    const r = findTargetClinic(places, { clinicName: '둔촌동 트리움치과' });
+    assert.equal(r, null);
+  });
   it('returns null on empty items', () => {
     assert.equal(findTargetClinic([], { clinicPhone: '02-111-2222' }), null);
   });

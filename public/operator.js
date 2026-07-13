@@ -1026,7 +1026,9 @@ function renderCitation(citeRes) {
 
   // narrative: not recommended → THESE 3 homepages WERE → friendly invite to compare
   const anyNotCited = eng.some((p) => p.measured && !p.cited);
-  const recHomes = [...new Set(eng.flatMap((p) => (p.sampledCitedDomains || []).filter((x) => x && x !== d.clinicDomain)))].slice(0, 3);
+  // compareCandidates = server-filtered by toPrivateReport (platforms/aggregators removed);
+  // cached panels pass through the same view, so the field is always present.
+  const recHomes = [...new Set(eng.flatMap((p) => (p.compareCandidates || []).filter((x) => x && x !== d.clinicDomain)))].slice(0, 3);
   const qLabel = [d.region, d.procedure].filter(Boolean).join(' ');
   const compareHint = (recHomes.length && anyNotCited)
     ? `<div class="compare-invite">

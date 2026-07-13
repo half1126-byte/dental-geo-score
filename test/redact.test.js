@@ -77,6 +77,23 @@ test('toPrivateReport keeps full named evidence (private path only)', () => {
   assert.ok(priv.perEngine[0].sampledCitedDomains.includes('competitor-a.co.kr'));
 });
 
+test('toPrivateReport compareCandidates drops platform/aggregator domains, keeps raw sampledCitedDomains', () => {
+  const mixedPanel = {
+    ...panel,
+    perEngine: [{
+      ...panel.perEngine[0],
+      sampledCitedDomains: ['competitor-a.co.kr', 'naver.com', 'youtube.com', 'my-doctor.io', 'honorsdental.com'],
+    }],
+  };
+  const priv = toPrivateReport(mixedPanel);
+  assert.deepEqual(priv.perEngine[0].compareCandidates, ['competitor-a.co.kr', 'honorsdental.com']);
+  // the honest "다른 출처" row keeps the unfiltered list
+  assert.deepEqual(
+    priv.perEngine[0].sampledCitedDomains,
+    ['competitor-a.co.kr', 'naver.com', 'youtube.com', 'my-doctor.io', 'honorsdental.com'],
+  );
+});
+
 test('wilson: 0/5 is NOT [0,0] (no false certainty), low=0', () => {
   const ci = wilsonInterval(0, 5);
   assert.equal(ci.low, 0);

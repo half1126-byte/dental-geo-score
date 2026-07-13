@@ -46,6 +46,13 @@ test('isKnownPlatformDomain: other shared platforms → true', () => {
   assert.equal(isKnownPlatformDomain('https://map.kakao.com/link/map/12345'), true);
 });
 
+test('isKnownPlatformDomain: medical booking/telemedicine aggregators → true', () => {
+  assert.equal(isKnownPlatformDomain('my-doctor.io'), true);
+  assert.equal(isKnownPlatformDomain('https://www.goodoc.co.kr/hospital/123'), true);
+  assert.equal(isKnownPlatformDomain('modoodoc.com'), true);
+  assert.equal(isKnownPlatformDomain('https://www.gangnamunni.com/events'), true);
+});
+
 test('isKnownPlatformDomain: own clinic domain → false', () => {
   assert.equal(isKnownPlatformDomain('https://www.seoulsmile.co.kr'), false);
   assert.equal(isKnownPlatformDomain('https://haruplant.co.kr/implant'), false);
