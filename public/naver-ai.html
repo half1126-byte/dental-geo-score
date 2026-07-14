@@ -90,6 +90,34 @@ header.hero::before { background: none; }
 .nva-killer .why { font-size:.9rem; color:var(--text-2); margin-top:14px; line-height:1.7; }
 .nva-killer .conc { font-size:1rem; font-weight:700; color:var(--ngreen); margin-top:18px; }
 
+/* 인용 데이터 지도 — 질의유형 카드 */
+.nva-src-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:40px; }
+@media (max-width:980px){ .nva-src-grid { grid-template-columns:1fr 1fr; } }
+@media (max-width:560px){ .nva-src-grid { grid-template-columns:1fr; } }
+.nva-src-card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:22px 20px; }
+.nva-src-card .surface { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.05em; color:var(--ngreen); background:var(--ngreen-dim); border:1px solid var(--ngreen-border); border-radius:12px; padding:3px 10px; margin-bottom:12px; }
+.nva-src-card .q { font-size:.86rem; color:var(--text-1); font-weight:700; margin-bottom:10px; line-height:1.4; }
+.nva-src-card ul { list-style:none; padding:0; margin:0; }
+.nva-src-card li { font-size:.78rem; color:var(--text-2); padding:4px 0 4px 14px; position:relative; line-height:1.55; }
+.nva-src-card li::before { content:'·'; position:absolute; left:0; top:2px; color:var(--ngreen); font-weight:900; }
+.nva-src-card .tag2 { display:block; font-size:.68rem; color:var(--text-2); opacity:.7; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.06); line-height:1.5; }
+.nva-src-caption { font-size:.74rem; color:var(--text-2); margin-top:16px; line-height:1.6; text-align:center; max-width:640px; margin-left:auto; margin-right:auto; }
+
+/* 인용 데이터 지도 — UGC 구성 도넛 */
+.nva-donut-card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:28px 26px; margin-top:16px; display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
+.nva-donut { width:150px; height:150px; border-radius:50%; position:relative; flex-shrink:0; background:conic-gradient(var(--ngreen) 0 70%, rgba(255,255,255,.10) 70% 100%); }
+.nva-donut::after { content:''; position:absolute; inset:24px; border-radius:50%; background:var(--bg-2); z-index:1; }
+.nva-donut-label { position:absolute; inset:24px; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.nva-donut-label b { font-size:1.5rem; color:var(--text-1); line-height:1; }
+.nva-donut-label span { font-size:.64rem; color:var(--text-2); margin-top:3px; }
+.nva-donut-legend { flex:1; min-width:220px; }
+.nva-donut-legend .row { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:.86rem; color:var(--text-2); }
+.nva-donut-legend .dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+.nva-donut-legend .dot.a { background:var(--ngreen); }
+.nva-donut-legend .dot.b { background:rgba(255,255,255,.22); }
+.nva-donut-legend b { color:var(--text-1); }
+.nva-donut-src { font-size:.7rem; color:var(--text-2); opacity:.7; margin-top:10px; }
+
 /* 실측 카드 */
 .nva-proof-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:40px; }
 @media (max-width:820px){ .nva-proof-grid { grid-template-columns:1fr; } }
@@ -117,16 +145,73 @@ header.hero::before { background: none; }
 .nva-bar-pt { flex:0 0 34px; text-align:right; font-size:.8rem; font-weight:700; color:var(--text-1); }
 .nva-axis-note { font-size:.74rem; color:var(--text-2); margin-top:18px; line-height:1.6; }
 
-/* 패키지 카드 */
-.nva-pkg-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:40px; }
-@media (max-width:900px){ .nva-pkg-grid { grid-template-columns:1fr 1fr; } }
-@media (max-width:640px){ .nva-pkg-grid { grid-template-columns:1fr; } }
-.nva-pkg { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:24px 22px; }
-.nva-pkg .axis-chip { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.08em; border-radius:14px; padding:2px 10px; margin-bottom:12px; }
-.nva-pkg .axis-chip.exec { color:var(--ngreen); background:var(--ngreen-dim); }
-.nva-pkg .axis-chip.cite { color:var(--nteal); background:rgba(31,206,196,.13); }
-.nva-pkg h3 { font-size:.98rem; font-weight:700; color:var(--text-1); margin-bottom:8px; }
-.nva-pkg p { font-size:.82rem; color:var(--text-2); line-height:1.65; }
+/* 패키지 — 기능별 시각화 블록 (does.kr 스타일 참조: 라벨→헤드라인→설명→대형 비주얼, 좌우 교차 리듬) */
+.axis-chip { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.08em; border-radius:14px; padding:3px 11px; }
+.axis-chip.exec { color:var(--ngreen); background:var(--ngreen-dim); border:1px solid var(--ngreen-border); }
+.axis-chip.cite { color:var(--nteal); background:rgba(31,206,196,.13); border:1px solid rgba(31,206,196,.35); }
+
+.nva-feat-list { margin-top:56px; }
+.nva-feat { display:flex; align-items:center; gap:56px; padding:56px 0; border-top:1px solid var(--border); }
+.nva-feat:first-child { border-top:none; padding-top:8px; }
+.nva-feat:nth-child(even) { flex-direction:row-reverse; }
+@media (max-width:900px){
+  .nva-feat, .nva-feat:nth-child(even) { flex-direction:column; gap:26px; padding:40px 0; text-align:center; }
+}
+.nva-feat-text { flex:1 1 0; min-width:0; }
+.nva-feat-text h3 { font-size:1.3rem; font-weight:800; color:var(--text-1); margin:14px 0 10px; line-height:1.35; letter-spacing:-.01em; }
+.nva-feat-text p { font-size:.9rem; color:var(--text-2); line-height:1.75; max-width:420px; }
+@media (max-width:900px){ .nva-feat-text p { max-width:100%; margin:0 auto; } }
+.nva-feat-visual { flex:1 1 0; display:flex; justify-content:center; }
+
+/* 시각화 1 — 네이버 예약 연동 (요일·시간대 슬롯) */
+.nva-viz-booking { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:24px; width:100%; max-width:340px; }
+.nva-viz-booking .days { display:flex; gap:6px; margin-bottom:14px; }
+.nva-viz-booking .day { flex:1; text-align:center; padding:8px 0; border-radius:8px; font-size:.72rem; color:var(--text-2); background:rgba(255,255,255,.04); }
+.nva-viz-booking .day.on { background:var(--ngreen-dim); color:var(--ngreen); font-weight:800; border:1px solid var(--ngreen-border); }
+.nva-viz-booking .slots { display:flex; gap:8px; flex-wrap:wrap; }
+.nva-viz-booking .slot { font-size:.74rem; padding:7px 12px; border-radius:8px; background:rgba(255,255,255,.05); color:var(--text-2); }
+.nva-viz-booking .slot.avail { background:var(--ngreen); color:#04170b; font-weight:800; }
+.nva-viz-booking .foot { margin-top:14px; font-size:.7rem; color:var(--ngreen); font-weight:700; }
+
+/* 시각화 2 — 플레이스 완결성 체크리스트 */
+.nva-viz-check { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:22px 24px; width:100%; max-width:340px; }
+.nva-viz-check .row { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid rgba(255,255,255,.05); font-size:.84rem; color:var(--text-2); }
+.nva-viz-check .row:first-child { border-top:none; }
+.nva-viz-check .ic { width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.68rem; font-weight:900; flex-shrink:0; }
+.nva-viz-check .ic.done { background:var(--ngreen); color:#04170b; }
+.nva-viz-check .ic.todo { background:rgba(255,255,255,.07); color:var(--text-2); }
+.nva-viz-check b { color:var(--text-1); }
+
+/* 시각화 3 — 실환자 리뷰 카드 */
+.nva-viz-review { width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; }
+.nva-viz-review .card { background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:14px 16px; text-align:left; }
+.nva-viz-review .stars { color:var(--ngreen); font-size:.8rem; letter-spacing:2px; }
+.nva-viz-review .txt { font-size:.78rem; color:var(--text-2); margin-top:6px; line-height:1.5; }
+.nva-viz-review .meta { font-size:.68rem; color:var(--text-2); opacity:.6; margin-top:8px; }
+
+/* 시각화 4 — AI브리핑형 블로그 프리뷰 */
+.nva-viz-blog { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:22px 24px; width:100%; max-width:340px; text-align:left; }
+.nva-viz-blog .ttl { font-size:.9rem; font-weight:700; color:var(--text-1); margin-bottom:12px; line-height:1.4; }
+.nva-viz-blog .line { height:8px; border-radius:4px; background:rgba(255,255,255,.07); margin-bottom:7px; }
+.nva-viz-blog .line.s { width:68%; }
+.nva-viz-blog .src { display:inline-block; font-size:.66rem; color:var(--nteal); background:rgba(31,206,196,.13); border-radius:10px; padding:3px 9px; margin-top:10px; }
+.nva-viz-blog .sup { display:block; font-size:.68rem; color:var(--ngreen); margin-top:10px; font-weight:700; }
+
+/* 시각화 5 — 클립 숏폼 (세로 프레임) */
+.nva-viz-clip { width:150px; height:266px; border-radius:20px; border:3px solid rgba(255,255,255,.14); background:#0c1118; position:relative; overflow:hidden; margin:0 auto; }
+.nva-viz-clip .play { position:absolute; top:44%; left:50%; transform:translate(-50%,-50%); width:42px; height:42px; border-radius:50%; background:rgba(3,199,90,.92); display:flex; align-items:center; justify-content:center; color:#04170b; font-size:1rem; }
+.nva-viz-clip .wave { position:absolute; bottom:44px; left:12px; right:12px; display:flex; gap:2px; align-items:flex-end; height:16px; }
+.nva-viz-clip .wave span { flex:1; background:var(--ngreen); border-radius:1px; opacity:.8; }
+.nva-viz-clip .cap { position:absolute; bottom:14px; left:10px; right:10px; font-size:.6rem; color:#fff; background:rgba(0,0,0,.55); border-radius:6px; padding:5px 8px; text-align:center; line-height:1.4; }
+
+/* 시각화 6 — 월간 관측 리포트 (미니 바차트) */
+.nva-viz-report { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:22px 24px; width:100%; max-width:340px; }
+.nva-viz-report .bars { display:flex; align-items:flex-end; gap:10px; height:76px; margin-bottom:10px; }
+.nva-viz-report .bar { flex:1; border-radius:4px 4px 0 0; background:rgba(255,255,255,.08); }
+.nva-viz-report .bar.hi { background:linear-gradient(180deg,var(--ngreen),var(--nteal)); }
+.nva-viz-report .lbls { display:flex; gap:10px; font-size:.66rem; color:var(--text-2); }
+.nva-viz-report .lbls span { flex:1; text-align:center; }
+.nva-viz-report .foot { font-size:.7rem; color:var(--text-2); margin-top:10px; opacity:.75; }
 
 /* 임상 전환 스토리 */
 .nva-shift { max-width:760px; margin:40px auto 0; }
@@ -164,6 +249,7 @@ header.hero::before { background: none; }
     <div class="nav-logo">MEDINMEDI<span class="nav-dot">·</span>NAVER AI</div>
     <div class="nav-links">
       <a href="#facts">왜 지금</a>
+      <a href="#sources">인용 데이터</a>
       <a href="#package">토탈 패키지</a>
       <a href="/">GEO 진단 (ChatGPT)</a>
     </div>
@@ -237,6 +323,66 @@ header.hero::before { background: none; }
   </div>
 </section>
 
+<!-- ── 인용 데이터 지도 ── -->
+<section class="nva-section" id="sources">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center;color:var(--ngreen)">WHAT GETS CITED</p>
+    <h2 style="text-align:center">네이버 AI는 <span class="g">무엇을 보고</span> 답하나</h2>
+    <p class="sub" style="text-align:center;max-width:600px;margin:0 auto">환자의 질문 유형에 따라 AI가 참조하는 데이터가 달라집니다.</p>
+
+    <div class="nva-src-grid">
+      <div class="nva-src-card fade-up">
+        <span class="surface">AI탭</span>
+        <p class="q">"○○동 치과 추천해줘"</p>
+        <ul>
+          <li>플레이스 등록정보 (진료시간·브레이크타임·사진)</li>
+          <li>리뷰 수·최신성·구체성</li>
+          <li>네이버 예약 연동 여부</li>
+        </ul>
+        <span class="tag2">추천형 질의 · 실행축 레버 — 아래 실측으로 확인</span>
+      </div>
+      <div class="nva-src-card fade-up d1">
+        <span class="surface">AI브리핑</span>
+        <p class="q">"임플란트 후 주의사항"</p>
+        <ul>
+          <li>블로그·카페 글 (UGC)</li>
+          <li>클립 영상 (음성·자막 인식)</li>
+        </ul>
+        <span class="tag2">정보형 질의 · 인용축 레버 — UGC 70% [공식]</span>
+      </div>
+      <div class="nva-src-card fade-up d2">
+        <span class="surface">통합검색+AI</span>
+        <p class="q">"○○치과 어때?"</p>
+        <ul>
+          <li>플레이스 + 공식 블로그</li>
+          <li>병원 홈페이지</li>
+        </ul>
+        <span class="tag2">확인형 질의 · 홈페이지 인용은 별도 실측(아래)으로 확인</span>
+      </div>
+      <div class="nva-src-card fade-up d3">
+        <span class="surface">AI브리핑·AI탭</span>
+        <p class="q">"임플란트 가격"</p>
+        <ul>
+          <li>가격 비교 콘텐츠·플랫폼</li>
+        </ul>
+        <span class="tag2">가격형 질의 · 저희 패키지 범위 밖 (참고)</span>
+      </div>
+    </div>
+    <p class="nva-src-caption">※ 질의 유형 분류는 자체 리서치 기준입니다. 추천형·정보형은 아래 실측·네이버 공식 발표로 뒷받침되며, 확인형·가격형은 구조적 분류로 개별 실측 대상은 아닙니다.</p>
+
+    <div class="nva-donut-card fade-up">
+      <div class="nva-donut">
+        <div class="nva-donut-label"><b>70%</b><span>UGC</span></div>
+      </div>
+      <div class="nva-donut-legend">
+        <div class="row"><span class="dot a"></span><b>70%</b>&nbsp;블로그·카페 등 UGC 콘텐츠</div>
+        <div class="row"><span class="dot b"></span><b>30%</b>&nbsp;공식 채널·언론 등 기타 출처</div>
+        <p class="nva-donut-src">AI브리핑 인용 콘텐츠 구성 — 네이버 공식 발표 기준</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ── 실측 ── -->
 <section class="nva-section alt" id="proof">
   <div class="wrap-wide">
@@ -292,13 +438,107 @@ header.hero::before { background: none; }
       <p class="nva-axis-note">※ 이 점수는 AI가 인용할 수 있는 조건의 <b style="color:var(--text-1)">정비 상태</b>를 재는 지표이며, AI의 추천·인용 자체를 예측하거나 보장하지 않습니다. 효과는 같은 조건 재측정으로만 확인합니다.</p>
     </div>
 
-    <div class="nva-pkg-grid">
-      <div class="nva-pkg fade-up"><span class="axis-chip exec">실행축</span><h3>네이버 예약 연동·정비</h3><p>실측에서 예약 미연동 병원은 "전화 문의 필요"로 표기됐습니다. 예약 연동과 시간대 정비로 AI 답변 안의 실행 격차를 없앱니다.</p></div>
-      <div class="nva-pkg fade-up d1"><span class="axis-chip exec">실행축</span><h3>플레이스 정보 완결성</h3><p>진료시간·브레이크타임·결제·사진 등 등록 정보가 답변에 그대로 인용됩니다. 빈칸 없이 채우고 유지합니다.</p></div>
-      <div class="nva-pkg fade-up d2"><span class="axis-chip exec">실행축</span><h3>실환자 리뷰 운영</h3><p>추천 순서가 리뷰 수 순서와 일치했습니다. 조작 없이, 실환자 리뷰가 꾸준히 쌓이는 요청 동선을 설계합니다.</p></div>
-      <div class="nva-pkg fade-up"><span class="axis-chip cite">인용축</span><h3>AI브리핑형 정보성 블로그</h3><p>인용의 70%가 블로그·카페입니다. 심화 장문(4,000자+)·출처 기관 명시·원장 감수 표기를 갖춘 정보형 콘텐츠를 정기 발행합니다.</p></div>
-      <div class="nva-pkg fade-up d1"><span class="axis-chip cite">인용축</span><h3>클립 숏폼</h3><p>네이버 AI는 클립의 음성·자막·화면을 인식해 인용합니다. 블로그에서 파생 제작해 성장 구간을 선점합니다.</p></div>
-      <div class="nva-pkg fade-up d2"><span class="axis-chip cite">인용축</span><h3>월간 AI 관측 리포트</h3><p>같은 질의를 매월 반복 측정해 AI 답변 안의 변화(추천 등장·출처 인용·예약 표기)를 기록으로 보고합니다.</p></div>
+    <div class="nva-feat-list">
+      <div class="nva-feat fade-up">
+        <div class="nva-feat-text">
+          <span class="axis-chip exec">실행축</span>
+          <h3>네이버 예약 연동·정비</h3>
+          <p>실측에서 예약 미연동 병원은 "전화 문의 필요"로 표기됐습니다. 예약 연동과 시간대 정비로 AI 답변 안의 실행 격차를 없앱니다.</p>
+        </div>
+        <div class="nva-feat-visual">
+          <div class="nva-viz-booking" aria-hidden="true">
+            <div class="days">
+              <span class="day">월</span><span class="day">화</span><span class="day">수</span><span class="day">목</span><span class="day">금</span><span class="day on">토</span>
+            </div>
+            <div class="slots">
+              <span class="slot">10:00</span><span class="slot avail">11:00</span><span class="slot">13:00</span><span class="slot avail">15:00</span><span class="slot">17:00</span>
+            </div>
+            <div class="foot">● 실시간 예약 가능 시간대 표시 (예시)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nva-feat fade-up">
+        <div class="nva-feat-text">
+          <span class="axis-chip exec">실행축</span>
+          <h3>플레이스 정보 완결성</h3>
+          <p>진료시간·브레이크타임·결제·사진 등 등록 정보가 답변에 그대로 인용됩니다. 빈칸 없이 채우고 유지합니다.</p>
+        </div>
+        <div class="nva-feat-visual">
+          <div class="nva-viz-check" aria-hidden="true">
+            <div class="row"><span class="ic done">✓</span><b>진료시간</b>&nbsp;등록 완료</div>
+            <div class="row"><span class="ic done">✓</span><b>브레이크타임</b>&nbsp;등록 완료</div>
+            <div class="row"><span class="ic done">✓</span><b>결제수단</b>&nbsp;등록 완료</div>
+            <div class="row"><span class="ic todo">·</span><b>대표 사진</b>&nbsp;미등록 (예시)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nva-feat fade-up">
+        <div class="nva-feat-text">
+          <span class="axis-chip exec">실행축</span>
+          <h3>실환자 리뷰 운영</h3>
+          <p>추천 순서가 리뷰 수 순서와 일치했습니다. 조작 없이, 실환자 리뷰가 꾸준히 쌓이는 요청 동선을 설계합니다.</p>
+        </div>
+        <div class="nva-feat-visual">
+          <div class="nva-viz-review" aria-hidden="true">
+            <div class="card"><span class="stars">★★★★★</span><p class="txt">"상담을 꼼꼼하게 해주셔서 안심하고 진료받았어요."</p><span class="meta">3일 전 · 임플란트 (예시)</span></div>
+            <div class="card"><span class="stars">★★★★★</span><p class="txt">"통증 관리를 잘 챙겨주셔서 회복이 편했습니다."</p><span class="meta">1주 전 · 신경치료 (예시)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nva-feat fade-up">
+        <div class="nva-feat-text">
+          <span class="axis-chip cite">인용축</span>
+          <h3>AI브리핑형 정보성 블로그</h3>
+          <p>인용의 70%가 블로그·카페입니다. 심화 장문(4,000자+)·출처 기관 명시·원장 감수 표기를 갖춘 정보형 콘텐츠를 정기 발행합니다.</p>
+        </div>
+        <div class="nva-feat-visual">
+          <div class="nva-viz-blog" aria-hidden="true">
+            <div class="ttl">임플란트 정기검진, 왜 필요할까요</div>
+            <div class="line"></div><div class="line"></div><div class="line s"></div>
+            <span class="src">출처 기관명 본문 인용</span>
+            <span class="sup">✓ 원장 감수 완료</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nva-feat fade-up">
+        <div class="nva-feat-text">
+          <span class="axis-chip cite">인용축</span>
+          <h3>클립 숏폼</h3>
+          <p>네이버 AI는 클립의 음성·자막·화면을 인식해 인용합니다. 블로그에서 파생 제작해 성장 구간을 선점합니다.</p>
+        </div>
+        <div class="nva-feat-visual">
+          <div class="nva-viz-clip" aria-hidden="true">
+            <div class="play">▶</div>
+            <div class="wave">
+              <span style="height:40%"></span><span style="height:70%"></span><span style="height:50%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:35%"></span><span style="height:75%"></span><span style="height:55%"></span>
+            </div>
+            <div class="cap">임플란트 후 3일, 이런 증상 정상일까요?</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nva-feat fade-up">
+        <div class="nva-feat-text">
+          <span class="axis-chip cite">인용축</span>
+          <h3>월간 AI 관측 리포트</h3>
+          <p>같은 질의를 매월 반복 측정해 AI 답변 안의 변화(추천 등장·출처 인용·예약 표기)를 기록으로 보고합니다.</p>
+        </div>
+        <div class="nva-feat-visual">
+          <div class="nva-viz-report" aria-hidden="true">
+            <div class="bars">
+              <div class="bar" style="height:35%"></div>
+              <div class="bar" style="height:55%"></div>
+              <div class="bar hi" style="height:82%"></div>
+            </div>
+            <div class="lbls"><span>1월</span><span>2월</span><span>3월</span></div>
+            <div class="foot">※ 표현 방식 예시 — 실제 수치는 거래처별 월간 리포트로 확인</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
