@@ -1,5 +1,6 @@
-// POST /api/lead — operator-only.
-// Body: { domain, clinicName, contactName, phone, email?, selectedProducts[], notes?, geoScore, aiCited }
+// POST /api/lead — operator-only, plus public naver-ai lead-gen mode.
+// Operator body: { domain, clinicName, contactName, phone, email?, selectedProducts[], notes?, geoScore, aiCited }
+// Public body (source:'naver-ai'): { source, clinicName, email, phone?, notes? } — IP rate-limited.
 // Stores to Upstash KV (backup) + Notion (primary DB for meeting scheduling).
 // Graceful degradation: if NOTION_TOKEN/NOTION_LEADS_DB_ID missing → KV only.
 import { kv } from '../lib/kv.js';
@@ -9,6 +10,7 @@ import { isOperatorRequest } from '../lib/operator-auth.js';
 const NOTION_API = 'https://api.notion.com/v1/pages';
 const NOTION_VERSION = '2022-06-28';
 const TTL_90D = 7_776_000;
+const PUBLIC_RATE_LIMIT = 5; // 시간당 IP별 최대 제출 (naver-ai 공개 폼)
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
@@ -17,10 +19,49 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Operator gate (same pattern as citation.js)
-  if (!isOperatorRequest(req)) {
+  const isPublicNaverAi = req.body && req.body.source === 'naver-ai';
+
+  // Operator gate (same pattern as citation.js) — naver-ai 공개 폼만 예외 (아래 별도 검증+레이트리밋)
+  if (!isPublicNaverAi && !isOperatorRequest(req)) {
     res.status(401).json({ error: 'operator-key-required', message: '운영자 키가 필요합니다.' });
     return;
+  }
+
+  if (isPublicNaverAi) {
+    // 스팸 방지 — IP당 시간당 5회 (kv 미설정이면 통과: 폼 자체가 저노출이라 수용)
+    if (kv) {
+      const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+      const rlKey = `nvlead:rl:${ip}`;
+      try {
+        const count = await kv.incr(rlKey);
+        if (count === 1) await kv.expire(rlKey, 3600);
+        if (count > PUBLIC_RATE_LIMIT) {
+          res.status(429).json({ error: 'rate-limited', message: '잠시 후 다시 시도해주세요.' });
+          return;
+        }
+      } catch (_) { /* rate-limit 실패는 non-blocking */ }
+    }
+    const { clinicName, email } = req.body || {};
+    if (!clinicName || typeof clinicName !== 'string' || !clinicName.trim()) {
+      res.status(400).json({ error: 'missing-clinicName' });
+      return;
+    }
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      res.status(400).json({ error: 'invalid-email' });
+      return;
+    }
+    // 공개 폼 필드를 operator 스키마로 정규화해 아래 공통 저장 로직 재사용
+    req.body = {
+      domain: '',
+      clinicName: req.body.clinicName,
+      contactName: '(네이버AI 리드젠)',
+      phone: String(req.body.phone || '').trim() || '-',
+      email: req.body.email,
+      selectedProducts: ['네이버AI 토탈 패키지 문의'],
+      notes: `[naver-ai.html 공개 폼] ${String(req.body.notes || '').trim()}`.trim(),
+      geoScore: null,
+      aiCited: false,
+    };
   }
 
   const { domain, clinicName, contactName, phone, email, selectedProducts, notes, geoScore, aiCited } = req.body || {};
