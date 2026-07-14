@@ -47,7 +47,10 @@ header.hero::before { background: none; }
 /* ── 히어로 우측: 네이버 AI브리핑 목업 (시뮬레이션 고지 필수) ── */
 .hero-split { justify-content: space-between; gap: 40px; }
 .nva-mock { position: relative; z-index: 2; width: 400px; flex-shrink: 0; margin-left: auto; }
-@media (max-width: 980px) { .nva-mock { display: none; } }
+/* 히어로 텍스트가 100% 폭으로 풀리는 지점(shared style.css .hero-text 768px)과 정확히 맞춤 —
+   어긋나면 769~980px 구간에서 목업은 사라지고 텍스트만 520px에 고정돼 오른쪽에 빈 공간이 남음 */
+@media (max-width: 768px) { .nva-mock { display: none; } }
+@media (max-width: 900px) and (min-width: 769px) { .nva-mock { width: 300px; } }
 .nva-mock-search {
   display: flex; align-items: center; gap: 10px;
   background: #fff; border: 2px solid var(--ngreen); border-radius: 999px;
@@ -72,6 +75,21 @@ header.hero::before { background: none; }
 .nva-mock-clinic .call { margin-left: auto; color: rgba(255,255,255,.4); font-size: .7rem; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 4px 10px; }
 .nva-mock .note { font-size: .64rem; color: rgba(255,255,255,.35); margin-top: 10px; text-align: center; }
 
+/* 히어로 — 모바일 전용 축소 목업 (980px 미만에서만, 데스크톱 .nva-mock의 대체) */
+.nva-mock-compact { display:none; }
+@media (max-width:980px) {
+  .nva-mock-compact { display:flex; gap:8px; margin:20px 0 24px; }
+  .nva-mock-compact .pill { flex:1; text-align:center; border-radius:12px; padding:10px 8px; font-size:.76rem; font-weight:700; }
+  .nva-mock-compact .pill.ok { background:var(--ngreen-dim); border:1px solid var(--ngreen-border); color:var(--ngreen); }
+  .nva-mock-compact .pill.no { background:rgba(255,255,255,.04); border:1px solid var(--border); color:rgba(255,255,255,.45); }
+  .nva-mock-compact .pill span { display:block; font-size:.64rem; font-weight:400; margin-top:3px; opacity:.85; }
+}
+
+/* 리드 폼 — 커스텀 인라인 유효성 에러 */
+.nva-lead .field-err { display:none; font-size:.74rem; color:#f05e6a; margin-top:6px; }
+.nva-lead .field-err.show { display:block; }
+.nva-lead input.invalid { border-color:#f05e6a; }
+
 /* 팩트 카드 */
 .nva-section { padding:80px 0; }
 .nva-section.alt { background:var(--bg-2); }
@@ -81,7 +99,7 @@ header.hero::before { background: none; }
 .nva-section.alt .nva-fact { background:var(--bg-1); }
 .nva-fact .num { font-size:2rem; font-weight:800; color:var(--ngreen); letter-spacing:-.02em; }
 .nva-fact .lbl { font-size:.95rem; font-weight:700; color:var(--text-1); margin-top:6px; }
-.nva-fact .src { display:block; font-size:.72rem; color:var(--text-2); margin-top:10px; line-height:1.5; }
+.nva-fact .src { display:block; font-size:.8rem; color:var(--text-2); margin-top:10px; line-height:1.55; }
 
 /* 킬러 카드 (광고 불가) */
 .nva-killer { max-width:760px; margin:40px auto 0; border:1px solid rgba(240,94,106,.35); background:rgba(240,94,106,.06); border-radius:18px; padding:34px 32px; text-align:center; }
@@ -100,8 +118,8 @@ header.hero::before { background: none; }
 .nva-src-card ul { list-style:none; padding:0; margin:0; }
 .nva-src-card li { font-size:.78rem; color:var(--text-2); padding:4px 0 4px 14px; position:relative; line-height:1.55; }
 .nva-src-card li::before { content:'·'; position:absolute; left:0; top:2px; color:var(--ngreen); font-weight:900; }
-.nva-src-card .tag2 { display:block; font-size:.68rem; color:var(--text-2); opacity:.7; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.06); line-height:1.5; }
-.nva-src-caption { font-size:.74rem; color:var(--text-2); margin-top:16px; line-height:1.6; text-align:center; max-width:640px; margin-left:auto; margin-right:auto; }
+.nva-src-card .tag2 { display:block; font-size:.76rem; color:var(--text-2); opacity:.8; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.06); line-height:1.55; }
+.nva-src-caption { font-size:.8rem; color:var(--text-2); margin-top:16px; line-height:1.65; text-align:center; max-width:640px; margin-left:auto; margin-right:auto; }
 
 /* 인용 데이터 지도 — UGC 구성 도넛 */
 .nva-donut-card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:28px 26px; margin-top:16px; display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
@@ -116,7 +134,7 @@ header.hero::before { background: none; }
 .nva-donut-legend .dot.a { background:var(--ngreen); }
 .nva-donut-legend .dot.b { background:rgba(255,255,255,.22); }
 .nva-donut-legend b { color:var(--text-1); }
-.nva-donut-src { font-size:.7rem; color:var(--text-2); opacity:.7; margin-top:10px; }
+.nva-donut-src { font-size:.8rem; color:var(--text-2); opacity:.8; margin-top:10px; }
 
 /* 실측 카드 */
 .nva-proof-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:40px; }
@@ -129,7 +147,7 @@ header.hero::before { background: none; }
 .nva-proof li:first-child { border-top:none; }
 .nva-proof li::before { content:'✓'; position:absolute; left:0; color:var(--ngreen); font-weight:800; }
 .nva-proof li b { color:var(--text-1); }
-.nva-proof .note { font-size:.7rem; color:var(--text-2); margin-top:12px; opacity:.75; }
+.nva-proof .note { font-size:.8rem; color:var(--text-2); margin-top:12px; opacity:.8; line-height:1.55; }
 
 /* 가중치 모델 바 */
 .nva-axis { max-width:720px; margin:40px auto 0; }
@@ -143,7 +161,7 @@ header.hero::before { background: none; }
 .nva-bar-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--ngreen),#3fe08a); }
 .nva-bar-fill.cite { background:linear-gradient(90deg,var(--nteal),#6fe8e0); }
 .nva-bar-pt { flex:0 0 34px; text-align:right; font-size:.8rem; font-weight:700; color:var(--text-1); }
-.nva-axis-note { font-size:.74rem; color:var(--text-2); margin-top:18px; line-height:1.6; }
+.nva-axis-note { font-size:.8rem; color:var(--text-2); margin-top:18px; line-height:1.65; }
 
 /* 패키지 — 기능별 시각화 블록 (does.kr 스타일 참조: 라벨→헤드라인→설명→대형 비주얼, 좌우 교차 리듬) */
 .axis-chip { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.08em; border-radius:14px; padding:3px 11px; }
@@ -232,7 +250,9 @@ header.hero::before { background: none; }
 .nva-lead label { display:block; font-size:.8rem; font-weight:700; color:var(--text-2); margin:16px 0 6px; }
 .nva-lead label:first-of-type { margin-top:0; }
 .nva-lead input, .nva-lead textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:10px; color:var(--text-1); font-size:.92rem; padding:12px 14px; font-family:inherit; }
-.nva-lead input:focus, .nva-lead textarea:focus { outline:none; border-color:var(--ngreen); }
+.nva-lead input:focus, .nva-lead textarea:focus { outline:none; border-color:var(--ngreen); box-shadow:0 0 0 3px var(--ngreen-dim); }
+.nva-lead input:focus-visible, .nva-lead textarea:focus-visible { outline:2px solid var(--ngreen); outline-offset:2px; }
+.nva-lead button:focus-visible { outline:2px solid var(--nmint); outline-offset:3px; }
 .nva-lead button { width:100%; margin-top:22px; background:var(--ngreen); color:#04170b; border:none; border-radius:12px; font-size:.98rem; font-weight:800; padding:14px; cursor:pointer; }
 .nva-lead button:hover { filter:brightness(1.08); }
 .nva-lead button:disabled { opacity:.5; cursor:default; }
@@ -267,6 +287,10 @@ header.hero::before { background: none; }
           <p class="kicker" style="color:var(--ngreen)">NAVER AI브리핑 · AI탭 대응</p>
           <h1>네이버 AI가<br/><span class="g">추천하고</span><br/><span class="g2">예약까지 하는 시대</span></h1>
           <p class="sub">환자는 이제 목록을 스크롤하지 않습니다.<br/>AI가 답변 안에서 병원을 추천하고 예약 가능 시간까지 안내합니다.<br/>그 답변에 들어가는 조건을 준비합니다.</p>
+          <div class="nva-mock-compact" aria-hidden="true">
+            <span class="pill ok">예약 가능<span>AI가 바로 안내</span></span>
+            <span class="pill no">전화 문의 필요<span>예약 미연동 시</span></span>
+          </div>
           <a href="#lead" class="btn-hero-scroll">우리 병원 네이버 AI 준비도 진단받기 ↓</a>
         </div>
         <div class="nva-mock" aria-hidden="true">
@@ -370,6 +394,7 @@ header.hero::before { background: none; }
     </div>
     <p class="nva-src-caption">※ 질의 유형 분류는 자체 리서치 기준입니다. 추천형·정보형은 아래 실측·네이버 공식 발표로 뒷받침되며, 확인형·가격형은 구조적 분류로 개별 실측 대상은 아닙니다.</p>
 
+    <p class="nva-src-caption" style="margin-top:28px;margin-bottom:-6px">↓ 위 네 유형 중 <b style="color:var(--text-1)">정보형 질의(AI브리핑)</b>가 실제로 인용하는 콘텐츠 구성입니다</p>
     <div class="nva-donut-card fade-up">
       <div class="nva-donut">
         <div class="nva-donut-label"><b>70%</b><span>UGC</span></div>
@@ -573,18 +598,20 @@ header.hero::before { background: none; }
     <h2 style="text-align:center">우리 병원의 <span class="g">네이버 AI 준비도</span>를 진단해 드립니다</h2>
     <p class="sub" style="text-align:center;max-width:520px;margin:0 auto">치과명과 이메일을 남겨주시면 실행축·인용축 기준 진단 결과와<br/>개선 우선순위를 보내드립니다.</p>
 
-    <form class="nva-lead fade-up" id="nvaLeadForm">
+    <form class="nva-lead fade-up" id="nvaLeadForm" novalidate>
       <label for="nvaClinic">치과명 <span style="color:#f05e6a">*</span></label>
-      <input type="text" id="nvaClinic" placeholder="예: ○○치과의원 (지역 포함 권장)" required maxlength="100" />
+      <input type="text" id="nvaClinic" placeholder="예: ○○치과의원 (지역 포함 권장)" required maxlength="100" aria-describedby="nvaClinicErr" />
+      <span class="field-err" id="nvaClinicErr" role="alert">치과명을 입력해주세요.</span>
       <label for="nvaEmail">이메일 <span style="color:#f05e6a">*</span></label>
-      <input type="email" id="nvaEmail" placeholder="결과 받을 이메일" required maxlength="200" autocomplete="email" />
+      <input type="email" id="nvaEmail" placeholder="결과 받을 이메일" required maxlength="200" autocomplete="email" aria-describedby="nvaEmailErr" />
+      <span class="field-err" id="nvaEmailErr" role="alert">올바른 이메일 주소를 입력해주세요.</span>
       <label for="nvaPhone">연락처 (선택)</label>
       <input type="tel" id="nvaPhone" placeholder="상담 원하시면 남겨주세요" maxlength="30" />
       <label for="nvaNotes">궁금한 점 (선택)</label>
       <textarea id="nvaNotes" rows="3" placeholder="예: 현재 블로그 운영 중인데 네이버 AI에 어떻게 대비해야 하나요?" maxlength="500"></textarea>
       <button type="submit" id="nvaSubmit">무료 진단 신청</button>
-      <p class="ok-msg hidden" id="nvaOk">신청되었습니다. 진단 결과를 이메일로 보내드리겠습니다.</p>
-      <p class="err-msg hidden" id="nvaErr"></p>
+      <p class="ok-msg hidden" id="nvaOk" role="status" aria-live="polite">신청되었습니다. 진단 결과를 이메일로 보내드리겠습니다.</p>
+      <p class="err-msg hidden" id="nvaErr" role="alert" aria-live="assertive"></p>
       <p class="priv">입력하신 정보는 진단 결과 안내 목적으로만 사용됩니다.</p>
     </form>
   </div>
@@ -625,8 +652,29 @@ header.hero::before { background: none; }
 })();
 
 // lead form → /api/lead (public naver-ai mode)
+// 커스텀 인라인 검증 — 브라우저 기본 팝업(시스템 UI) 대신 다크 테마에 맞춘 에러 표시
+function nvaValidateField(input, errEl, testFn) {
+  var valid = testFn(input.value.trim());
+  input.classList.toggle('invalid', !valid);
+  input.setAttribute('aria-invalid', String(!valid));
+  errEl.classList.toggle('show', !valid);
+  return valid;
+}
+document.getElementById('nvaClinic').addEventListener('input', function(){
+  nvaValidateField(this, document.getElementById('nvaClinicErr'), function(v){ return v.length > 0; });
+});
+document.getElementById('nvaEmail').addEventListener('input', function(){
+  nvaValidateField(this, document.getElementById('nvaEmailErr'), function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); });
+});
+
 document.getElementById('nvaLeadForm').addEventListener('submit', async function(e){
   e.preventDefault();
+  var clinicInput = document.getElementById('nvaClinic');
+  var emailInput = document.getElementById('nvaEmail');
+  var clinicOk = nvaValidateField(clinicInput, document.getElementById('nvaClinicErr'), function(v){ return v.length > 0; });
+  var emailOk = nvaValidateField(emailInput, document.getElementById('nvaEmailErr'), function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); });
+  if (!clinicOk) { clinicInput.focus(); return; }
+  if (!emailOk) { emailInput.focus(); return; }
   var btn = document.getElementById('nvaSubmit');
   var ok = document.getElementById('nvaOk');
   var err = document.getElementById('nvaErr');
