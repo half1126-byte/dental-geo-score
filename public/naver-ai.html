@@ -13,8 +13,64 @@
 <meta property="og:type" content="website" />
 <link rel="stylesheet" href="/style.css?v=4" />
 <style>
-:root { --ngreen:#03c75a; --ngreen-dim:rgba(3,199,90,.14); --ngreen-border:rgba(3,199,90,.35); }
+:root { --ngreen:#03c75a; --ngreen-dim:rgba(3,199,90,.14); --ngreen-border:rgba(3,199,90,.35); --nteal:#1fcec4; --nmint:#3fe08a; }
 .hidden { display:none !important; }
+
+/* ── 네이버 그린 오버라이드 레이어 — GEO 공유 style.css의 플럼/앰버 토큰을 이 페이지에서만 그린 패밀리로 교체 ── */
+a { color: var(--ngreen); }
+h1 .g, .g { color: var(--nmint); }
+h1 .g2, .g2 { color: var(--ngreen); }
+.nav-dot { color: var(--ngreen); }
+.btn.p { background: var(--ngreen); color: #04170b; }
+.btn-hero-scroll { background: var(--ngreen); color: #04170b; font-weight: 800; }
+.btn-cta-large { background: var(--ngreen); color: #04170b; }
+.cta-section { background: radial-gradient(ellipse 700px 400px at 50% 0%, rgba(3,199,90,.10) 0%, transparent 70%); }
+
+/* ── 히어로: 영상 대신 그린 글로우 + 미세 그리드 ── */
+header.hero {
+  background:
+    radial-gradient(ellipse 55% 48% at 76% 36%, rgba(3,199,90,.13), transparent 62%),
+    radial-gradient(ellipse 46% 42% at 12% 88%, rgba(31,206,196,.09), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px 72px),
+    #05080f;
+}
+header.hero::before { background: none; }
+.nva-hero-glow {
+  position: absolute; z-index: 0; width: 620px; height: 620px; border-radius: 50%;
+  right: -140px; top: -160px; pointer-events: none;
+  background: radial-gradient(circle, rgba(3,199,90,.14), transparent 65%);
+  animation: nvaPulse 7s ease-in-out infinite;
+}
+@keyframes nvaPulse { 0%,100% { opacity:.55; transform:scale(1); } 50% { opacity:1; transform:scale(1.12); } }
+
+/* ── 히어로 우측: 네이버 AI브리핑 목업 (시뮬레이션 고지 필수) ── */
+.hero-split { justify-content: space-between; gap: 40px; }
+.nva-mock { position: relative; z-index: 2; width: 400px; flex-shrink: 0; margin-left: auto; }
+@media (max-width: 980px) { .nva-mock { display: none; } }
+.nva-mock-search {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border: 2px solid var(--ngreen); border-radius: 999px;
+  padding: 12px 8px 12px 20px; box-shadow: 0 8px 40px rgba(3,199,90,.18);
+}
+.nva-mock-search .q { flex: 1; font-size: .88rem; color: #222; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nva-mock-search .go { flex-shrink: 0; background: var(--ngreen); color: #fff; font-size: .78rem; font-weight: 800; border-radius: 999px; padding: 8px 16px; }
+.nva-mock-card {
+  margin-top: 14px; background: #101822; border: 1px solid rgba(255,255,255,.09);
+  border-radius: 18px; padding: 20px 20px 16px; box-shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+.nva-mock-card .badge { display: inline-block; font-size: .68rem; font-weight: 800; letter-spacing: .06em; color: #04170b; background: var(--ngreen); border-radius: 6px; padding: 3px 9px; }
+.nva-mock-card .ans { font-size: .82rem; color: rgba(255,255,255,.82); line-height: 1.65; margin: 12px 0 12px; }
+.nva-mock-card .chips { display: flex; gap: 6px; margin-bottom: 14px; }
+.nva-mock-card .chips span { font-size: .66rem; color: var(--ngreen); background: var(--ngreen-dim); border: 1px solid var(--ngreen-border); border-radius: 12px; padding: 3px 9px; }
+.nva-mock-clinic { display: flex; align-items: center; gap: 9px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,.07); font-size: .82rem; }
+.nva-mock-clinic .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ngreen); flex-shrink: 0; }
+.nva-mock-clinic .dot.gray { background: rgba(255,255,255,.25); }
+.nva-mock-clinic b { color: #fff; font-weight: 700; }
+.nva-mock-clinic .meta { color: rgba(255,255,255,.45); font-size: .74rem; }
+.nva-mock-clinic .rsv { margin-left: auto; background: var(--ngreen); color: #04170b; font-size: .7rem; font-weight: 800; border-radius: 8px; padding: 4px 12px; }
+.nva-mock-clinic .call { margin-left: auto; color: rgba(255,255,255,.4); font-size: .7rem; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 4px 10px; }
+.nva-mock .note { font-size: .64rem; color: rgba(255,255,255,.35); margin-top: 10px; text-align: center; }
 
 /* 팩트 카드 */
 .nva-section { padding:80px 0; }
@@ -57,7 +113,7 @@
 @media (max-width:640px){ .nva-bar-lbl { flex-basis:150px; font-size:.76rem; } }
 .nva-bar-track { flex:1; height:10px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
 .nva-bar-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--ngreen),#3fe08a); }
-.nva-bar-fill.cite { background:linear-gradient(90deg,#8052ff,#a98bff); }
+.nva-bar-fill.cite { background:linear-gradient(90deg,var(--nteal),#6fe8e0); }
 .nva-bar-pt { flex:0 0 34px; text-align:right; font-size:.8rem; font-weight:700; color:var(--text-1); }
 .nva-axis-note { font-size:.74rem; color:var(--text-2); margin-top:18px; line-height:1.6; }
 
@@ -68,7 +124,7 @@
 .nva-pkg { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:24px 22px; }
 .nva-pkg .axis-chip { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.08em; border-radius:14px; padding:2px 10px; margin-bottom:12px; }
 .nva-pkg .axis-chip.exec { color:var(--ngreen); background:var(--ngreen-dim); }
-.nva-pkg .axis-chip.cite { color:#a98bff; background:rgba(128,82,255,.14); }
+.nva-pkg .axis-chip.cite { color:var(--nteal); background:rgba(31,206,196,.13); }
 .nva-pkg h3 { font-size:.98rem; font-weight:700; color:var(--text-1); margin-bottom:8px; }
 .nva-pkg p { font-size:.82rem; color:var(--text-2); line-height:1.65; }
 
@@ -115,11 +171,9 @@
   </div>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- ── HERO (그린 글로우 배경 + AI브리핑 목업) ── -->
 <header class="hero">
-  <video id="heroVideo" autoplay muted loop playsinline poster="/hero-poster.webp">
-    <source src="/hero.mp4" type="video/mp4" />
-  </video>
+  <div class="nva-hero-glow"></div>
   <div class="hero-inner">
     <div class="wrap-wide">
       <div class="hero-split">
@@ -128,6 +182,21 @@
           <h1>네이버 AI가<br/><span class="g">추천하고</span><br/><span class="g2">예약까지 하는 시대</span></h1>
           <p class="sub">환자는 이제 목록을 스크롤하지 않습니다.<br/>AI가 답변 안에서 병원을 추천하고 예약 가능 시간까지 안내합니다.<br/>그 답변에 들어가는 조건을 준비합니다.</p>
           <a href="#lead" class="btn-hero-scroll">우리 병원 네이버 AI 준비도 진단받기 ↓</a>
+        </div>
+        <div class="nva-mock" aria-hidden="true">
+          <div class="nva-mock-search">
+            <span class="q">토요일 예약 가능한 치과 추천해줘</span>
+            <span class="go">검색</span>
+          </div>
+          <div class="nva-mock-card">
+            <span class="badge">AI 브리핑</span>
+            <p class="ans">예약 가능 여부와 최근 방문 후기를 기준으로 보면, 아래 병원들이 조건에 맞습니다. 두 곳은 오늘 바로 예약할 수 있습니다.</p>
+            <div class="chips"><span>플레이스</span><span>블로그</span><span>리뷰 최신순</span></div>
+            <div class="nva-mock-clinic"><span class="dot"></span><b>○○치과의원</b><span class="meta">토요일 진료 · 리뷰 최신</span><span class="rsv">예약</span></div>
+            <div class="nva-mock-clinic"><span class="dot"></span><b>□□치과의원</b><span class="meta">오늘 예약 가능</span><span class="rsv">예약</span></div>
+            <div class="nva-mock-clinic"><span class="dot gray"></span><b>△△치과의원</b><span class="meta">예약 미연동</span><span class="call">전화 문의 필요</span></div>
+          </div>
+          <p class="note">※ 화면 구성 예시(시뮬레이션) — 실제 답변·업체가 아닙니다</p>
         </div>
       </div>
     </div>
