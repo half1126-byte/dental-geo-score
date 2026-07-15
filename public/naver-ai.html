@@ -11,7 +11,12 @@
 <meta property="og:description" content="의료 업종은 네이버 AI 광고를 집행할 수 없습니다. AI가 인용하는 콘텐츠·데이터를 준비하는 토탈 패키지." />
 <meta property="og:url" content="https://dental-geo-score.vercel.app/naver-ai.html" />
 <meta property="og:type" content="website" />
+<meta property="og:image" content="https://dental-geo-score.vercel.app/naver-ai-og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<link rel="icon" type="image/png" href="/naver-ai-favicon.png" />
 <link rel="stylesheet" href="/style.css?v=4" />
+<noscript><style>.fade-up{opacity:1 !important;transform:none !important}</style></noscript>
 <style>
 :root { --ngreen:#03c75a; --ngreen-dim:rgba(3,199,90,.14); --ngreen-border:rgba(3,199,90,.35); --nteal:#1fcec4; --nmint:#3fe08a; }
 .hidden { display:none !important; }
@@ -30,6 +35,18 @@ h1 .g2, .g2 { color: var(--ngreen); }
 .btn-hero-scroll { background: var(--ngreen); color: #04170b; font-weight: 800; }
 .btn-cta-large { background: var(--ngreen); color: #04170b; }
 .cta-section { background: radial-gradient(ellipse 700px 400px at 50% 0%, rgba(3,199,90,.10) 0%, transparent 70%); }
+.cta-section h2 strong { color: var(--ngreen); } /* 공유 css 플럼 누수 수정 */
+.cta-sub { color: rgba(255,255,255,.55); }
+.site-footer .footer-info { color: rgba(255,255,255,.45); }
+/* 공유 css의 플럼/앰버 배경 오브 → 그린 패밀리 재틴트 */
+html::before {
+  background:
+    radial-gradient(ellipse 900px 700px at 8% 12%, rgba(3,199,90,.06) 0%, transparent 62%),
+    radial-gradient(ellipse 700px 600px at 92% 88%, rgba(31,206,196,.045) 0%, transparent 58%);
+}
+body { word-break: keep-all; } /* 한글 어절 단위 줄바꿈 */
+.nav-links a { white-space: nowrap; }
+@media (max-width: 840px) { .nav-links { display: none; } } /* 601~840px 낱자 줄바꿈 구간 수납 */
 
 /* ── 히어로: 영상 대신 그린 글로우 + 미세 그리드 ── */
 header.hero {
@@ -58,12 +75,12 @@ header.hero::before { background: none; }
 @media (max-width: 900px) and (min-width: 769px) { .nva-mock { width: 300px; } }
 .nva-mock-shot-wrap { background: #0c1118; border: 1px solid rgba(255,255,255,.10); border-radius: 20px; padding: 14px; }
 .nva-mock-shot { width: 100%; height: auto; border-radius: 12px; display: block; }
-.nva-mock .note { font-size: .72rem; color: rgba(255,255,255,.45); margin-top: 10px; text-align: center; line-height: 1.6; }
+.nva-mock .note { font-size: .74rem; color: rgba(255,255,255,.6); margin-top: 10px; text-align: center; line-height: 1.6; }
 .nva-mock .note a { color: var(--ngreen); text-decoration: underline; }
 
-/* 히어로 — 모바일 전용 축소 목업 (980px 미만에서만, 데스크톱 .nva-mock의 대체) */
+/* 히어로 — 모바일 전용 축소 목업 (데스크톱 .nva-mock이 숨는 768px 이하에서만 — 중복 표시 방지) */
 .nva-mock-compact { display:none; }
-@media (max-width:980px) {
+@media (max-width:768px) {
   .nva-mock-compact { display:flex; gap:8px; margin:20px 0 24px; }
   .nva-mock-compact .pill { flex:1; text-align:center; border-radius:999px; padding:10px 8px; font-size:.76rem; font-weight:700; }
   .nva-mock-compact .pill.ok { background:var(--ngreen-dim); border:1px solid var(--ngreen-border); color:var(--ngreen); }
@@ -171,7 +188,7 @@ header.hero::before { background: none; }
 .nva-real { width:100%; max-width:360px; }
 .nva-real-shot { width:100%; height:auto; display:block; border-radius:16px; border:1px solid rgba(255,255,255,.13); transition:transform .25s ease; }
 .nva-real:hover .nva-real-shot { transform:scale(1.02); }
-.nva-real .cap { font-size:.72rem; color:var(--text-2); margin-top:10px; text-align:center; line-height:1.6; }
+.nva-real .cap { font-size:.74rem; color:rgba(255,255,255,.62); margin-top:10px; text-align:center; line-height:1.6; }
 .nva-real .cap a { color:var(--ngreen); }
 .nva-real .cap b { color:var(--ngreen); font-weight:700; }
 
@@ -236,9 +253,24 @@ header.hero::before { background: none; }
 .nva-fact, .nva-proof, .nva-src-card { transition:border-color .18s ease, transform .18s ease; }
 .nva-fact:hover, .nva-proof:hover, .nva-src-card:hover { transform:translateY(-3px); border-color:var(--ngreen-border); }
 
-/* ── 히어로 CTA 스크롤 유도 bob ── */
-.btn-hero-scroll { animation:nvaBob 2.6s ease-in-out infinite; }
+/* ── 히어로 CTA 스크롤 유도 bob (3회만 — 무한 반복은 독해 방해) ── */
+.btn-hero-scroll { animation:nvaBob 2.6s ease-in-out 3; }
 .btn-hero-scroll:hover { animation:none; }
+
+/* ── 히어로 공식 스탯 배지 ── */
+.nva-hero-stat { display:inline-flex; align-items:center; gap:8px; margin:0 0 20px; padding:7px 16px; border:1px solid var(--ngreen-border); background:var(--ngreen-dim); border-radius:999px; font-size:.78rem; font-weight:700; color:var(--ngreen); }
+.nva-hero-stat span { color:var(--text-2); font-weight:400; font-size:.7rem; }
+
+/* ── 모바일 접이식 목차 (네비 수납 구간 보조) ── */
+.nva-mtoc { display:none; }
+@media (max-width:840px) {
+  .nva-mtoc { display:block; margin:16px 0 0; }
+  .nva-mtoc summary { list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:.78rem; font-weight:700; color:var(--text-2); border:1px solid var(--border); border-radius:999px; padding:8px 16px; }
+  .nva-mtoc summary::-webkit-details-marker { display:none; }
+  .nva-mtoc[open] summary { color:var(--ngreen); border-color:var(--ngreen-border); }
+  .nva-mtoc nav { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .nva-mtoc nav a { font-size:.76rem; color:var(--text-1); border:1px solid var(--border); border-radius:999px; padding:7px 14px; background:rgba(255,255,255,.03); text-decoration:none; }
+}
 @keyframes nvaBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
 
 /* ── #facts 스탯 카운트업(카운트 중 tabular 정렬 흔들림 방지) ── */
@@ -260,7 +292,8 @@ header.hero::before { background: none; }
 .nva-plan.feat:hover { transform:scale(1.03) translateY(-4px); }
 @media (max-width:860px){ .nva-plan.feat, .nva-plan.feat:hover { transform:none; } }
 .nva-plan .badge { position:absolute; top:-11px; left:50%; transform:translateX(-50%); background:var(--ngreen); color:#04170b; font-size:.68rem; font-weight:800; letter-spacing:.04em; padding:4px 15px; border-radius:999px; white-space:nowrap; }
-.nva-plan .pname { font-size:1.12rem; font-weight:800; color:var(--text-1); letter-spacing:-.01em; }
+.nva-plan .pname { font-size:1.12rem; font-weight:800; color:var(--text-1); letter-spacing:-.01em; margin:0; }
+.nva-honesty h3 { font-size:.95rem; font-weight:800; color:var(--text-1); margin:0 0 10px; }
 .nva-plan .pfor { font-size:.8rem; color:var(--text-2); margin:7px 0 18px; line-height:1.5; }
 .nva-plan ul { list-style:none; padding:0; margin:0 0 18px; flex:1; }
 .nva-plan li { font-size:.83rem; color:var(--text-2); padding:8px 0 8px 22px; position:relative; line-height:1.5; border-top:1px solid rgba(255,255,255,.05); }
@@ -304,7 +337,7 @@ header.hero::before { background: none; }
 .nva-viz-blog::after { transform:translate(18px,18px); opacity:.3; }
 .nva-viz-blog .qty { position:absolute; top:-11px; right:-8px; background:var(--ngreen); color:#04170b; font-size:.66rem; font-weight:800; padding:3px 11px; border-radius:999px; z-index:2; }
 .nva-viz-blog .line { position:relative; overflow:hidden; }
-.nva-feat.visible .nva-viz-blog .line::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent); animation:nvaShimmer 1.7s ease-in-out infinite; }
+.nva-feat.visible .nva-viz-blog .line::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent); animation:nvaShimmer 1.7s ease-in-out 3; }
 @keyframes nvaShimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
 
 /* ── 월간 리포트: 막대 아래→위 성장 ── */
@@ -322,6 +355,9 @@ header.hero::before { background: none; }
   .nva-real-shot { transition:none !important; }
   .nva-viz-report .bar { transition:none !important; transform:scaleY(1) !important; }
   .nva-feat.visible .nva-viz-blog .line::after { animation:none !important; display:none !important; }
+  /* 공유 css 상속 애니메이션까지 정지 */
+  html::before { animation:none !important; }
+  .fade-up { opacity:1 !important; transform:none !important; animation:none !important; }
 }
 </style>
 </head>
@@ -350,20 +386,32 @@ header.hero::before { background: none; }
     <div class="wrap-wide">
       <div class="hero-split">
         <div class="hero-text">
-          <p class="kicker" style="color:var(--ngreen)">NAVER AI브리핑 · AI탭 대응</p>
+          <p class="kicker" style="color:var(--ngreen)">치과 원장님을 위한 NAVER AI브리핑 · AI탭 대응</p>
           <h1>네이버 AI가<br/><span class="g">추천하고</span><br/><span class="g2">예약까지 하는 시대</span></h1>
-          <p class="sub">환자는 이제 목록을 스크롤하지 않습니다.<br/>AI가 답변 안에서 병원을 추천하고 예약 가능 시간까지 안내합니다.<br/>그 답변에 들어가는 조건을 준비합니다.</p>
+          <div class="nva-hero-stat">AI탭 사용자 1,000만 돌파<span>네이버 공식 발표 · 2026-07</span></div>
+          <p class="sub">환자는 이제 목록을 스크롤하지 않습니다. AI가 답변 안에서 병원을 추천하고 예약 가능 시간까지 안내합니다. 그 답변에 들어가는 조건을 준비합니다.</p>
           <div class="nva-mock-compact" aria-hidden="true">
             <span class="pill ok">예약 가능<span>AI가 바로 안내</span></span>
             <span class="pill no">전화 문의 필요<span>예약 미연동 시</span></span>
           </div>
           <a href="#lead" class="btn-hero-scroll">우리 병원 네이버 AI 준비도 진단받기 ↓</a>
+          <details class="nva-mtoc">
+            <summary>목차 — 원하는 부분으로 바로가기</summary>
+            <nav>
+              <a href="#facts">왜 지금</a>
+              <a href="#sources">인용 데이터</a>
+              <a href="#proof">실측 근거</a>
+              <a href="#package">관리 범위</a>
+              <a href="#plans">상품 구성</a>
+              <a href="#lead">진단 신청</a>
+            </nav>
+          </details>
         </div>
         <div class="nva-mock">
           <div class="nva-mock-shot-wrap">
-            <img class="nva-mock-shot" src="/naver-aitab-example.png" alt="네이버 AI탭 실제 답변 화면 — 자연어 질의에 업체 추천과 예약 가능 시간대를 답변 안에서 바로 안내" loading="lazy" />
+            <img class="nva-mock-shot" src="/naver-aitab-example.webp" alt="네이버 AI탭 실제 답변 화면 — 자연어 질의에 업체 추천과 예약 가능 시간대를 답변 안에서 바로 안내" width="800" height="1190" fetchpriority="high" />
           </div>
-          <p class="note">네이버 AI탭 공식 예시 화면 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034429" target="_blank" rel="noopener">네이버 공식 보도자료</a> 제공 (2026-06-26, 이해를 돕기 위한 예시 — 실제 서비스 답변과 다를 수 있음). 예시는 일반 장소 추천이며, 같은 방식이 치과 예약에도 적용됩니다. <b style="color:var(--ngreen)">AI탭 사용자 1,000만 돌파</b> — <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034477" target="_blank" rel="noopener">네이버 공식 발표</a> (2026-07)</p>
+          <p class="note">네이버 AI탭 공식 예시 화면 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034429" target="_blank" rel="noopener">네이버 공식 보도자료</a> (이해를 돕기 위한 예시). 같은 방식이 치과 예약에도 적용됩니다.</p>
         </div>
       </div>
     </div>
@@ -429,7 +477,7 @@ header.hero::before { background: none; }
           <li>블로그·카페 글 (UGC)</li>
           <li>클립 영상 (음성·자막 인식)</li>
         </ul>
-        <span class="tag2">정보형 질의 · 인용축 레버 — UGC 70% [공식]</span>
+        <span class="tag2">정보형 질의 · 인용축 레버 — 인용 구성은 아래 도넛 참조</span>
       </div>
       <div class="nva-src-card fade-up d2">
         <span class="surface">통합검색+AI</span>
@@ -504,22 +552,7 @@ header.hero::before { background: none; }
   <div class="wrap-wide">
     <p class="kicker" style="text-align:center;color:var(--ngreen)">TOTAL PACKAGE</p>
     <h2 style="text-align:center">블로그 하나가 아니라<br/><span class="g">네이버 AI가 인용하는 모든 수단</span>을 관리합니다</h2>
-    <p class="sub" style="text-align:center;max-width:600px;margin:0 auto">실측에서 확인한 인용 구조를 두 축으로 정리해 준비 상태를 점수화합니다.</p>
-
-    <div class="nva-axis fade-up">
-      <div class="nva-axis-head"><b>실행축 — AI탭 추천·예약이 보는 데이터</b><span>55점</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">플레이스 리뷰 볼륨</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:100%"></div></div><span class="nva-bar-pt">15</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">리뷰 최신성·구체성</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:100%"></div></div><span class="nva-bar-pt">15</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">네이버 예약 연동</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:100%"></div></div><span class="nva-bar-pt">15</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">플레이스 정보 완결성</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:67%"></div></div><span class="nva-bar-pt">10</span></div>
-
-      <div class="nva-axis-head"><b>인용축 — AI브리핑이 인용하는 콘텐츠</b><span>45점</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">정보형 블로그 자산 (원장 감수)</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:100%"></div></div><span class="nva-bar-pt">20</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">클립 영상 자산</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:50%"></div></div><span class="nva-bar-pt">10</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">콘텐츠 구조 품질</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:50%"></div></div><span class="nva-bar-pt">10</span></div>
-      <div class="nva-bar-row"><span class="nva-bar-lbl">공식 채널 신호</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:25%"></div></div><span class="nva-bar-pt">5</span></div>
-      <p class="nva-axis-note">※ 이 배점은 AI가 인용할 수 있는 조건을 정리한 <b style="color:var(--text-1)">내부 우선순위 기준</b>이며, 신청하시면 이 기준으로 귀 병원의 <b style="color:var(--text-1)">정비 상태</b>를 개인화해 진단해 드립니다. AI의 추천·인용 자체를 예측하거나 보장하지 않으며, 효과는 같은 조건 재측정으로만 확인합니다.</p>
-    </div>
+    <p class="sub" style="text-align:center;max-width:600px;margin:0 auto">네이버 AI가 실제로 읽는 여섯 가지를 직접 관리합니다.</p>
 
     <div class="nva-feat-list">
       <div class="nva-feat fade-up">
@@ -530,7 +563,7 @@ header.hero::before { background: none; }
         </div>
         <div class="nva-feat-visual">
           <div class="nva-real">
-            <img class="nva-real-shot" src="/naver-place-booking.png" alt="네이버 플레이스 병원 예약 실제 화면 — 예약 가능 시간대가 그대로 노출" loading="lazy" />
+            <img class="nva-real-shot" src="/naver-place-booking.png" alt="네이버 플레이스 병원 예약 실제 화면 — 예약 가능 시간대가 그대로 노출" width="415" height="220" loading="lazy" />
             <p class="cap"><b>실제 네이버 플레이스 병원 예약 화면</b> — 이 예약 시간대 데이터가 AI탭 답변에 그대로 들어갑니다 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034394" target="_blank" rel="noopener">네이버 공식 보도자료</a> (2026-06)</p>
           </div>
         </div>
@@ -544,7 +577,7 @@ header.hero::before { background: none; }
         </div>
         <div class="nva-feat-visual">
           <div class="nva-real">
-            <img class="nva-real-shot" src="/naver-place-medical.png" alt="네이버 플레이스 병원 상세 정보 실제 화면 — 진료과목·질병 단위까지 구조화" loading="lazy" />
+            <img class="nva-real-shot" src="/naver-place-medical.png" alt="네이버 플레이스 병원 상세 정보 실제 화면 — 진료과목·질병 단위까지 구조화" width="415" height="415" loading="lazy" />
             <p class="cap"><b>병원형 플레이스 상세 정보 실제 화면</b>(동물병원 사례) — 네이버는 병원 정보를 진료과목·질병 단위까지 구조화해 검색 필터로 씁니다. 빈칸 없이 채워야 하는 이유입니다 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034394" target="_blank" rel="noopener">네이버 공식 보도자료</a> (2026-06)</p>
           </div>
         </div>
@@ -558,7 +591,7 @@ header.hero::before { background: none; }
         </div>
         <div class="nva-feat-visual">
           <div class="nva-real">
-            <img class="nva-real-shot" src="/naver-review-rating.png" alt="네이버 플레이스 평균 별점 공개 실제 화면 — 평균 별점과 예약 버튼이 함께 노출" loading="lazy" />
+            <img class="nva-real-shot" src="/naver-review-rating.png" alt="네이버 플레이스 평균 별점 공개 실제 화면 — 평균 별점과 예약 버튼이 함께 노출" width="575" height="540" loading="lazy" />
             <p class="cap"><b>2026년 7월부터 플레이스 평균 별점 공개</b> — 별점·리뷰가 예약 버튼 바로 옆에 노출됩니다. 리뷰 관리가 곧 첫인상입니다 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034317" target="_blank" rel="noopener">네이버 공식 보도자료</a></p>
           </div>
         </div>
@@ -629,6 +662,22 @@ header.hero::before { background: none; }
         </div>
       </div>
     </div>
+
+    <p class="nva-src-caption" style="margin-top:48px">↓ 위 여섯 가지를 아래 <b style="color:var(--text-1)">두 축 기준</b>으로 점검해, 신청 시 귀 병원의 정비 상태를 진단해 드립니다</p>
+    <div class="nva-axis fade-up">
+      <div class="nva-axis-head"><b>실행축 — AI탭 추천·예약이 보는 데이터</b><span>55점</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">플레이스 리뷰 볼륨</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:75%"></div></div><span class="nva-bar-pt">15</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">리뷰 최신성·구체성</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:75%"></div></div><span class="nva-bar-pt">15</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">네이버 예약 연동</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:75%"></div></div><span class="nva-bar-pt">15</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">플레이스 정보 완결성</span><div class="nva-bar-track"><div class="nva-bar-fill" style="width:50%"></div></div><span class="nva-bar-pt">10</span></div>
+
+      <div class="nva-axis-head"><b>인용축 — AI브리핑이 인용하는 콘텐츠</b><span>45점</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">정보형 블로그 자산 (원장 감수)</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:100%"></div></div><span class="nva-bar-pt">20</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">클립 영상 자산</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:50%"></div></div><span class="nva-bar-pt">10</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">콘텐츠 구조 품질</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:50%"></div></div><span class="nva-bar-pt">10</span></div>
+      <div class="nva-bar-row"><span class="nva-bar-lbl">공식 채널 신호</span><div class="nva-bar-track"><div class="nva-bar-fill cite" style="width:25%"></div></div><span class="nva-bar-pt">5</span></div>
+      <p class="nva-axis-note">※ 막대 길이는 배점(만점 20점 기준 단일 스케일)을 나타냅니다. 이 배점은 AI가 인용할 수 있는 조건을 정리한 <b style="color:var(--text-1)">내부 우선순위 기준</b>이며, 신청하시면 이 기준으로 귀 병원의 <b style="color:var(--text-1)">정비 상태</b>를 개인화해 진단해 드립니다. AI의 추천·인용 자체를 예측하거나 보장하지 않으며, 효과는 같은 조건 재측정으로만 확인합니다.</p>
+    </div>
   </div>
 </section>
 
@@ -667,7 +716,7 @@ header.hero::before { background: none; }
 
     <div class="nva-plan-grid">
       <div class="nva-plan fade-up">
-        <div class="pname">스타트</div>
+        <h3 class="pname">스타트</h3>
         <div class="pfor">진단·세팅 — 네이버 AI 대비를 시작하는 치과</div>
         <ul>
           <li>AI 검색·네이버 준비도 진단 리포트</li>
@@ -675,11 +724,11 @@ header.hero::before { background: none; }
           <li>기존 콘텐츠 리스크 점검</li>
         </ul>
         <div class="pprice">1회<span>상담 시 안내</span></div>
-        <a href="#lead" class="pcta ghost">진단 신청</a>
+        <a href="#lead" class="pcta ghost" data-plan="스타트">진단 신청</a>
       </div>
       <div class="nva-plan feat fade-up d1">
         <span class="badge">가장 많이 선택</span>
-        <div class="pname">스탠다드</div>
+        <h3 class="pname">스탠다드</h3>
         <div class="pfor">축적 운영 — 인용 자산을 본격 축적할 치과</div>
         <ul>
           <li class="inc">스타트 전체 포함</li>
@@ -689,10 +738,10 @@ header.hero::before { background: none; }
           <li>월간 AI 관측 리포트</li>
         </ul>
         <div class="pprice">월 정기<span>상담 시 안내</span></div>
-        <a href="#lead" class="pcta solid">진단 신청</a>
+        <a href="#lead" class="pcta solid" data-plan="스탠다드">진단 신청</a>
       </div>
       <div class="nva-plan fade-up d2">
-        <div class="pname">프리미엄</div>
+        <h3 class="pname">프리미엄</h3>
         <div class="pfor">전 채널 — AI 검색 전체를 관리할 치과</div>
         <ul>
           <li class="inc">스탠다드 전체 포함</li>
@@ -701,7 +750,7 @@ header.hero::before { background: none; }
           <li>분기 전략 리뷰 미팅</li>
         </ul>
         <div class="pprice">월 정기<span>상담 시 안내</span></div>
-        <a href="#lead" class="pcta ghost">진단 신청</a>
+        <a href="#lead" class="pcta ghost" data-plan="프리미엄">진단 신청</a>
       </div>
     </div>
     <p class="nva-plan-note">구체 견적은 <b style="color:var(--text-1)">무료 진단 후 상담</b>에서 치과 상황(홈페이지 상태·페이지 수·검수 참여도)에 맞춰 안내드립니다. 특정 노출·순위·인용은 보장하지 않으며, 성과는 같은 조건 재측정으로 확인합니다.</p>
@@ -712,7 +761,8 @@ header.hero::before { background: none; }
 <section class="nva-section">
   <div class="wrap">
     <div class="nva-honesty fade-up">
-      <p><b>저희가 약속하지 않는 것</b><br/>특정 노출·순위·인용을 보장하지 않습니다. AI 답변은 질의·시점마다 달라집니다.<br/>대신 <b>같은 조건의 반복 측정</b>으로 변화를 확인하고, 모든 수치에 출처를 표기합니다.</p>
+      <h3>저희가 약속하지 않는 것</h3>
+      <p>특정 노출·순위·인용을 보장하지 않습니다. AI 답변은 질의·시점마다 달라집니다.<br/>대신 <b>같은 조건의 반복 측정</b>으로 변화를 확인하고, 모든 수치에 출처를 표기합니다.</p>
     </div>
   </div>
 </section>
@@ -722,7 +772,7 @@ header.hero::before { background: none; }
   <div class="wrap">
     <p class="kicker" style="text-align:center;color:var(--ngreen)">FREE DIAGNOSIS</p>
     <h2 style="text-align:center">우리 병원의 <span class="g">네이버 AI 준비도</span>를 진단해 드립니다</h2>
-    <p class="sub" style="text-align:center;max-width:520px;margin:0 auto">치과명과 이메일을 남겨주시면 실행축·인용축 기준 진단 결과와<br/>개선 우선순위를 보내드립니다.</p>
+    <p class="sub" style="text-align:center;max-width:520px;margin:0 auto">치과명과 이메일을 남겨주시면 실행축·인용축 기준 진단 결과와 개선 우선순위를 보내드립니다.</p>
 
     <form class="nva-lead fade-up" id="nvaLeadForm" novalidate>
       <label for="nvaClinic">치과명 <span style="color:#f05e6a">*</span></label>
@@ -736,7 +786,7 @@ header.hero::before { background: none; }
       <label for="nvaNotes">궁금한 점 (선택)</label>
       <textarea id="nvaNotes" rows="3" placeholder="예: 현재 블로그 운영 중인데 네이버 AI에 어떻게 대비해야 하나요?" maxlength="500"></textarea>
       <button type="submit" id="nvaSubmit">무료 진단 신청</button>
-      <p class="ok-msg hidden" id="nvaOk" role="status" aria-live="polite">신청되었습니다. 진단 결과를 이메일로 보내드리겠습니다.</p>
+      <p class="ok-msg hidden" id="nvaOk" role="status" aria-live="polite">신청되었습니다. 진단 결과를 정리해 이메일로 보내드립니다 — 급하시면 032-216-7799로 전화 주세요.</p>
       <p class="err-msg hidden" id="nvaErr" role="alert" aria-live="assertive"></p>
       <p class="priv">입력하신 정보는 진단 결과 안내 목적으로만 사용됩니다.</p>
     </form>
@@ -747,8 +797,8 @@ header.hero::before { background: none; }
 <section class="cta-section fade-up">
   <div class="wrap">
     <h2>네이버 AI 대응은<br/><strong>메디앤메디</strong>와 상의하세요.</h2>
-    <a href="https://www.medinmedi.com/" target="_blank" rel="noopener" class="btn-cta-large">문의하기</a>
-    <p class="cta-sub">네이버 AI 준비도 진단 · 플레이스·예약·리뷰 운영 · AI브리핑형 콘텐츠 · 월간 관측 리포트</p>
+    <a href="#lead" class="btn-cta-large">무료 진단 신청</a>
+    <p class="cta-sub">네이버 AI 준비도 진단 · 플레이스·예약·리뷰 운영 · AI브리핑형 콘텐츠 · 월간 관측 리포트<br/>전화 상담 <a href="tel:032-216-7799" style="color:var(--ngreen);font-weight:700">032-216-7799</a></p>
   </div>
 </section>
 
@@ -821,6 +871,17 @@ document.getElementById('nvaEmail').addEventListener('input', function(){
   nvaValidateField(this, document.getElementById('nvaEmailErr'), function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); });
 });
 
+// 상품 카드에서 넘어온 관심 패키지 — notes에 병기해 영업 정보 보존
+var nvaPlanChoice = '';
+document.querySelectorAll('.pcta[data-plan]').forEach(function(a){
+  a.addEventListener('click', function(){ nvaPlanChoice = this.getAttribute('data-plan') || ''; });
+});
+
+function nvaShowErr(err, msg) {
+  err.innerHTML = msg + ' 급하시면 <a href="tel:032-216-7799" style="color:var(--ngreen);font-weight:700">032-216-7799</a>로 전화 주세요.';
+  err.classList.remove('hidden');
+}
+
 document.getElementById('nvaLeadForm').addEventListener('submit', async function(e){
   e.preventDefault();
   var clinicInput = document.getElementById('nvaClinic');
@@ -834,16 +895,22 @@ document.getElementById('nvaLeadForm').addEventListener('submit', async function
   var err = document.getElementById('nvaErr');
   ok.classList.add('hidden'); err.classList.add('hidden');
   btn.disabled = true; btn.textContent = '신청 중...';
+  // 병원 와이파이 등 불안정 환경에서 무한 '신청 중...' 방지
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, 12000);
   try {
+    var notes = document.getElementById('nvaNotes').value.trim();
+    if (nvaPlanChoice) notes = '[관심 패키지: ' + nvaPlanChoice + '] ' + notes;
     var res = await fetch('/api/lead', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      signal: ctrl.signal,
       body: JSON.stringify({
         source: 'naver-ai',
         clinicName: document.getElementById('nvaClinic').value.trim(),
         email: document.getElementById('nvaEmail').value.trim(),
         phone: document.getElementById('nvaPhone').value.trim(),
-        notes: document.getElementById('nvaNotes').value.trim(),
+        notes: notes,
       }),
     });
     var data = await res.json().catch(function(){ return null; });
@@ -852,14 +919,14 @@ document.getElementById('nvaLeadForm').addEventListener('submit', async function
       btn.textContent = '신청 완료';
       document.getElementById('nvaLeadForm').querySelectorAll('input,textarea').forEach(function(i){ i.disabled = true; });
     } else {
-      err.textContent = (data && data.message) || '신청에 실패했습니다. 잠시 후 다시 시도해주세요.';
-      err.classList.remove('hidden');
+      nvaShowErr(err, (data && data.message) || '신청에 실패했습니다. 잠시 후 다시 시도해주세요.');
       btn.disabled = false; btn.textContent = '무료 진단 신청';
     }
   } catch (_) {
-    err.textContent = '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    err.classList.remove('hidden');
+    nvaShowErr(err, ctrl.signal.aborted ? '응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.' : '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     btn.disabled = false; btn.textContent = '무료 진단 신청';
+  } finally {
+    clearTimeout(timer);
   }
 });
 </script>
