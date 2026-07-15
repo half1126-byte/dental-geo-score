@@ -16,12 +16,17 @@
 :root { --ngreen:#03c75a; --ngreen-dim:rgba(3,199,90,.14); --ngreen-border:rgba(3,199,90,.35); --nteal:#1fcec4; --nmint:#3fe08a; }
 .hidden { display:none !important; }
 
+/* ── 타이포·형태 리파인 (Wise 디자인 시스템 참조 — 무거운 헤드라인 + 필 형태 통일 + 플랫) ── */
+h1 { font-weight: 800; letter-spacing: -.035em; }
+h2 { font-weight: 800; letter-spacing: -.025em; }
+.kicker { font-weight: 700; }
+
 /* ── 네이버 그린 오버라이드 레이어 — GEO 공유 style.css의 플럼/앰버 토큰을 이 페이지에서만 그린 패밀리로 교체 ── */
 a { color: var(--ngreen); }
 h1 .g, .g { color: var(--nmint); }
 h1 .g2, .g2 { color: var(--ngreen); }
 .nav-dot { color: var(--ngreen); }
-.btn.p { background: var(--ngreen); color: #04170b; }
+.btn.p { background: var(--ngreen); color: #04170b; border-radius: 999px; }
 .btn-hero-scroll { background: var(--ngreen); color: #04170b; font-weight: 800; }
 .btn-cta-large { background: var(--ngreen); color: #04170b; }
 .cta-section { background: radial-gradient(ellipse 700px 400px at 50% 0%, rgba(3,199,90,.10) 0%, transparent 70%); }
@@ -51,7 +56,7 @@ header.hero::before { background: none; }
    어긋나면 769~980px 구간에서 목업은 사라지고 텍스트만 520px에 고정돼 오른쪽에 빈 공간이 남음 */
 @media (max-width: 768px) { .nva-mock { display: none; } }
 @media (max-width: 900px) and (min-width: 769px) { .nva-mock { width: 300px; } }
-.nva-mock-shot-wrap { background: #0c1118; border: 1px solid rgba(255,255,255,.10); border-radius: 20px; padding: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.nva-mock-shot-wrap { background: #0c1118; border: 1px solid rgba(255,255,255,.10); border-radius: 20px; padding: 14px; }
 .nva-mock-shot { width: 100%; height: auto; border-radius: 12px; display: block; }
 .nva-mock .note { font-size: .72rem; color: rgba(255,255,255,.45); margin-top: 10px; text-align: center; line-height: 1.6; }
 .nva-mock .note a { color: var(--ngreen); text-decoration: underline; }
@@ -60,7 +65,7 @@ header.hero::before { background: none; }
 .nva-mock-compact { display:none; }
 @media (max-width:980px) {
   .nva-mock-compact { display:flex; gap:8px; margin:20px 0 24px; }
-  .nva-mock-compact .pill { flex:1; text-align:center; border-radius:12px; padding:10px 8px; font-size:.76rem; font-weight:700; }
+  .nva-mock-compact .pill { flex:1; text-align:center; border-radius:999px; padding:10px 8px; font-size:.76rem; font-weight:700; }
   .nva-mock-compact .pill.ok { background:var(--ngreen-dim); border:1px solid var(--ngreen-border); color:var(--ngreen); }
   .nva-mock-compact .pill.no { background:rgba(255,255,255,.04); border:1px solid var(--border); color:rgba(255,255,255,.45); }
   .nva-mock-compact .pill span { display:block; font-size:.64rem; font-weight:400; margin-top:3px; opacity:.85; }
@@ -94,7 +99,7 @@ header.hero::before { background: none; }
 @media (max-width:980px){ .nva-src-grid { grid-template-columns:1fr 1fr; } }
 @media (max-width:560px){ .nva-src-grid { grid-template-columns:1fr; } }
 .nva-src-card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:22px 20px; }
-.nva-src-card .surface { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.05em; color:var(--ngreen); background:var(--ngreen-dim); border:1px solid var(--ngreen-border); border-radius:12px; padding:3px 10px; margin-bottom:12px; }
+.nva-src-card .surface { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.05em; color:var(--ngreen); background:var(--ngreen-dim); border:1px solid var(--ngreen-border); border-radius:999px; padding:3px 10px; margin-bottom:12px; }
 .nva-src-card .q { font-size:.86rem; color:var(--text-1); font-weight:700; margin-bottom:10px; line-height:1.4; }
 .nva-src-card ul { list-style:none; padding:0; margin:0; }
 .nva-src-card li { font-size:.78rem; color:var(--text-2); padding:4px 0 4px 14px; position:relative; line-height:1.55; }
@@ -121,7 +126,7 @@ header.hero::before { background: none; }
 .nva-proof-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:40px; }
 @media (max-width:820px){ .nva-proof-grid { grid-template-columns:1fr; } }
 .nva-proof { background:var(--bg-1); border:1px solid var(--border); border-radius:16px; padding:26px 24px; }
-.nva-proof .tag { display:inline-block; font-size:.7rem; font-weight:800; letter-spacing:.1em; color:var(--ngreen); border:1px solid var(--ngreen-border); border-radius:20px; padding:3px 11px; margin-bottom:14px; }
+.nva-proof .tag { display:inline-block; font-size:.7rem; font-weight:800; letter-spacing:.1em; color:var(--ngreen); border:1px solid var(--ngreen-border); border-radius:999px; padding:3px 11px; margin-bottom:14px; }
 .nva-proof h3 { font-size:1.02rem; font-weight:700; color:var(--text-1); margin-bottom:12px; }
 .nva-proof ul { list-style:none; padding:0; margin:0; }
 .nva-proof li { font-size:.87rem; color:var(--text-2); line-height:1.65; padding:7px 0 7px 22px; position:relative; border-top:1px solid rgba(255,255,255,.05); }
@@ -139,13 +144,13 @@ header.hero::before { background: none; }
 .nva-bar-lbl { flex:0 0 220px; font-size:.84rem; color:var(--text-2); }
 @media (max-width:640px){ .nva-bar-lbl { flex-basis:150px; font-size:.76rem; } }
 .nva-bar-track { flex:1; height:10px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
-.nva-bar-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--ngreen),#3fe08a); }
-.nva-bar-fill.cite { background:linear-gradient(90deg,var(--nteal),#6fe8e0); }
+.nva-bar-fill { height:100%; border-radius:6px; background:var(--ngreen); }
+.nva-bar-fill.cite { background:var(--nteal); }
 .nva-bar-pt { flex:0 0 34px; text-align:right; font-size:.8rem; font-weight:700; color:var(--text-1); }
 .nva-axis-note { font-size:.8rem; color:var(--text-2); margin-top:18px; line-height:1.65; }
 
 /* 패키지 — 기능별 시각화 블록 (does.kr 스타일 참조: 라벨→헤드라인→설명→대형 비주얼, 좌우 교차 리듬) */
-.axis-chip { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.08em; border-radius:14px; padding:3px 11px; }
+.axis-chip { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.08em; border-radius:999px; padding:3px 11px; }
 .axis-chip.exec { color:var(--ngreen); background:var(--ngreen-dim); border:1px solid var(--ngreen-border); }
 .axis-chip.cite { color:var(--nteal); background:rgba(31,206,196,.13); border:1px solid rgba(31,206,196,.35); }
 
@@ -162,38 +167,20 @@ header.hero::before { background: none; }
 @media (max-width:900px){ .nva-feat-text p { max-width:100%; margin:0 auto; } }
 .nva-feat-visual { flex:1 1 0; display:flex; justify-content:center; }
 
-/* 시각화 1 — 네이버 예약 연동 (요일·시간대 슬롯) */
-.nva-viz-booking { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:24px; width:100%; max-width:340px; }
-.nva-viz-booking .days { display:flex; gap:6px; margin-bottom:14px; }
-.nva-viz-booking .day { flex:1; text-align:center; padding:8px 0; border-radius:8px; font-size:.72rem; color:var(--text-2); background:rgba(255,255,255,.04); }
-.nva-viz-booking .day.on { background:var(--ngreen-dim); color:var(--ngreen); font-weight:800; border:1px solid var(--ngreen-border); }
-.nva-viz-booking .slots { display:flex; gap:8px; flex-wrap:wrap; }
-.nva-viz-booking .slot { font-size:.74rem; padding:7px 12px; border-radius:8px; background:rgba(255,255,255,.05); color:var(--text-2); }
-.nva-viz-booking .slot.avail { background:var(--ngreen); color:#04170b; font-weight:800; }
-.nva-viz-booking .foot { margin-top:14px; font-size:.7rem; color:var(--ngreen); font-weight:700; }
-
-/* 시각화 2 — 플레이스 완결성 체크리스트 */
-.nva-viz-check { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:22px 24px; width:100%; max-width:340px; }
-.nva-viz-check .row { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid rgba(255,255,255,.05); font-size:.84rem; color:var(--text-2); }
-.nva-viz-check .row:first-child { border-top:none; }
-.nva-viz-check .ic { width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.68rem; font-weight:900; flex-shrink:0; }
-.nva-viz-check .ic.done { background:var(--ngreen); color:#04170b; }
-.nva-viz-check .ic.todo { background:rgba(255,255,255,.07); color:var(--text-2); }
-.nva-viz-check b { color:var(--text-1); }
-
-/* 시각화 3 — 실환자 리뷰 카드 */
-.nva-viz-review { width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; }
-.nva-viz-review .card { background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:14px 16px; text-align:left; }
-.nva-viz-review .stars { color:var(--ngreen); font-size:.8rem; letter-spacing:2px; }
-.nva-viz-review .txt { font-size:.78rem; color:var(--text-2); margin-top:6px; line-height:1.5; }
-.nva-viz-review .meta { font-size:.68rem; color:var(--text-2); opacity:.6; margin-top:8px; }
+/* 시각화 1~3 — 네이버 공식 보도자료 실제 화면 (예약·플레이스 완결성·리뷰 별점) */
+.nva-real { width:100%; max-width:360px; }
+.nva-real-shot { width:100%; height:auto; display:block; border-radius:16px; border:1px solid rgba(255,255,255,.13); transition:transform .25s ease; }
+.nva-real:hover .nva-real-shot { transform:scale(1.02); }
+.nva-real .cap { font-size:.72rem; color:var(--text-2); margin-top:10px; text-align:center; line-height:1.6; }
+.nva-real .cap a { color:var(--ngreen); }
+.nva-real .cap b { color:var(--ngreen); font-weight:700; }
 
 /* 시각화 4 — AI브리핑형 블로그 프리뷰 */
 .nva-viz-blog { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:22px 24px; width:100%; max-width:340px; text-align:left; }
 .nva-viz-blog .ttl { font-size:.9rem; font-weight:700; color:var(--text-1); margin-bottom:12px; line-height:1.4; }
 .nva-viz-blog .line { height:8px; border-radius:4px; background:rgba(255,255,255,.07); margin-bottom:7px; }
 .nva-viz-blog .line.s { width:68%; }
-.nva-viz-blog .src { display:inline-block; font-size:.66rem; color:var(--nteal); background:rgba(31,206,196,.13); border-radius:10px; padding:3px 9px; margin-top:10px; }
+.nva-viz-blog .src { display:inline-block; font-size:.66rem; color:var(--nteal); background:rgba(31,206,196,.13); border-radius:999px; padding:3px 9px; margin-top:10px; }
 .nva-viz-blog .sup { display:block; font-size:.68rem; color:var(--ngreen); margin-top:10px; font-weight:700; }
 
 /* 시각화 5 — 클립 숏폼 (세로 프레임) */
@@ -207,7 +194,7 @@ header.hero::before { background: none; }
 .nva-viz-report { background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:22px 24px; width:100%; max-width:340px; }
 .nva-viz-report .bars { display:flex; align-items:flex-end; gap:10px; height:76px; margin-bottom:10px; }
 .nva-viz-report .bar { flex:1; border-radius:4px 4px 0 0; background:rgba(255,255,255,.08); }
-.nva-viz-report .bar.hi { background:linear-gradient(180deg,var(--ngreen),var(--nteal)); }
+.nva-viz-report .bar.hi { background:var(--ngreen); }
 .nva-viz-report .lbls { display:flex; gap:10px; font-size:.66rem; color:var(--text-2); }
 .nva-viz-report .lbls span { flex:1; text-align:center; }
 .nva-viz-report .foot { font-size:.7rem; color:var(--text-2); margin-top:10px; opacity:.75; }
@@ -216,7 +203,7 @@ header.hero::before { background: none; }
 .nva-shift { max-width:760px; margin:40px auto 0; }
 .nva-shift-step { display:flex; gap:16px; padding:18px 0; border-top:1px solid var(--border); }
 .nva-shift-step:first-child { border-top:none; }
-.nva-shift-step .n { flex-shrink:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:rgba(240,94,106,.14); color:#f05e6a; border-radius:9px; font-size:.82rem; font-weight:800; }
+.nva-shift-step .n { flex-shrink:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:rgba(240,94,106,.14); color:#f05e6a; border-radius:999px; font-size:.82rem; font-weight:800; }
 .nva-shift-step .n.ok { background:var(--ngreen-dim); color:var(--ngreen); }
 .nva-shift-step .t b { display:block; font-size:.95rem; color:var(--text-1); margin-bottom:4px; }
 .nva-shift-step .t p { font-size:.85rem; color:var(--text-2); line-height:1.65; }
@@ -240,6 +227,102 @@ header.hero::before { background: none; }
 .nva-lead .ok-msg { margin-top:16px; font-size:.88rem; color:var(--ngreen); text-align:center; line-height:1.6; }
 .nva-lead .err-msg { margin-top:16px; font-size:.85rem; color:#f05e6a; text-align:center; }
 .nva-lead .priv { font-size:.7rem; color:var(--text-2); margin-top:14px; text-align:center; opacity:.75; }
+
+/* ═══════════════════════════════════════════════════════════
+   상품 패키지 + 후킹 + 상품별 애니메이션 (2026-07-15)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 카드류 hover 리프트 통일 ── */
+.nva-fact, .nva-proof, .nva-src-card { transition:border-color .18s ease, transform .18s ease; }
+.nva-fact:hover, .nva-proof:hover, .nva-src-card:hover { transform:translateY(-3px); border-color:var(--ngreen-border); }
+
+/* ── 히어로 CTA 스크롤 유도 bob ── */
+.btn-hero-scroll { animation:nvaBob 2.6s ease-in-out infinite; }
+.btn-hero-scroll:hover { animation:none; }
+@keyframes nvaBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
+
+/* ── #facts 스탯 카운트업(카운트 중 tabular 정렬 흔들림 방지) ── */
+.nva-fact .num { font-variant-numeric:tabular-nums; }
+
+/* ── 가치 앵커 스트립 ── */
+.nva-anchor { max-width:760px; margin:36px auto 0; display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.nva-anchor-item { flex:1; min-width:230px; background:var(--ngreen-dim); border:1px solid var(--ngreen-border); border-radius:14px; padding:18px 22px; text-align:center; }
+.nva-anchor-item b { color:var(--text-1); font-size:1rem; letter-spacing:-.01em; }
+.nva-anchor-item b em { color:var(--ngreen); font-style:normal; }
+.nva-anchor-item span { display:block; font-size:.8rem; color:var(--text-2); margin-top:6px; line-height:1.55; }
+
+/* ── 상품 3종 패키지 티어 ── */
+.nva-plan-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:44px; align-items:stretch; }
+@media (max-width:860px){ .nva-plan-grid { grid-template-columns:1fr; max-width:420px; margin-left:auto; margin-right:auto; } }
+.nva-plan { position:relative; background:var(--bg-2); border:1px solid var(--border); border-radius:18px; padding:30px 26px; display:flex; flex-direction:column; transition:border-color .18s ease, transform .18s ease; }
+.nva-plan:hover { transform:translateY(-4px); border-color:var(--ngreen-border); }
+.nva-plan.feat { border:1.5px solid var(--ngreen); transform:scale(1.03); z-index:2; }
+.nva-plan.feat:hover { transform:scale(1.03) translateY(-4px); }
+@media (max-width:860px){ .nva-plan.feat, .nva-plan.feat:hover { transform:none; } }
+.nva-plan .badge { position:absolute; top:-11px; left:50%; transform:translateX(-50%); background:var(--ngreen); color:#04170b; font-size:.68rem; font-weight:800; letter-spacing:.04em; padding:4px 15px; border-radius:999px; white-space:nowrap; }
+.nva-plan .pname { font-size:1.12rem; font-weight:800; color:var(--text-1); letter-spacing:-.01em; }
+.nva-plan .pfor { font-size:.8rem; color:var(--text-2); margin:7px 0 18px; line-height:1.5; }
+.nva-plan ul { list-style:none; padding:0; margin:0 0 18px; flex:1; }
+.nva-plan li { font-size:.83rem; color:var(--text-2); padding:8px 0 8px 22px; position:relative; line-height:1.5; border-top:1px solid rgba(255,255,255,.05); }
+.nva-plan li:first-child { border-top:none; }
+.nva-plan li::before { content:'✓'; position:absolute; left:0; color:var(--ngreen); font-weight:800; }
+.nva-plan li.inc { color:var(--text-1); font-weight:700; }
+.nva-plan li.inc::before { content:'＋'; }
+.nva-plan .pprice { font-size:.92rem; font-weight:800; color:var(--text-1); padding:14px 0; text-align:center; border-top:1px solid var(--border); margin-bottom:16px; }
+.nva-plan .pprice span { display:block; font-size:.72rem; font-weight:400; color:var(--text-2); margin-top:4px; }
+.nva-plan .pcta { display:block; text-align:center; padding:12px; border-radius:999px; font-size:.9rem; font-weight:800; text-decoration:none; transition:filter .15s ease, transform .15s ease; }
+.nva-plan .pcta.solid { background:var(--ngreen); color:#04170b; }
+.nva-plan .pcta.solid:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.nva-plan .pcta.ghost { border:1px solid var(--ngreen-border); color:var(--ngreen); }
+.nva-plan .pcta.ghost:hover { background:var(--ngreen-dim); }
+.nva-plan-note { font-size:.78rem; color:var(--text-2); opacity:.75; text-align:center; margin-top:22px; line-height:1.6; }
+
+/* ── 클립 숏폼: 좌우 무한 슬라이드 캐러셀 (여러 영상 제작 강조) ── */
+.nva-clip-wrap { width:100%; max-width:360px; }
+.nva-clip-carousel { width:100%; overflow:hidden; position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
+.nva-clip-track { display:flex; gap:12px; width:max-content; animation:nvaClipScroll 24s linear infinite; }
+.nva-clip-carousel:hover .nva-clip-track { animation-play-state:paused; }
+@keyframes nvaClipScroll { to { transform:translateX(-50%); } }
+.nva-clip-mini { width:116px; height:206px; flex-shrink:0; border-radius:16px; border:2px solid rgba(255,255,255,.14); background:#0c1118; position:relative; overflow:hidden; }
+.nva-clip-mini .play { position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); width:34px; height:34px; border-radius:50%; background:rgba(3,199,90,.92); display:flex; align-items:center; justify-content:center; color:#04170b; font-size:.82rem; }
+.nva-clip-mini .wave { position:absolute; bottom:40px; left:10px; right:10px; display:flex; gap:2px; align-items:flex-end; height:14px; }
+.nva-clip-mini .wave span { flex:1; background:var(--ngreen); border-radius:1px; transform-origin:bottom; animation:nvaWave 1.1s ease-in-out infinite; }
+.nva-clip-mini .wave span:nth-child(2n){ animation-delay:.2s; }
+.nva-clip-mini .wave span:nth-child(3n){ animation-delay:.4s; }
+.nva-clip-mini .wave span:nth-child(4n){ animation-delay:.6s; }
+@keyframes nvaWave { 0%,100%{transform:scaleY(.35)} 50%{transform:scaleY(1)} }
+.nva-clip-mini .cap { position:absolute; bottom:10px; left:8px; right:8px; font-size:.56rem; color:#fff; background:rgba(0,0,0,.55); border-radius:6px; padding:4px 6px; text-align:center; line-height:1.35; }
+.nva-clip-caption { font-size:.72rem; color:var(--ngreen); font-weight:700; margin-top:12px; text-align:center; }
+.nva-clip-caption span { display:block; font-size:.66rem; color:var(--text-2); font-weight:400; opacity:.8; margin-top:3px; }
+
+/* ── 블로그: 겹친 스택(월 4편) + 스켈레톤 shimmer ── */
+.nva-viz-blog { position:relative; z-index:1; }
+.nva-viz-blog::before, .nva-viz-blog::after { content:''; position:absolute; left:0; right:0; top:0; bottom:0; border-radius:18px; background:var(--bg-2); border:1px solid var(--border); z-index:-1; }
+.nva-viz-blog::before { transform:translate(9px,9px); opacity:.55; }
+.nva-viz-blog::after { transform:translate(18px,18px); opacity:.3; }
+.nva-viz-blog .qty { position:absolute; top:-11px; right:-8px; background:var(--ngreen); color:#04170b; font-size:.66rem; font-weight:800; padding:3px 11px; border-radius:999px; z-index:2; }
+.nva-viz-blog .line { position:relative; overflow:hidden; }
+.nva-feat.visible .nva-viz-blog .line::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent); animation:nvaShimmer 1.7s ease-in-out infinite; }
+@keyframes nvaShimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+/* ── 월간 리포트: 막대 아래→위 성장 ── */
+.nva-viz-report .bar { transform-origin:bottom; transform:scaleY(0); transition:transform .9s cubic-bezier(.22,1,.36,1); }
+.nva-feat.visible .nva-viz-report .bar { transform:scaleY(1); }
+.nva-viz-report .bar:nth-child(2){ transition-delay:.12s; }
+.nva-viz-report .bar:nth-child(3){ transition-delay:.24s; }
+
+/* ── 접근성: 모션 최소화 선호 시 전부 정지/즉시표시 ── */
+@media (prefers-reduced-motion: reduce) {
+  .nva-hero-glow, .btn-hero-scroll,
+  .nva-clip-track,
+  .nva-clip-mini .wave span { animation:none !important; }
+  .nva-clip-track { transform:none !important; }
+  .nva-real-shot { transition:none !important; }
+  .nva-viz-report .bar { transition:none !important; transform:scaleY(1) !important; }
+  .nva-feat.visible .nva-viz-blog .line::after { animation:none !important; display:none !important; }
+}
 </style>
 </head>
 <body>
@@ -252,7 +335,8 @@ header.hero::before { background: none; }
       <a href="#facts">왜 지금</a>
       <a href="#sources">인용 데이터</a>
       <a href="#proof">실측 근거</a>
-      <a href="#package">토탈 패키지</a>
+      <a href="#package">관리 범위</a>
+      <a href="#plans">상품·요금</a>
       <a href="/">GEO 진단 (ChatGPT)</a>
     </div>
     <a href="#lead" class="btn p nav-cta">진단 신청</a>
@@ -279,7 +363,7 @@ header.hero::before { background: none; }
           <div class="nva-mock-shot-wrap">
             <img class="nva-mock-shot" src="/naver-aitab-example.png" alt="네이버 AI탭 실제 답변 화면 — 자연어 질의에 업체 추천과 예약 가능 시간대를 답변 안에서 바로 안내" loading="lazy" />
           </div>
-          <p class="note">네이버 AI탭 공식 예시 화면 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034429" target="_blank" rel="noopener">네이버 공식 보도자료</a> 제공 (2026-06-26, 이해를 돕기 위한 예시 — 실제 서비스 답변과 다를 수 있음). 예시는 일반 장소 추천이며, 같은 방식이 치과 예약에도 적용됩니다.</p>
+          <p class="note">네이버 AI탭 공식 예시 화면 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034429" target="_blank" rel="noopener">네이버 공식 보도자료</a> 제공 (2026-06-26, 이해를 돕기 위한 예시 — 실제 서비스 답변과 다를 수 있음). 예시는 일반 장소 추천이며, 같은 방식이 치과 예약에도 적용됩니다. <b style="color:var(--ngreen)">AI탭 사용자 1,000만 돌파</b> — <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034477" target="_blank" rel="noopener">네이버 공식 발표</a> (2026-07)</p>
         </div>
       </div>
     </div>
@@ -445,14 +529,9 @@ header.hero::before { background: none; }
           <p>실측에서 예약 미연동 병원은 "전화 문의 필요"로 표기됐습니다. 예약 연동과 시간대 정비로 AI 답변 안의 실행 격차를 없앱니다.</p>
         </div>
         <div class="nva-feat-visual">
-          <div class="nva-viz-booking" aria-hidden="true">
-            <div class="days">
-              <span class="day">월</span><span class="day">화</span><span class="day">수</span><span class="day">목</span><span class="day">금</span><span class="day on">토</span>
-            </div>
-            <div class="slots">
-              <span class="slot">10:00</span><span class="slot avail">11:00</span><span class="slot">13:00</span><span class="slot avail">15:00</span><span class="slot">17:00</span>
-            </div>
-            <div class="foot">● 실시간 예약 가능 시간대 표시 (예시)</div>
+          <div class="nva-real">
+            <img class="nva-real-shot" src="/naver-place-booking.png" alt="네이버 플레이스 병원 예약 실제 화면 — 예약 가능 시간대가 그대로 노출" loading="lazy" />
+            <p class="cap"><b>실제 네이버 플레이스 병원 예약 화면</b> — 이 예약 시간대 데이터가 AI탭 답변에 그대로 들어갑니다 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034394" target="_blank" rel="noopener">네이버 공식 보도자료</a> (2026-06)</p>
           </div>
         </div>
       </div>
@@ -464,11 +543,9 @@ header.hero::before { background: none; }
           <p>진료시간·브레이크타임·결제·사진 등 등록 정보가 답변에 그대로 인용됩니다. 빈칸 없이 채우고 유지합니다.</p>
         </div>
         <div class="nva-feat-visual">
-          <div class="nva-viz-check" aria-hidden="true">
-            <div class="row"><span class="ic done">✓</span><b>진료시간</b>&nbsp;등록 완료</div>
-            <div class="row"><span class="ic done">✓</span><b>브레이크타임</b>&nbsp;등록 완료</div>
-            <div class="row"><span class="ic done">✓</span><b>결제수단</b>&nbsp;등록 완료</div>
-            <div class="row"><span class="ic todo">·</span><b>대표 사진</b>&nbsp;미등록 (예시)</div>
+          <div class="nva-real">
+            <img class="nva-real-shot" src="/naver-place-medical.png" alt="네이버 플레이스 병원 상세 정보 실제 화면 — 진료과목·질병 단위까지 구조화" loading="lazy" />
+            <p class="cap"><b>병원형 플레이스 상세 정보 실제 화면</b>(동물병원 사례) — 네이버는 병원 정보를 진료과목·질병 단위까지 구조화해 검색 필터로 씁니다. 빈칸 없이 채워야 하는 이유입니다 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034394" target="_blank" rel="noopener">네이버 공식 보도자료</a> (2026-06)</p>
           </div>
         </div>
       </div>
@@ -480,9 +557,9 @@ header.hero::before { background: none; }
           <p>추천 순서가 리뷰 수 순서와 일치했습니다. 조작 없이, 실환자 리뷰가 꾸준히 쌓이는 요청 동선을 설계합니다.</p>
         </div>
         <div class="nva-feat-visual">
-          <div class="nva-viz-review" aria-hidden="true">
-            <div class="card"><span class="stars">★★★★★</span><p class="txt">"상담을 꼼꼼하게 해주셔서 안심하고 진료받았어요."</p><span class="meta">3일 전 · 임플란트 (예시)</span></div>
-            <div class="card"><span class="stars">★★★★★</span><p class="txt">"통증 관리를 잘 챙겨주셔서 회복이 편했습니다."</p><span class="meta">1주 전 · 신경치료 (예시)</span></div>
+          <div class="nva-real">
+            <img class="nva-real-shot" src="/naver-review-rating.png" alt="네이버 플레이스 평균 별점 공개 실제 화면 — 평균 별점과 예약 버튼이 함께 노출" loading="lazy" />
+            <p class="cap"><b>2026년 7월부터 플레이스 평균 별점 공개</b> — 별점·리뷰가 예약 버튼 바로 옆에 노출됩니다. 리뷰 관리가 곧 첫인상입니다 · <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034317" target="_blank" rel="noopener">네이버 공식 보도자료</a></p>
           </div>
         </div>
       </div>
@@ -495,6 +572,7 @@ header.hero::before { background: none; }
         </div>
         <div class="nva-feat-visual">
           <div class="nva-viz-blog" aria-hidden="true">
+            <span class="qty">월 4편</span>
             <div class="ttl">임플란트 정기검진, 왜 필요할까요</div>
             <div class="line"></div><div class="line"></div><div class="line s"></div>
             <span class="src">출처 기관명 본문 인용</span>
@@ -510,12 +588,24 @@ header.hero::before { background: none; }
           <p>네이버 AI는 클립의 음성·자막·화면을 인식해 인용합니다. 블로그에서 파생 제작해 성장 구간을 선점합니다.</p>
         </div>
         <div class="nva-feat-visual">
-          <div class="nva-viz-clip" aria-hidden="true">
-            <div class="play">▶</div>
-            <div class="wave">
-              <span style="height:40%"></span><span style="height:70%"></span><span style="height:50%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:35%"></span><span style="height:75%"></span><span style="height:55%"></span>
+          <div class="nva-clip-wrap">
+            <div class="nva-clip-carousel" aria-hidden="true">
+              <div class="nva-clip-track">
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:45%"></span><span style="height:75%"></span><span style="height:55%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:40%"></span><span style="height:70%"></span></div><div class="cap">임플란트 후 주의사항</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:60%"></span><span style="height:40%"></span><span style="height:80%"></span><span style="height:50%"></span><span style="height:70%"></span><span style="height:90%"></span><span style="height:45%"></span></div><div class="cap">교정 중 칫솔질 팁</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:70%"></span><span style="height:55%"></span><span style="height:90%"></span><span style="height:45%"></span><span style="height:65%"></span><span style="height:50%"></span><span style="height:80%"></span></div><div class="cap">발치 후 지혈 방법</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:50%"></span><span style="height:85%"></span><span style="height:60%"></span><span style="height:75%"></span><span style="height:40%"></span><span style="height:70%"></span><span style="height:55%"></span></div><div class="cap">스케일링 주기</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:65%"></span><span style="height:45%"></span><span style="height:75%"></span><span style="height:90%"></span><span style="height:50%"></span><span style="height:60%"></span><span style="height:80%"></span></div><div class="cap">임플란트 정기검진</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:55%"></span><span style="height:70%"></span><span style="height:45%"></span><span style="height:85%"></span><span style="height:60%"></span><span style="height:75%"></span><span style="height:50%"></span></div><div class="cap">잇몸 관리 습관</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:45%"></span><span style="height:75%"></span><span style="height:55%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:40%"></span><span style="height:70%"></span></div><div class="cap">임플란트 후 주의사항</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:60%"></span><span style="height:40%"></span><span style="height:80%"></span><span style="height:50%"></span><span style="height:70%"></span><span style="height:90%"></span><span style="height:45%"></span></div><div class="cap">교정 중 칫솔질 팁</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:70%"></span><span style="height:55%"></span><span style="height:90%"></span><span style="height:45%"></span><span style="height:65%"></span><span style="height:50%"></span><span style="height:80%"></span></div><div class="cap">발치 후 지혈 방법</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:50%"></span><span style="height:85%"></span><span style="height:60%"></span><span style="height:75%"></span><span style="height:40%"></span><span style="height:70%"></span><span style="height:55%"></span></div><div class="cap">스케일링 주기</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:65%"></span><span style="height:45%"></span><span style="height:75%"></span><span style="height:90%"></span><span style="height:50%"></span><span style="height:60%"></span><span style="height:80%"></span></div><div class="cap">임플란트 정기검진</div></div>
+                <div class="nva-clip-mini"><div class="play">▶</div><div class="wave"><span style="height:55%"></span><span style="height:70%"></span><span style="height:45%"></span><span style="height:85%"></span><span style="height:60%"></span><span style="height:75%"></span><span style="height:50%"></span></div><div class="cap">잇몸 관리 습관</div></div>
+              </div>
             </div>
-            <div class="cap">임플란트 후 3일, 이런 증상 정상일까요?</div>
+            <p class="nva-clip-caption">월 2편씩 누적되는 클립 라이브러리<span>블로그 1편에서 숏폼으로 파생 제작 (예시)</span></p>
           </div>
         </div>
       </div>
@@ -554,6 +644,67 @@ header.hero::before { background: none; }
       <div class="nva-shift-step"><span class="n ok">3</span><div class="t"><b>임상·전문 콘텐츠는 병원 공식 홈페이지 칼럼으로 옮깁니다</b><p>자기 도메인은 계정 정지라는 단일 실패점이 없고, AI 검색이 홈페이지 서브페이지를 출처로 인용하는 것은 실측으로 확인된 경로입니다. 네이버 블로그는 AI가 인용하는 정보형 전용으로 지킵니다. <b style="color:var(--text-1)">단, 의료법 제56조(치료경험담·전후사진 등 규정)는 채널과 무관하게 홈페이지에도 동일하게 적용되므로 검수 기준은 그대로 유지합니다.</b></p></div></div>
     </div>
     <p style="font-size:.72rem;color:var(--text-2);opacity:.7;margin-top:16px;text-align:center">* "저품질"은 네이버 공식 용어가 아닌 업계 통칭이며, 실제 제재는 경고·노출 제한·이용 제한 등 단계적으로 이뤄집니다.</p>
+  </div>
+</section>
+
+<!-- ── 상품 패키지 ── -->
+<section class="nva-section" id="plans">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center;color:var(--ngreen)">PACKAGE</p>
+    <h2 style="text-align:center">치과 상황에 맞춰 <span class="g">3단계</span>로 제안합니다</h2>
+    <p class="sub" style="text-align:center;max-width:580px;margin:0 auto">진단부터 시작해, 준비된 만큼 축적 운영으로 넓혀갑니다.</p>
+
+    <div class="nva-anchor fade-up">
+      <div class="nva-anchor-item">
+        <b>외주 블로그 1편 <em>18~30만원</em></b>
+        <span>우리는 월 4편을 블로그봇 파이프라인으로 체계화합니다 — 원장 감수·출처 명시 포함</span>
+      </div>
+      <div class="nva-anchor-item">
+        <b>AI브리핑 노출 <em>27% → 40%</em> 확대 중</b>
+        <span>성장 구간입니다. 지금 쌓는 콘텐츠가 인용 자산으로 축적됩니다</span>
+      </div>
+    </div>
+
+    <div class="nva-plan-grid">
+      <div class="nva-plan fade-up">
+        <div class="pname">스타트</div>
+        <div class="pfor">진단·세팅 — 네이버 AI 대비를 시작하는 치과</div>
+        <ul>
+          <li>AI 검색·네이버 준비도 진단 리포트</li>
+          <li>네이버 예약·플레이스 완결성 정비</li>
+          <li>기존 콘텐츠 리스크 점검</li>
+        </ul>
+        <div class="pprice">1회<span>상담 시 안내</span></div>
+        <a href="#lead" class="pcta ghost">진단 신청</a>
+      </div>
+      <div class="nva-plan feat fade-up d1">
+        <span class="badge">가장 많이 선택</span>
+        <div class="pname">스탠다드</div>
+        <div class="pfor">축적 운영 — 인용 자산을 본격 축적할 치과</div>
+        <ul>
+          <li class="inc">스타트 전체 포함</li>
+          <li>AI브리핑형 정보 블로그 월 4편</li>
+          <li>AI 인용형 숏폼(클립) 월 2편</li>
+          <li>실환자 리뷰 운영 파이프라인</li>
+          <li>월간 AI 관측 리포트</li>
+        </ul>
+        <div class="pprice">월 정기<span>상담 시 안내</span></div>
+        <a href="#lead" class="pcta solid">진단 신청</a>
+      </div>
+      <div class="nva-plan fade-up d2">
+        <div class="pname">프리미엄</div>
+        <div class="pfor">전 채널 — AI 검색 전체를 관리할 치과</div>
+        <ul>
+          <li class="inc">스탠다드 전체 포함</li>
+          <li>홈페이지 AI 인용 구조 정비 (ChatGPT·Perplexity 대응)</li>
+          <li>의료 미디어 기고 연계</li>
+          <li>분기 전략 리뷰 미팅</li>
+        </ul>
+        <div class="pprice">월 정기<span>상담 시 안내</span></div>
+        <a href="#lead" class="pcta ghost">진단 신청</a>
+      </div>
+    </div>
+    <p class="nva-plan-note">구체 견적은 <b style="color:var(--text-1)">무료 진단 후 상담</b>에서 치과 상황(홈페이지 상태·페이지 수·검수 참여도)에 맞춰 안내드립니다. 특정 노출·순위·인용은 보장하지 않으며, 성과는 같은 조건 재측정으로 확인합니다.</p>
   </div>
 </section>
 
@@ -624,6 +775,34 @@ header.hero::before { background: none; }
     entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('visible'); io.unobserve(en.target); } });
   }, { threshold: 0.12 });
   document.querySelectorAll('.fade-up').forEach(function(el){ io.observe(el); });
+})();
+
+// #facts 스탯 카운트업 (접두·단위·콤마 보존, reduced-motion 시 최종값 즉시 표시)
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var nums = document.querySelectorAll('#facts .nva-fact .num');
+  if (!nums.length || reduce) return;
+  function animate(el){
+    var m = el.textContent.match(/^(\D*)([\d,]+)(.*)$/);
+    if (!m) return;
+    var prefix = m[1], target = parseInt(m[2].replace(/,/g, ''), 10), suffix = m[3];
+    if (isNaN(target)) return;
+    var dur = 1200, start = null;
+    function step(ts){
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var val = Math.round(target * eased);
+      el.textContent = prefix + val.toLocaleString('en-US') + suffix;
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = prefix + target.toLocaleString('en-US') + suffix;
+    }
+    requestAnimationFrame(step);
+  }
+  var io2 = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if (en.isIntersecting){ animate(en.target); io2.unobserve(en.target); } });
+  }, { threshold: 0.5 });
+  nums.forEach(function(el){ io2.observe(el); });
 })();
 
 // lead form → /api/lead (public naver-ai mode)
