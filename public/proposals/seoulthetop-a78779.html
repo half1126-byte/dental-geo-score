@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>서울더탑치과 × 메디앤메디 | GEO·AEO 마케팅 제안서</title>
+<!-- GEO 영업 홈페이지(dental-geo-score.vercel.app)와 동일한 디자인 시스템: 라이브 스타일시트 + 히어로 영상 재사용 -->
+<link rel="stylesheet" href="https://dental-geo-score.vercel.app/style.css?v=4" />
+<style>
+/* ── 제안서 전용 보조 스타일 (pv- 네임스페이스, GEO 토큰 그대로 사용: 플럼·앰버) ── */
+.hero-text h1 { font-size: clamp(2.4rem, 5.2vw, 4.4rem); } /* 낱자 줄바꿈 방지 */
+.pv-section { padding: 96px 0; }
+.pv-section.alt { border-top: 1px solid var(--border); }
+.pv-h2 { font-size: clamp(1.5rem, 3.4vw, 2.15rem); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
+.pv-sub { color: var(--text-2); font-size: .96rem; max-width: 640px; }
+.pv-fade { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+.pv-fade.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .pv-fade { opacity: 1; transform: none; transition: none; } }
+
+/* 제안 메타 스트립 */
+.pv-meta { border-bottom: 1px solid var(--border); padding: 22px 0; }
+.pv-meta .row { display: flex; gap: 48px; flex-wrap: wrap; }
+.pv-meta .cell { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .68rem; color: var(--text-2); letter-spacing: .05em; }
+.pv-meta .cell strong { display: block; font-family: 'Pretendard', sans-serif; font-size: .95rem; color: var(--text-1); font-weight: 700; margin-top: 4px; letter-spacing: 0; }
+
+/* 핵심 수치 */
+.pv-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 46px; }
+@media (max-width: 820px) { .pv-stat-row { grid-template-columns: 1fr; } }
+.pv-stat { background: var(--bg-3); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; }
+.pv-stat .n { font-size: 2rem; font-weight: 900; color: var(--amber); letter-spacing: -.02em; }
+.pv-stat .l { font-size: .8rem; color: var(--text-2); margin-top: 6px; line-height: 1.5; word-break: keep-all; }
+.pv-stat .src { display: block; font-size: .68rem; color: var(--text-2); opacity: .65; margin-top: 9px; }
+
+/* 패러다임 3카드 */
+.pv-pgrid { margin-top: 46px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; background: var(--bg-3); }
+@media (max-width: 760px) { .pv-pgrid { grid-template-columns: 1fr; } }
+.pv-pcard { padding: 34px 28px; border-right: 1px solid var(--border); }
+.pv-pcard:last-child { border-right: none; }
+@media (max-width: 760px) { .pv-pcard { border-right: none; border-bottom: 1px solid var(--border); } .pv-pcard:last-child { border-bottom: none; } }
+.pv-pcard .stage { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .66rem; color: var(--text-2); letter-spacing: .06em; }
+.pv-pcard h3 { font-size: 1.4rem; font-weight: 800; margin: 10px 0 4px; }
+.pv-pcard .kr { font-size: .8rem; color: var(--text-2); margin-bottom: 16px; }
+.pv-pcard ul { list-style: none; padding: 0; margin: 0; }
+.pv-pcard li { font-size: .82rem; color: var(--text-2); padding: 8px 0 8px 18px; position: relative; border-top: 1px solid var(--border); word-break: keep-all; }
+.pv-pcard li:first-child { border-top: none; }
+.pv-pcard li::before { content: "—"; position: absolute; left: 0; color: var(--text-2); }
+.pv-pcard.now { background: linear-gradient(180deg, var(--plum-dim), rgba(128,82,255,.05)); }
+.pv-pcard.now .stage { color: #b79aff; }
+.pv-pcard.now .kr { color: rgba(255,255,255,.6); }
+.pv-pcard.now li { color: rgba(255,255,255,.85); border-top-color: rgba(255,255,255,.13); }
+.pv-pcard.now li::before { color: #a685ff; }
+
+/* 코드 비교 */
+.pv-code { margin-top: 46px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 760px) { .pv-code { grid-template-columns: 1fr; } }
+.pv-codecard { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-3); }
+.pv-codecard .head { padding: 14px 20px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .78rem; font-weight: 700; }
+.pv-codecard.bad .head { background: rgba(240,94,106,.12); color: #f27a86; }
+.pv-codecard.good .head { background: var(--plum-dim); color: #b79aff; }
+.pv-codecard pre { margin: 0; padding: 22px 20px; background: #0a0a10; color: #cfd6ff; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .74rem; line-height: 1.7; overflow-x: auto; }
+.pv-codecard .verdict { padding: 14px 20px; font-size: .8rem; font-family: 'JetBrains Mono', ui-monospace, monospace; background: rgba(255,255,255,.03); color: var(--text-2); border-top: 1px solid var(--border); }
+.pv-codecard.good .verdict { color: #b79aff; font-weight: 700; }
+.pv-footnote { font-size: .72rem; color: var(--text-2); margin-top: 24px; line-height: 1.7; }
+
+/* 7신호 그리드 */
+.pv-sig-grid { margin-top: 44px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+@media (max-width: 900px) { .pv-sig-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .pv-sig-grid { grid-template-columns: 1fr; } }
+.pv-sig { background: #0b0b0e; padding: 24px 20px; }
+.pv-sig .ico { font-size: 1.3rem; margin-bottom: 12px; }
+.pv-sig h4 { font-size: .88rem; font-weight: 800; margin: 0 0 6px; }
+.pv-sig p { font-size: .74rem; color: var(--text-2); line-height: 1.55; margin: 0; word-break: keep-all; }
+.pv-sig .pt { display: inline-block; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .64rem; color: var(--amber); font-weight: 700; margin-top: 11px; background: var(--amber-dim); padding: 3px 10px; border-radius: 999px; }
+
+/* 실행 항목 */
+.pv-svc-list { margin-top: 46px; display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+.pv-svc { background: #0b0b0e; display: grid; grid-template-columns: 230px 1fr; gap: 36px; padding: 38px 36px; }
+@media (max-width: 760px) { .pv-svc { grid-template-columns: 1fr; gap: 16px; padding: 26px 20px; } }
+.pv-svc .tag { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .7rem; color: var(--plum); font-weight: 700; letter-spacing: .04em; }
+.pv-svc h3 { font-size: 1.25rem; font-weight: 800; margin: 8px 0 0; line-height: 1.3; word-break: keep-all; }
+.pv-svc h3 .qty { font-size: .8rem; color: var(--text-2); font-weight: 600; }
+.pv-svc .setup { display: inline-block; margin-top: 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .62rem; font-weight: 700; color: var(--amber); border: 1px solid rgba(255,184,41,.4); background: var(--amber-dim); padding: 3px 10px; border-radius: 999px; }
+.pv-svc .body p { color: var(--text-2); font-size: .88rem; margin: 0 0 14px; word-break: keep-all; }
+.pv-svc .body ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; padding: 0; margin: 0; }
+@media (max-width: 600px) { .pv-svc .body ul { grid-template-columns: 1fr; } }
+.pv-svc .body li { font-size: .8rem; padding-left: 18px; position: relative; word-break: keep-all; color: rgba(255,255,255,.85); }
+.pv-svc .body li::before { content: "✓"; position: absolute; left: 0; color: var(--plum); font-weight: 800; font-size: .72rem; }
+.pv-ref-inline { display: inline-block; margin-top: 14px; font-size: .78rem; font-weight: 700; color: #a685ff; text-decoration: none; border-bottom: 1px solid transparent; }
+.pv-ref-inline:hover { border-bottom-color: #a685ff; }
+
+/* 레퍼런스 목업 (내부는 라이트 — '실제 사이트 화면' 메타포) */
+.pv-ref-grid { margin-top: 46px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 900px) { .pv-ref-grid { grid-template-columns: 1fr; } }
+.pv-ref-card { background: var(--bg-3); border: 1px solid var(--card-border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; }
+.pv-ref-tag { display: inline-block; align-self: flex-start; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .64rem; font-weight: 700; color: #b79aff; background: var(--plum-dim); padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+.bmock { border: 1px solid rgba(255,255,255,.16); border-radius: 12px; overflow: hidden; background: #fff; color: #1c2430; }
+.bbar { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: #EDF0F2; border-bottom: 1px solid #dde3e7; }
+.dotr { width: 8px; height: 8px; border-radius: 50%; }
+.r1 { background: #FF6159; } .r2 { background: #FFBD2E; } .r3 { background: #27C93F; }
+.bbar .url { margin-left: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .64rem; color: #68737d; background: #fff; padding: 4px 10px; border-radius: 6px; flex: 1; border: 1px solid #dde3e7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mbody { padding: 18px 16px; }
+.mh { font-size: .9rem; font-weight: 800; margin-bottom: 12px; line-height: 1.4; color: #141b24; }
+.mfilter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.pill { font-size: .6rem; padding: 5px 12px; border-radius: 999px; border: 1px solid #dde3e7; color: #68737d; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.pill.on { background: #141b24; color: #fff; border-color: #141b24; }
+.case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 560px) { .case-grid { grid-template-columns: 1fr; } }
+.ba { height: 64px; border-radius: 8px; position: relative; overflow: hidden; background: linear-gradient(90deg, #C9C2B4 50%, #E8DCC8 50%); }
+.ba.alt { background: linear-gradient(90deg, #B9C7C2 50%, #DCEAE4 50%); }
+.ba.alt2 { background: linear-gradient(90deg, #C7BFC9 50%, #EFE3F2 50%); }
+.ba span { position: absolute; top: 5px; left: 5px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .46rem; font-weight: 700; color: #fff; background: rgba(0,0,0,.45); padding: 2px 5px; border-radius: 4px; }
+.ba span.after { left: auto; right: 5px; background: rgba(228,87,61,.85); }
+.mlock { font-size: .54rem; text-align: center; color: #68737d; background: #F2F4F6; padding: 4px; margin-top: 4px; border-radius: 5px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.mcap { font-size: .6rem; margin-top: 6px; line-height: 1.5; color: #1c2430; }
+.mcap b { color: #6a3ff0; }
+.mdisc { margin-top: 16px; font-size: .6rem; color: #68737d; font-family: 'JetBrains Mono', ui-monospace, monospace; border-top: 1px solid #dde3e7; padding-top: 10px; }
+.mhash { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .58rem; color: #6a3ff0; margin-bottom: 10px; }
+.meditor { color: #68737d; float: right; }
+.agrid { display: grid; grid-template-columns: 120px 1fr; gap: 16px; margin-top: 14px; }
+@media (max-width: 560px) { .agrid { grid-template-columns: 1fr; } }
+.mtoc { background: #F2F4F6; border-radius: 8px; padding: 12px 10px; font-size: .56rem; height: fit-content; }
+.mtoc .t { font-weight: 700; margin-bottom: 8px; font-size: .6rem; }
+.mtoc .i { color: #68737d; padding: 5px 0; border-top: 1px solid #dde3e7; }
+.mtoc .i:first-of-type { border-top: none; }
+.mtoc .i.on { color: #6a3ff0; font-weight: 700; }
+.mpt { font-size: .7rem; font-weight: 700; margin-bottom: 8px; color: #141b24; }
+.mpl { height: 6px; background: #dde3e7; border-radius: 3px; margin-bottom: 6px; }
+.mpl.s { width: 70%; }
+table.mtable { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .56rem; }
+table.mtable th, table.mtable td { border: 1px solid #dde3e7; padding: 6px 8px; text-align: left; }
+table.mtable th { background: #F2F4F6; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 600; }
+.mfaq { margin-top: 12px; display: flex; flex-direction: column; gap: 5px; }
+.mfaq .q { font-size: .6rem; padding: 7px 10px; background: #F2F4F6; border-radius: 6px; display: flex; justify-content: space-between; }
+.mfaq .q span { color: #6a3ff0; font-weight: 700; }
+.mcta { margin-top: 14px; background: #141b24; color: #fff; font-size: .64rem; font-weight: 700; padding: 10px 12px; border-radius: 8px; text-align: center; }
+.pv-ref-desc { font-size: .8rem; color: var(--text-2); margin-top: 16px; line-height: 1.65; flex: 1; word-break: keep-all; }
+.pv-ref-link { margin-top: 14px; display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--text-1); text-decoration: none; border: 1px solid var(--border); padding: 9px 18px; border-radius: 999px; transition: all .15s ease; }
+.pv-ref-link:hover { background: var(--plum); border-color: var(--plum); color: #fff; }
+
+/* 기준점 */
+.pv-stakes { margin-top: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 700px) { .pv-stakes { grid-template-columns: 1fr; } }
+.pv-stake { background: var(--bg-3); border-radius: 20px; padding: 28px 30px; border: 1px solid var(--card-border); }
+.pv-stake .n { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--plum); font-size: .78rem; font-weight: 700; }
+.pv-stake h4 { font-size: 1rem; font-weight: 800; margin: 10px 0 8px; word-break: keep-all; }
+.pv-stake p { font-size: .84rem; color: var(--text-2); margin: 0; word-break: keep-all; }
+.pv-note { margin-top: 28px; font-size: .78rem; color: var(--text-2); background: rgba(255,255,255,.03); border-left: 3px solid var(--plum); padding: 14px 18px; border-radius: 0 10px 10px 0; word-break: keep-all; }
+
+/* 견적 */
+.pv-pricing { background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(128,82,255,.10), transparent 65%); border-top: 1px solid var(--border); }
+.pv-phead { display: flex; align-items: center; gap: 12px; margin: 52px 0 18px; flex-wrap: wrap; }
+.pv-phead .num { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--plum); font-size: .84rem; font-weight: 700; }
+.pv-phead h3 { font-size: 1.15rem; font-weight: 800; margin: 0; }
+.pv-badge { display: inline-block; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .6rem; font-weight: 700; padding: 3px 12px; border-radius: 999px; color: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.25); }
+.tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.quote { width: 100%; min-width: 560px; border-collapse: collapse; font-size: .84rem; }
+table.quote th { text-align: left; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .66rem; letter-spacing: .05em; color: rgba(255,255,255,.45); font-weight: 500; padding: 0 18px 14px; border-bottom: 1px solid rgba(255,255,255,.18); }
+table.quote td { padding: 20px 18px; border-bottom: 1px solid rgba(255,255,255,.1); vertical-align: top; color: rgba(255,255,255,.85); word-break: keep-all; }
+table.quote td.item { font-weight: 700; color: #fff; width: 26%; }
+table.quote td.item .ex { display: inline-block; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .54rem; font-weight: 700; color: var(--amber); border: 1px solid rgba(255,184,41,.4); padding: 1px 8px; border-radius: 999px; margin-bottom: 6px; }
+table.quote td.desc { color: rgba(255,255,255,.62); font-size: .78rem; line-height: 1.7; }
+table.quote td.price { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 600; color: var(--amber); white-space: nowrap; text-align: right; width: 17%; }
+table.quote tr.total td { border-bottom: none; padding-top: 22px; font-weight: 800; font-size: .95rem; color: #fff; }
+table.quote tr.total td.price { color: var(--amber); font-size: 1.1rem; }
+.vat { font-size: .68rem; color: rgba(255,255,255,.4); font-weight: 400; }
+.pv-grand { margin-top: 48px; border: 1px solid rgba(128,82,255,.45); background: linear-gradient(180deg, rgba(128,82,255,.14), rgba(128,82,255,.04)); border-radius: 20px; padding: 32px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center; }
+@media (max-width: 760px) { .pv-grand { grid-template-columns: 1fr; } }
+.pv-grand .t { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .62rem; letter-spacing: .06em; color: rgba(255,255,255,.5); }
+.pv-grand .v { font-size: 1.6rem; font-weight: 900; color: #fff; margin-top: 8px; letter-spacing: -.02em; }
+.pv-grand .v em { font-style: normal; color: var(--amber); }
+.pv-grand .d { font-size: .7rem; color: var(--text-2); margin-top: 6px; word-break: keep-all; }
+.pv-grand-note { margin-top: 14px; text-align: center; font-size: .74rem; color: var(--text-2); }
+
+/* CTA / 푸터 */
+.pv-cta { text-align: center; border-top: 1px solid var(--border); }
+.pv-compliance { margin-top: 56px; border-top: 1px solid var(--border); padding-top: 22px; font-size: .72rem; color: var(--text-2); line-height: 1.75; text-align: left; }
+.pv-footer { padding: 30px 0 46px; text-align: center; font-size: .74rem; color: var(--text-2); }
+@media (max-width: 760px) { .pv-section { padding: 64px 0; } }
+
+/* ── 모바일 최적화 (2026-07-16) ── */
+body { overflow-x: hidden; }
+.pv-ref-card, .bmock, .bbar, .mbody { min-width: 0; }
+.bbar .url { flex: 1 1 0; }
+.pv-ref-grid > * { min-width: 0; }
+.tbl-hint { display: none; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .66rem; color: var(--text-2); margin: 10px 0 6px; }
+@media (max-width: 600px) { .tbl-hint { display: block; } }
+@media (max-width: 560px) {
+  .pv-meta .row { gap: 14px 28px; }
+  .pv-grand { padding: 26px 20px; }
+  .pv-svc h3 br { display: none; }
+}
+</style>
+<noscript><style>.pv-fade { opacity: 1; transform: none; }</style></noscript>
+</head>
+<body>
+
+<!-- ── TOP NAV (GEO 동일) ── -->
+<nav class="topnav">
+  <div class="nav-inner wrap-wide">
+    <div class="nav-logo">MEDINMEDI<span class="nav-dot">·</span>GEO</div>
+    <div class="nav-links">
+      <a href="#shift">변화</a>
+      <a href="#signals">진단</a>
+      <a href="#services">실행</a>
+      <a href="#refs">레퍼런스</a>
+      <a href="#quote">견적</a>
+    </div>
+    <a href="#quote" class="btn p nav-cta">견적 보기</a>
+  </div>
+</nav>
+
+<!-- ── HERO (GEO 히어로 영상 동일) ── -->
+<header class="hero">
+  <video id="heroVideo" autoplay muted loop playsinline poster="https://dental-geo-score.vercel.app/hero-poster.webp">
+    <source src="https://dental-geo-score.vercel.app/hero.mp4" type="video/mp4" />
+  </video>
+  <div class="hero-inner">
+    <div class="wrap-wide">
+      <div class="hero-split">
+        <div class="hero-text">
+          <p class="kicker">MEDI&amp;MEDI PROPOSAL · 서울더탑치과의원</p>
+          <h1>이제 <span class="g2">AI 검색</span>이<br/>서울더탑치과를<br/><span class="g">추천하게 만듭니다</span></h1>
+          <p class="sub">환자는 검색창 대신 ChatGPT·Perplexity·네이버 AI에 묻습니다. <br/>홈페이지와 콘텐츠를 AI가 읽고, 인용하고, <br/>추천의 근거로 삼는 구조로 바꾸는 실행 제안입니다.</p>
+          <a href="#stats" class="btn-hero-scroll">제안 내용 확인하기 ↓</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── 제안 메타 ── -->
+<div class="pv-meta">
+  <div class="wrap-wide">
+    <div class="row">
+      <div class="cell">CLIENT<strong>서울더탑치과의원</strong></div>
+      <div class="cell">PROPOSED BY<strong>㈜메디앤메디</strong></div>
+      <div class="cell">DATE<strong>2026. 07. 16</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 핵심 수치 ── -->
+<section class="pv-section" id="stats">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">OFFICIAL NUMBERS</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">AI 검색은 이미 <span class="g2">기본값</span>이 됐습니다</h2>
+    <div class="pv-stat-row">
+      <div class="pv-stat pv-fade"><div class="n">월 3,000만+</div><div class="l">네이버 AI브리핑이 붙는 검색 질의 — 전체 질의의 27% 적용 중, 연내 40% 목표</div><span class="src">출처: 네이버 공식 발표</span></div>
+      <div class="pv-stat pv-fade"><div class="n">70%</div><div class="l">AI브리핑 인용 콘텐츠 중 블로그·카페 등 UGC 비중 — 병원이 직접 만들 수 있는 영역</div><span class="src">출처: 네이버 공식 발표</span></div>
+      <div class="pv-stat pv-fade"><div class="n">1,000만+</div><div class="l">네이버 AI탭 사용자 — 2026년 7월 돌파. AI가 찾고 비교하고 예약까지 실행합니다</div><span class="src">출처: 네이버 보도자료 (2026.07)</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 패러다임 ── -->
+<section class="pv-section alt" id="shift">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">SEARCH PARADIGM SHIFT</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">환자는 이제 검색하지 않습니다. <span class="g">질문합니다.</span></h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">정보를 찾는 방식이 키워드 검색에서 AI 질문으로 넘어가고 있습니다. 지금 필요한 준비는 SEO가 아니라 GEO입니다.</p>
+
+    <div class="pv-pgrid pv-fade">
+      <div class="pv-pcard">
+        <div class="stage">PAST</div>
+        <h3>SEO</h3>
+        <div class="kr">검색엔진 최적화</div>
+        <ul>
+          <li>키워드 순위 경쟁</li>
+          <li>블로그·백링크 전략</li>
+          <li>클릭해서 홈페이지 방문</li>
+          <li>메타태그·타이틀 최적화</li>
+        </ul>
+      </div>
+      <div class="pv-pcard">
+        <div class="stage">TRANSITION</div>
+        <h3>AEO</h3>
+        <div class="kr">답변엔진 최적화</div>
+        <ul>
+          <li>검색 결과 상단 답변 선점</li>
+          <li>클릭 없이 정보 제공</li>
+          <li>구조화 데이터(JSON-LD)</li>
+          <li>연관 질문 대응</li>
+        </ul>
+      </div>
+      <div class="pv-pcard now">
+        <div class="stage">NOW · 이번 제안의 대상</div>
+        <h3>GEO</h3>
+        <div class="kr">생성형 AI 최적화</div>
+        <ul>
+          <li>ChatGPT·Perplexity·네이버 AI 인용</li>
+          <li>AI 답변 안에 병원명 언급</li>
+          <li>AI가 읽기 쉬운 콘텐츠 구조</li>
+          <li>전문성·자격 신호 강화</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 코드 비교 ── -->
+<section class="pv-section">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">HOW AI READS YOUR SITE</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">AI가 실제로 읽는 것은 <span class="g2">이 코드</span>입니다</h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">사람이 보는 디자인 뒤에서, AI는 홈페이지의 '구조화 데이터'를 읽습니다. 이 구조가 없으면 AI에게 서울더탑치과는 신뢰할 근거가 없는 이름일 뿐입니다.</p>
+
+    <div class="pv-code pv-fade">
+      <div class="pv-codecard bad">
+        <div class="head">✕ 구조화 데이터 없음</div>
+        <pre>&lt;h1&gt;OO 임플란트 치과&lt;/h1&gt;
+&lt;p&gt;원장 홍길동&lt;/p&gt;
+&lt;p&gt;서울시 OO구 ...&lt;/p&gt;</pre>
+        <div class="verdict">AI 판단 → "누가 진료하는지 알 수 없음 (정보 부족)"</div>
+      </div>
+      <div class="pv-codecard good">
+        <div class="head">✓ 구조화 데이터 있음</div>
+        <pre>{
+  "@type": "Dentist",
+  "founder": {
+    "@type": "Person",
+    "name": "홍길동",
+    "alumniOf": "OO대 치과대학",
+    "hasCredential": "구강외과 전문의"
+  }
+}</pre>
+        <div class="verdict">AI 판단 → "전문의가 진료하는 치과 → 신뢰 후보"</div>
+      </div>
+    </div>
+    <p class="pv-footnote">※ 예시 코드입니다. 실제 구현은 서울더탑치과 홈페이지 구조 분석 후 맞춤 설계합니다.</p>
+  </div>
+</section>
+
+<!-- ── 7신호 ── -->
+<section class="pv-section alt" id="signals">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">GEO DIAGNOSTIC SIGNALS</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">AI가 병원을 읽는 <span class="g">7가지 신호</span></h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">메디앤메디는 자체 측정 도구로 아래 7개 신호를 점수화해 진단하고, 낮은 신호부터 순서대로 개선합니다.</p>
+
+    <div class="pv-sig-grid pv-fade">
+      <div class="pv-sig"><div class="ico">🤖</div><h4>AI 크롤러 허용</h4><p>robots.txt에서 GPTBot·PerplexityBot·Google-Extended를 차단하지 않는지 확인</p><span class="pt">+20점</span></div>
+      <div class="pv-sig"><div class="ico">🧩</div><h4>구조화 데이터</h4><p>JSON-LD로 병원명·주소·진료·원장 정보를 AI가 읽을 수 있게 마크업</p><span class="pt">+20점</span></div>
+      <div class="pv-sig"><div class="ico">👨‍⚕️</div><h4>전문성·자격 정보</h4><p>원장·전문의 이름과 경력이 텍스트로 명확히 노출되는지 확인</p><span class="pt">+15점</span></div>
+      <div class="pv-sig"><div class="ico">🕓</div><h4>콘텐츠 신선도</h4><p>최근 6개월 내 업데이트된 콘텐츠와 sitemap 날짜 표기 여부</p><span class="pt">+15점</span></div>
+      <div class="pv-sig"><div class="ico">💬</div><h4>Answer-first 구조</h4><p>FAQ·진료 안내 등 질문-답변형 콘텐츠로 AI가 바로 인용 가능한 구조</p><span class="pt">+15점</span></div>
+      <div class="pv-sig"><div class="ico">📱</div><h4>모바일 접근성</h4><p>viewport·반응형 레이아웃 유무. AI는 모바일 렌더링도 크롤링합니다</p><span class="pt">+10점</span></div>
+      <div class="pv-sig"><div class="ico">⚡</div><h4>렌더링 가능성</h4><p>JS 의존 없이 기본 콘텐츠가 HTML에 담겨 있는지, SSR 여부 체크</p><span class="pt">+5점</span></div>
+      <div class="pv-sig"><div class="ico">📊</div><h4>진단 리포트</h4><p>7신호 종합 점수와 우선순위 개선 항목을 데이터로 제공</p><span class="pt">0→100점</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 실행 항목 ── -->
+<section class="pv-section" id="services">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">WHAT WE DO</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">실행 항목 — <span class="g2">진단부터 운영까지 5가지</span></h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">홈페이지 구조 개선(1회 셋업)과 월 운영(콘텐츠·채널)이 한 몸으로 돌아갑니다. 진단 → 구축 → 운영 → 재측정 순서입니다.</p>
+
+    <div class="pv-svc-list pv-fade">
+      <div class="pv-svc">
+        <div><div class="tag">01 / STRUCTURE</div><h3>GEO 홈페이지<br/>구조 업그레이드</h3><span class="setup">1회 셋업</span></div>
+        <div class="body">
+          <p>AI가 읽기 쉬운 구조로 홈페이지를 개선합니다. JSON-LD 구조화 데이터, Answer-first 콘텐츠, 전문성·자격 신호를 서울더탑치과 홈페이지에 이식해 AI 크롤러가 신뢰 후보로 인식할 수 있게 만듭니다.</p>
+          <ul>
+            <li>병원·원장 엔티티(Person schema) 구축</li>
+            <li>진료별 JSON-LD 마크업 설계</li>
+            <li>FAQ·Answer-first 페이지 구조화</li>
+            <li>robots.txt AI 크롤러 허용 점검</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pv-svc">
+        <div><div class="tag">02 / CLINICAL</div><h3>닥터 GEO<br/>임상게시</h3></div>
+        <div class="body">
+          <p>원장님의 실제 임상 사례를 AI 검색이 인용하기 좋은 정보성 구조로 게시합니다. 진료 과정과 전문성을 데이터화해, 환자가 "임플란트 치과 추천해줘"라고 물었을 때 근거로 활용될 수 있는 콘텐츠 자산을 쌓습니다.</p>
+          <ul>
+            <li>임상 사례 기반 게시글 구조 설계</li>
+            <li>진료 전·후 프로세스 정보화</li>
+            <li>원장 자격·경력 노출 강화</li>
+            <li>AI 인용 최적화 제목·메타 정리</li>
+          </ul>
+          <a class="pv-ref-inline" href="#refs">→ 임상케이스 레퍼런스 예시 보기</a>
+        </div>
+      </div>
+      <div class="pv-svc">
+        <div><div class="tag">03 / CONTENT</div><h3>GEO 컬럼 <span class="qty">월 4회</span></h3></div>
+        <div class="body">
+          <p>월 4회, 정보성 임상형 컬럼을 생성합니다. 생성한 컬럼을 요약본으로 재가공해 네이버 AI 노출 구조에 맞춘 포스팅으로 미러링 발행함으로써, 하나의 콘텐츠가 여러 AI 검색 채널에서 동시에 인용될 확률을 높입니다.</p>
+          <ul>
+            <li>월 4회 정보성 임상 컬럼 생성</li>
+            <li>네이버 AI 노출용 요약 미러링</li>
+            <li>핵심 진료 키워드 기반 주제 설계</li>
+            <li>AI 인용 최적화 구조(목차·표·FAQ)</li>
+          </ul>
+          <a class="pv-ref-inline" href="#refs">→ GEO 컬럼 레퍼런스 예시 보기</a>
+        </div>
+      </div>
+      <div class="pv-svc">
+        <div><div class="tag">04 / BLOG</div><h3>네이버 GEO 블로그<br/>콘텐츠 운영 <span class="qty">월 6회 · SEO+GEO</span></h3></div>
+        <div class="body">
+          <p>월 6회, 진료 핵심 키워드를 기준으로 네이버 블로그 포스팅을 생성·발행합니다. 네이버 통합검색 노출(SEO)과 AI브리핑 인용(GEO)을 동시에 겨냥한 이중 구조로 작성하며, GEO 컬럼과 주제를 연계하고 의료광고 사전 기준에 맞춰 카피를 생성합니다.</p>
+          <ul>
+            <li>월 6회 블로그 포스팅 생성·발행</li>
+            <li>SEO+GEO 이중 최적화 구조</li>
+            <li>GEO 컬럼과 콘텐츠 주제 연계</li>
+            <li>의료광고 사전 기준 준수 카피</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pv-svc">
+        <div><div class="tag">05 / VIRAL · CHANNEL</div><h3>당근마켓 바이럴 +<br/>구글·AI검색 활성화 <span class="qty">부가 서비스 포함</span></h3></div>
+        <div class="body">
+          <p>지역 주민이 실제로 묻고 답하는 당근마켓에서 질문+댓글 바이럴을 운영해 지역 신뢰 신호를 만들고, 부가 서비스로 구글 비즈니스 정보·위키백과 등 AI가 교차 참조하는 제3자 채널을 정비해 인용 신뢰도를 높입니다.</p>
+          <ul>
+            <li>당근마켓 바이럴(질문+댓글) 월 2건</li>
+            <li>댓글 바이럴 월 20건 실행</li>
+            <li>구글·AI검색 활성화 채널 세팅 (부가)</li>
+            <li>채널 간 병원 정보 정합성 확보</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 레퍼런스 ── -->
+<section class="pv-section alt" id="refs">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">REFERENCE EXAMPLE</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">이런 형태로 제작됩니다 — <span class="g">실제 구축 레퍼런스</span></h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">메디앤메디가 동일한 구조로 참여한 치과 사이트 사례입니다. 서울더탑치과에도 같은 프레임으로 임상케이스와 GEO 컬럼을 설계합니다. (아래는 구조를 보여주기 위한 예시이며, 실제 카피와 사진은 서울더탑치과 자료로 새로 제작합니다.)</p>
+
+    <div class="pv-ref-grid">
+
+      <div class="pv-ref-card pv-fade">
+        <span class="pv-ref-tag">임상케이스 레퍼런스</span>
+        <div class="bmock">
+          <div class="bbar">
+            <span class="dotr r1"></span><span class="dotr r2"></span><span class="dotr r3"></span>
+            <div class="url">bestplant2.mycafe24.com/sub/board/case_list.php</div>
+          </div>
+          <div class="mbody">
+            <div class="mh">임상케이스</div>
+            <div class="mfilter">
+              <span class="pill on">전체</span><span class="pill">임플란트</span><span class="pill">인레이</span><span class="pill">치아미백</span><span class="pill">스케일링</span>
+            </div>
+            <div class="case-grid">
+              <div>
+                <div class="ba"><span>BEFORE</span><span class="after">AFTER</span></div>
+                <div class="mlock">🔒 로그인 후 케이스 확인</div>
+                <div class="mcap"><b>#스케일링</b> 착색·치석을 제거한 사례</div>
+              </div>
+              <div>
+                <div class="ba alt"><span>BEFORE</span><span class="after">AFTER</span></div>
+                <div class="mlock">🔒 로그인 후 케이스 확인</div>
+                <div class="mcap"><b>#임플란트</b> 뼈이식을 동반한 식립 사례</div>
+              </div>
+              <div>
+                <div class="ba alt2"><span>BEFORE</span><span class="after">AFTER</span></div>
+                <div class="mlock">🔒 로그인 후 케이스 확인</div>
+                <div class="mcap"><b>#치아미백</b> 자연치아를 보존한 미백 사례</div>
+              </div>
+            </div>
+            <div class="mdisc">※ 의료법 제56조 준수 · 실제 내원 환자의 동의 하에 제한 공개된 치료 사진</div>
+          </div>
+        </div>
+        <p class="pv-ref-desc">Before/After 사진, 태그, 카테고리 필터로 구성된 임상 사례 게시판입니다. 목록은 누구나 열람하되 상세 사진은 간단한 연락처 입력 후 공개해, 콘텐츠 이동과 잠재 신환 리드 수집을 함께 설계한 구조입니다.</p>
+        <a class="pv-ref-link" href="https://bestplant2.mycafe24.com/sub/board/case_list.php" target="_blank" rel="noopener">레퍼런스 원본 보기 →</a>
+      </div>
+
+      <div class="pv-ref-card pv-fade">
+        <span class="pv-ref-tag">GEO 컬럼 레퍼런스</span>
+        <div class="bmock">
+          <div class="bbar">
+            <span class="dotr r1"></span><span class="dotr r2"></span><span class="dotr r3"></span>
+            <div class="url">yonseibrdent.com/sub/column.php?id=2</div>
+          </div>
+          <div class="mbody">
+            <div class="mhash">#자가미백 #전문가미백 #치아미백방법 <span class="meditor">Editor 원장 · 2026.07.14</span></div>
+            <div class="mh">자가미백 vs 전문가미백,<br/>나에게 맞는 치아미백 방법은?</div>
+            <div class="agrid">
+              <div class="mtoc">
+                <div class="t">📋 목차</div>
+                <div class="i on">자가미백이란?</div>
+                <div class="i">전문가미백이란?</div>
+                <div class="i">자가미백 vs 전문가미백 비교</div>
+                <div class="i">나에게 맞는 방법 선택법</div>
+                <div class="i">자주 묻는 질문</div>
+              </div>
+              <div>
+                <div class="mpt">자가미백이란 무엇인가요?</div>
+                <div class="mpl"></div>
+                <div class="mpl s"></div>
+                <table class="mtable">
+                  <tr><th>구분</th><th>자가미백</th><th>전문가미백</th></tr>
+                  <tr><td>진행 장소</td><td>자택</td><td>치과 내원</td></tr>
+                  <tr><td>미백제 농도</td><td>낮음</td><td>높음 · 잇몸 보호 도포</td></tr>
+                  <tr><td>효과 체감</td><td>비교적 서서히</td><td>비교적 빠르게</td></tr>
+                </table>
+                <div class="mfaq">
+                  <div class="q">Q. 미백 시술 후 시린 증상이 있나요? <span>＋</span></div>
+                  <div class="q">Q. 효과는 얼마나 유지되나요? <span>＋</span></div>
+                  <div class="q">Q. 착색이 심하면 방법이 다른가요? <span>＋</span></div>
+                </div>
+                <div class="mcta">치아미백 상담 안내 보기 →</div>
+              </div>
+            </div>
+            <div class="mdisc">※ 의료법 제56조·시행령 제23조 준수 고지 문구 포함</div>
+          </div>
+        </div>
+        <p class="pv-ref-desc">목차 · 정의 · 비교표 · FAQ 순서로 이어지는 Answer-first 구조의 칼럼입니다. 헤딩과 표, 질문형 문단이 그대로 AI가 인용하기 좋은 단위가 되며, 관련 진료 페이지로 연결되는 CTA로 마무리합니다.</p>
+        <a class="pv-ref-link" href="https://yonseibrdent.com/sub/column.php?id=2" target="_blank" rel="noopener">레퍼런스 원본 보기 →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 기준점 ── -->
+<section class="pv-section" id="why">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">WHY NOW</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">먼저 잴 것은 <span class="g2">현재 기준점</span>입니다</h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">AI 검색 결과는 모델·질의·시점에 따라 달라집니다. 지금 기준점을 기록해야 개선 전후를 같은 조건에서 비교할 수 있습니다.</p>
+    <div class="pv-stakes pv-fade">
+      <div class="pv-stake">
+        <div class="n">01</div>
+        <h4>관찰 없이는 원인을 모릅니다</h4>
+        <p>병원명 언급, 홈페이지 인용, 무응답을 구분해 기록하지 않으면 무엇을 바꾸고 무엇을 다시 봐야 할지 알 수 없습니다.</p>
+      </div>
+      <div class="pv-stake">
+        <div class="n">02</div>
+        <h4>조건을 고정해야 비교됩니다</h4>
+        <p>모델·검색모드·지역·질의·시점을 남겨야 개선 전후 인용 변화를 같은 기준에서 확인할 수 있습니다.</p>
+      </div>
+    </div>
+    <div class="pv-note">※ 페이지 구조 개선은 AI 인용의 필요조건을 정비하는 작업이며, 특정 순위·노출을 보장하지 않습니다. 성과는 동일 조건의 정기 재측정으로 확인합니다.</div>
+  </div>
+</section>
+
+<!-- ── 견적 ── -->
+<section class="pv-section pv-pricing" id="quote">
+  <div class="wrap-wide">
+    <p class="kicker" style="text-align:center">실행 견적서</p>
+    <h2 class="pv-h2 pv-fade" style="text-align:center">단계별 실행 계획과 <span class="g">비용</span></h2>
+    <p class="pv-sub pv-fade" style="text-align:center;margin:0 auto">1회 셋업 + 월 운영으로 구성됩니다. 광고비는 멈추면 사라지지만, GEO 구조는 한 번 만들면 자산으로 남습니다.</p>
+
+    <div class="pv-phead pv-fade"><span class="num">01</span><h3>홈페이지 GEO 리뉴얼</h3><span class="pv-badge">1회 셋업</span></div>
+    <div class="tbl-hint">← 표를 옆으로 밀면 금액까지 보입니다</div>
+    <div class="tbl-scroll pv-fade">
+      <table class="quote">
+        <tr><th>상품명</th><th>주요 작업 범위</th><th>금액</th></tr>
+        <tr>
+          <td class="item">GEO·AEO 구조 기획 및<br/>홈페이지 분석</td>
+          <td class="desc">기존 홈페이지 분석, 진료 핵심 키워드 설정, 임상·칼럼·FAQ 구조 기획, 내부 링크 및 페이지 구성 설계</td>
+          <td class="price">50만원</td>
+        </tr>
+        <tr>
+          <td class="item">GEO 홈페이지 업그레이드</td>
+          <td class="desc">임상 게시판·원장 칼럼·FAQ 노출 구조 개선, 제목·메타정보·페이지 구조 정리, 관련 콘텐츠 내부 연결</td>
+          <td class="price">70만원</td>
+        </tr>
+        <tr class="total"><td>합계금액</td><td></td><td class="price">120만원<br/><span class="vat">(부가세 별도)</span></td></tr>
+      </table>
+    </div>
+
+    <div class="pv-phead pv-fade"><span class="num">02</span><h3>AI 노출 인용 활성화</h3><span class="pv-badge">월 정기 운영</span></div>
+    <div class="tbl-hint">← 표를 옆으로 밀면 금액까지 보입니다</div>
+    <div class="tbl-scroll pv-fade">
+      <table class="quote">
+        <tr><th>상품명</th><th>주요 작업 범위</th><th>금액</th></tr>
+        <tr>
+          <td class="item">GEO 컬럼 생성</td>
+          <td class="desc">정보성 임상형 콘텐츠(AI검색 노출 최적화) 컬럼 생성, 생성 컬럼을 요약해 네이버 AI 노출 구조에 맞춘 포스팅 미러링 생성</td>
+          <td class="price">월 4회<br/>100만원</td>
+        </tr>
+        <tr>
+          <td class="item">네이버 GEO 블로그<br/>콘텐츠 운영 (SEO+GEO)</td>
+          <td class="desc">진료 핵심 키워드 기반 네이버 블로그 포스팅 생성·발행 — 통합검색 노출(SEO)과 AI브리핑 인용(GEO) 이중 최적화, GEO 컬럼과 주제 연계, 의료광고 사전 기준 준수 카피 생성</td>
+          <td class="price">월 6회<br/>100만원</td>
+        </tr>
+        <tr>
+          <td class="item">당근마켓 바이럴</td>
+          <td class="desc">당근마켓 바이럴(질문+댓글) 월 2건, 댓글 바이럴 20건 실행</td>
+          <td class="price">월 50만원</td>
+        </tr>
+        <tr>
+          <td class="item"><span class="ex">부가 서비스</span><br/>구글 및 AI검색<br/>활성화 세팅</td>
+          <td class="desc">구글 비즈니스 정보, 위키백과 등 AI가 교차 참조하는 검색 노출 채널 내 콘텐츠 정비 — 월 운영 계약에 포함 제공</td>
+          <td class="price">포함</td>
+        </tr>
+        <tr class="total"><td>합계금액</td><td></td><td class="price">월 250만원<br/><span class="vat">(부가세 별도)</span></td></tr>
+      </table>
+    </div>
+
+    <div class="pv-grand pv-fade">
+      <div>
+        <div class="t">SETUP · 1회</div>
+        <div class="v">120<em>만원</em></div>
+        <div class="d">홈페이지 GEO 리뉴얼 (기획·분석 + 업그레이드)</div>
+      </div>
+      <div>
+        <div class="t">MONTHLY · 월 정기</div>
+        <div class="v">250<em>만원</em></div>
+        <div class="d">GEO 컬럼 4회 + GEO 블로그 6회 + 당근 바이럴 + 부가 서비스</div>
+      </div>
+      <div>
+        <div class="t">TOTAL · 첫 달 합계</div>
+        <div class="v"><em>370만원</em></div>
+        <div class="d">2개월차부터 월 250만원 · 부가세 별도</div>
+      </div>
+    </div>
+    <div class="pv-grand-note pv-fade">구글 및 AI검색 활성화 세팅은 부가 서비스로 월 운영 계약에 포함됩니다.</div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="pv-section pv-cta" id="contact">
+  <div class="wrap-wide">
+    <p class="kicker">NEXT STEP</p>
+    <h2 class="pv-h2 pv-fade">서울더탑치과의 <span class="g2">AI 검색 기준점</span>,<br/>지금 만들어 드립니다</h2>
+    <p class="pv-sub pv-fade" style="margin:14px auto 0;text-align:center">진단 → 구축 → 운영 → 재측정. AI 인용 구조를 자산으로 남기는 첫 걸음을 메디앤메디와 함께하세요.</p>
+    <a class="btn-hero-scroll pv-fade" style="margin-top:34px" href="https://www.medinmedi.com/" target="_blank" rel="noopener">메디앤메디 상담 신청 →</a>
+    <div class="pv-compliance pv-fade">
+      <b style="color:var(--text-1)">고지사항</b><br/>
+      · 본 제안의 모든 작업은 AI 검색 노출의 구조적 조건을 정비하는 것이며, 특정 순위·노출·인용을 보장하지 않습니다. 성과는 동일 조건의 정기 재측정으로 확인합니다.<br/>
+      · 모든 콘텐츠는 의료법 제56조(의료광고 금지 등)를 준수하여 제작합니다.<br/>
+      · 인용 통계(70% 등)의 출처: 네이버 공식 발표 및 보도자료(2026). 본 문서는 제안 대상 병원 내부 검토용입니다.
+    </div>
+  </div>
+</section>
+
+<footer class="pv-footer">㈜메디앤메디 · 인천광역시 연수구 송도과학로 80, 101동 705·706호 · 032-216-7799 · medinmedi24@gmail.com<br/>© 2026 MEDI&amp;MEDI · 본 문서는 제안 대상 병원 내부 검토용입니다 (무단 배포 금지)</footer>
+
+<script>
+var io = new IntersectionObserver(function (es) {
+  es.forEach(function (e) {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.pv-fade').forEach(function (el) { io.observe(el); });
+</script>
+</body>
+</html>
