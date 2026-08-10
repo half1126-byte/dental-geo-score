@@ -279,7 +279,7 @@ $('opMeasureBtn').addEventListener('click', async () => {
     const nQ = selectedQueries.length || 3;
     $('opLoadMsg').textContent = `${selectedRegions.length}개 지역 × ${nQ}개 질의 × 반복 측정 — 유료 AI 검색 호출 중...`;
   } else {
-    $('opLoadMsg').textContent = 'ChatGPT·Perplexity·Claude에 실제 질의 중 (최대 1~2분)...';
+    $('opLoadMsg').textContent = '설정된 AI 검색 엔진에 실제 질의 중 (최대 1~2분)...';
   }
   show('opLoading');
   $('opMeasureBtn').disabled = true; $('opMeasureBtn').textContent = '측정 중...';
@@ -334,6 +334,7 @@ function render(scoreRes, citeRes, q) {
 
   const header    = renderResultHeader(scoreRes, citeRes, q);
   const citation  = renderCitation(citeRes);
+  const diagnosis = renderDiagnosis(citeRes, scoreRes);
   const recommend = renderProductRecommend(citeRes, scoreRes);
   const hygiene   = renderHygiene(scoreRes);
   const improve   = renderImprovements(scoreRes);
@@ -358,6 +359,7 @@ function render(scoreRes, citeRes, q) {
     ${label('①', 'AI 실측 — 홈페이지가 출처로 인용되나요?')}
     ${citation}
     ${label('②', '진단 — 무엇이 부족한가')}
+    ${diagnosis}
     <div class="result-2col">
       <div>${improve}</div>
       <div>${hygiene}</div>
@@ -972,8 +974,9 @@ function renderCitation(citeRes) {
   const maxValidRuns = eng.reduce((m, p) => Math.max(m, p.validRuns || 0), 0);
   const repsNote = maxValidRuns > 0 ? `엔진별 최대 유효 응답 ${maxValidRuns}건` : '유효 응답 없음';
   const costText = d.costNote ? ` · ${esc(d.costNote)}` : '';
+  const engNames = eng.map((p) => ENGINE_SHORT[p.engine] || p.engine).join('·');
   const note = `<p class="muted small" style="margin-top:12px;text-align:center">
-    측정 엔진: <b>ChatGPT·Perplexity·Claude 검색 API</b> · ${esc(repsNote)}${costText} —
+    측정 엔진: <b>${esc(engNames)} 검색 API</b> (키 설정 기준 ${eng.length}엔진) · ${esc(repsNote)}${costText} —
     ChatGPT·Perplexity <b>앱 직접 검색과 모델·버전이 달라 결과 차이 있을 수 있음</b> ·
     <b>환자 광고에 "추천·인증·1위"로 인용 금지(의료광고법)</b>
   </p>`;
@@ -993,7 +996,21 @@ function renderCitation(citeRes) {
 
   // Row 1 — homepage citation result (not a recommendation classifier)
   const resultCells = eng.map((p) => {
-    if (!p.measured) return `<td style="padding:16px 20px;text-align:center;color:var(--text-2)"><div style="font-size:.9rem">—</div><div style="font-size:.72rem;margin-top:3px">측정불가</div></td>`;
+    if (!p.measured) {
+      // 왜 못 쟀는지까지 보여준다 — "측정불가" 한 단어는 디버깅이 불가능하다.
+      const firstErr = ((p.evidence || []).find((e) => e.error) || {}).error || '';
+      const why = p.unmeasurable === 'engine-error'
+        ? (/insufficient_quota|exceeded your current quota/i.test(firstErr) ? 'API 크레딧 소진 — 결제 확인'
+          : /HTTP 401/.test(firstErr) ? 'API 키 인증 실패'
+          : /HTTP 429/.test(firstErr) ? '요청 한도 초과'
+          : '엔진 호출 실패')
+        : p.unmeasurable === 'no-search' ? '검색 미수행(관측 0)'
+        : '키 미설정';
+      const errSnippet = firstErr
+        ? `<div style="font-size:.6rem;color:var(--text-2);opacity:.7;margin-top:4px;max-width:190px;margin-left:auto;margin-right:auto;word-break:break-all">${esc(firstErr.slice(0, 90))}</div>`
+        : '';
+      return `<td style="padding:16px 20px;text-align:center;color:var(--text-2)"><div style="font-size:.9rem">—</div><div style="font-size:.72rem;margin-top:3px;font-weight:700;color:#f05e6a">측정불가 — ${esc(why)}</div>${errSnippet}</td>`;
+    }
     if (p.cited) return `<td style="padding:16px 20px;text-align:center;background:rgba(31,206,196,.06)">
       <div style="font-size:1.4rem;line-height:1">✓</div>
       <div style="font-size:.88rem;font-weight:700;color:#1fcec4;margin-top:5px">${p.citedRuns}/${p.validRuns}회 인용</div>
@@ -1182,6 +1199,73 @@ function renderRegionHitmap(d) {
   </div>`;
 }
 
+// 구조 점수 × 실측을 합친 진단(lib/diagnose.js)을 화면으로 옮긴다.
+// 원장님 앞에서 그대로 읽을 수 있는 문장이 목적이라, 코드 이름은 노출하지 않는다.
+export function renderDiagnosis(citeRes, scoreRes) {
+  // /api/citation 이 있으면 실측까지 반영된 진단, 없으면 /api/score 의 구조 단독 진단.
+  const d = (citeRes && citeRes.d && citeRes.d.diagnosis)
+    || (scoreRes && scoreRes.d && scoreRes.d.diagnosis)
+    || null;
+  if (!d || !Array.isArray(d.findings)) return '';
+
+  const TONE = {
+    high:   { bg: 'rgba(255,86,86,.07)',  bd: 'rgba(255,86,86,.45)',  fg: '#ff8a8a', label: '먼저' },
+    medium: { bg: 'rgba(255,184,41,.07)', bd: 'rgba(255,184,41,.45)', fg: '#ffc75a', label: '다음' },
+    info:   { bg: 'rgba(255,255,255,.04)', bd: 'rgba(255,255,255,.18)', fg: 'var(--text-2)', label: '참고' },
+  };
+
+  const meta = [];
+  if (d.measured === true) {
+    meta.push(`유효 회차 <b>${Number(d.validRuns) || 0}</b>`);
+    meta.push(`인용 <b>${Number(d.citedRuns) || 0}</b>`);
+    meta.push(d.exposed ? '<b style="color:var(--teal)">답변 노출됨</b>' : '<b>이번 회차 미노출</b>');
+  } else if (d.measured === false) {
+    meta.push('<b>판정 보류 — 유효 회차 0</b>');
+  } else {
+    meta.push('구조 진단 기준 (실측 미실행)');
+  }
+  if (d.structureScore != null) meta.push(`구조 <b>${d.structureScore}</b>/100`);
+
+  const cards = d.findings.map((f) => {
+    const t = TONE[f.severity] || TONE.info;
+    return `<div style="background:${t.bg};border-left:3px solid ${t.bd};border-radius:0 8px 8px 0;padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;align-items:baseline">
+        <span style="font-size:.68rem;font-weight:800;color:${t.fg};white-space:nowrap">${t.label}</span>
+        <span style="font-weight:700;font-size:.9rem">${esc(f.title)}</span>
+      </div>
+      ${f.detail ? `<div style="font-size:.8rem;color:var(--text-2);margin-top:4px">${esc(f.detail)}</div>` : ''}
+      ${f.check ? `<div style="font-size:.78rem;color:var(--text-2);margin-top:5px">확인 — ${esc(f.check)}</div>` : ''}
+      ${f.action ? `<div style="font-size:.8rem;margin-top:5px">→ ${esc(f.action)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // 질의별 분포 — 평균 하나로는 안 보이는 편차. 실측이 있을 때만.
+  const engines = (citeRes && citeRes.d && citeRes.d.perEngine) || [];
+  const spreadRows = engines.flatMap((e) => (e.perPrompt || [])
+    .filter((p) => p.valid > 0)
+    .map((p) => ({ engine: e.engine, ...p })));
+  const dist = spreadRows.length > 1 ? `<div style="margin-top:10px">
+    <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-bottom:5px">질의별 결과 — 평균 하나로는 보이지 않는 편차</div>
+    <table style="width:100%;border-collapse:collapse">
+      ${spreadRows.map((p) => {
+        const tag = p.rate === 1 ? ['항상 인용', 'var(--teal)'] : p.rate === 0 ? ['한 번도 없음', '#ff8a8a'] : ['가끔', '#ffc75a'];
+        return `<tr>
+          <td style="padding:5px 8px;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.04)">${esc(p.prompt)}</td>
+          <td style="padding:5px 8px;font-size:.78rem;color:var(--text-2);white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.04)">${p.cited}/${p.valid}</td>
+          <td style="padding:5px 8px;font-size:.75rem;font-weight:700;color:${tag[1]};white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.04)">${tag[0]}</td>
+        </tr>`;
+      }).join('')}
+    </table></div>` : '';
+
+  return `<div class="card" style="margin-bottom:10px">
+    <div style="font-weight:800;font-size:.98rem;line-height:1.5;word-break:keep-all">${esc(d.headline)}</div>
+    <div style="font-size:.76rem;color:var(--text-2);margin:6px 0 12px">${meta.join(' · ')}</div>
+    ${cards}
+    ${dist}
+    <div style="font-size:.72rem;color:var(--text-2);margin-top:10px;opacity:.85">${esc(d.disclaimer || '')}</div>
+  </div>`;
+}
+
 function renderImprovements(scoreRes) {
   const fixes = (scoreRes && scoreRes.d && scoreRes.d.topFixes) || [];
   const TH = 'padding:8px 10px;font-size:.75rem;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border,rgba(255,255,255,.07));text-align:left;white-space:nowrap';
@@ -1235,8 +1319,9 @@ function renderHygiene(scoreRes) {
   const s = d.signals || {};
   const j = d.jsonld || {};
   const pctVal = Math.round((d.score / 100) * 100);
-  const bandLabel = d.score >= 70 ? '양호' : d.score >= 40 ? '개선 필요' : '시급';
-  const bandColor = d.score >= 70 ? 'var(--teal)' : d.score >= 40 ? 'var(--gold-2)' : '#f05e6a';
+  // 등급 라벨은 scorer의 정본 밴드를 그대로 쓴다 — 헤더(우수/보통)와 이 카드(양호)가 다르면 신뢰가 깨진다.
+  const bandLabel = d.band || (d.score >= 75 ? '우수' : d.score >= 50 ? '보통' : d.score >= 30 ? '개선 여지 큼' : '초기 단계');
+  const bandColor = d.score >= 75 ? 'var(--teal)' : d.score >= 50 ? 'var(--gold-2)' : '#f05e6a';
 
   const LAYER_STYLE = {
     SEO: 'background:#1a3a5c;color:#7ab8f5',
@@ -1314,7 +1399,7 @@ function renderHygiene(scoreRes) {
       </tbody>
     </table>
   </div>
-  <p class="muted small" style="margin-top:8px">축A 기술 준비도(crawl·schema·extract·local) + 축B 콘텐츠 인용성(eeat·fresh·answer) = 합산 점수. 이 점수는 AI 인용 가능성을 예측하지 않습니다.</p>`;
+  <p class="muted small" style="margin-top:8px">축A 기술 준비도(crawl·schema·extract·local, 50점) + 축B 콘텐츠 인용성(eeat·fresh·answer·citable, 50점) = 합산 점수. 이 점수는 AI 인용 가능성을 예측하지 않습니다.</p>`;
 
   // 두 축 표시 (v0.2+): axes 없으면 조용히 생략 (구 엔트리 하위 호환)
   let axesBar = '';

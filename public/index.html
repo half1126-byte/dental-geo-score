@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AI 검색 인용 실측 — SEO에서 GEO로, AI 검색 시대의 고객 채널</title>
-<meta name="description" content="ChatGPT·Perplexity의 검색 답변이 우리 홈페이지를 출처로 인용하는지 측정합니다. 페이지 크롤·콘텐츠 위생 7개 신호 즉시 진단." />
+<meta name="description" content="ChatGPT·Perplexity의 검색 답변이 우리 홈페이지를 출처로 인용하는지 측정합니다. 페이지 크롤·콘텐츠 위생 9개 신호 즉시 진단." />
 <meta property="og:title" content="AI 검색 인용 실측 — SEO에서 GEO로, AI 검색 시대의 고객 채널" />
 <meta property="og:description" content="AI 검색 답변의 홈페이지 출처 인용과 페이지 위생을 분리해 측정합니다." />
 <meta property="og:url" content="https://dental-geo-score.vercel.app/" />
@@ -17,7 +17,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"GEO(생성AI최적화)란 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"GEO(Generative Engine Optimization)는 AI 검색엔진이 웹 정보를 발견·이해하고 답변 출처로 사용할 수 있도록 정보 구조와 콘텐츠 품질을 개선하는 활동입니다. 출처 인용은 긍정적 추천과 동일하지 않습니다."}},
-{"@type":"Question","name":"이 도구는 무엇을 측정하나요?","acceptedAnswer":{"@type":"Answer","text":"두 가지입니다. (1) 페이지 크롤·콘텐츠 위생: robots.txt, JSON-LD, 전문성 정보, 신선도, 질문형 구조 등 7개 신호를 점검합니다. (2) 실측: AI 검색 API에 실제로 질문해 홈페이지 도메인이 답변 출처로 인용되는지 확인합니다."}},
+{"@type":"Question","name":"이 도구는 무엇을 측정하나요?","acceptedAnswer":{"@type":"Answer","text":"두 가지입니다. (1) 페이지 크롤·콘텐츠 위생: robots.txt, JSON-LD, 전문성 정보, 신선도, 질문형 구조, 인용 근거, 비급여 진료비 등 9개 신호를 점검합니다. (2) 실측: AI 검색 API에 실제로 질문해 홈페이지 도메인이 답변 출처로 인용되는지 확인합니다."}},
 {"@type":"Question","name":"점수가 높으면 AI에 뜨나요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 점수는 페이지 구조 위생일 뿐 AI 노출이나 추천을 예측하지 않습니다. 실제 인용은 별도 패널에서 반복 측정하고 답변 문맥을 함께 확인해야 합니다."}}
 ]}
 </script>
@@ -249,7 +249,7 @@
       <div class="hiw-step fade-up d1">
         <div class="step-num">02</div>
         <div class="step-icon">⚡</div>
-        <h4>7개 신호 자동 분석</h4>
+        <h4>9개 신호 자동 분석</h4>
         <p>AI 크롤러 허용 여부, 구조화 데이터, 전문성·자격, 콘텐츠 신선도 등 7개 핵심 신호를 실시간 분석합니다.</p>
       </div>
       <div class="hiw-arrow">→</div>
@@ -263,11 +263,11 @@
   </div>
 </section>
 
-<!-- ── 7 SIGNALS ── -->
+<!-- ── 9 SIGNALS ── -->
 <section class="signals">
   <div class="wrap">
     <p class="kicker" style="text-align:center">GEO DIAGNOSTIC SIGNALS</p>
-    <h2 style="text-align:center">AI가 비즈니스를 읽는<br/><span class="g2">7가지 신호</span></h2>
+    <h2 style="text-align:center">AI가 비즈니스를 읽는<br/><span class="g2">9가지 신호</span></h2>
     <p class="sub" style="text-align:center;max-width:480px;margin:0 auto 44px">페이지 크롤·구조·콘텐츠 위생을 점검하기 위해 사용하는 내부 신호입니다.<br/>각 항목은 위생 점수에 반영되며 AI 인용을 예측하지 않습니다.</p>
 
     <div class="signals-grid">
@@ -275,13 +275,13 @@
         <div class="signal-icon">🤖</div>
         <div class="signal-name">AI 크롤러 허용</div>
         <div class="signal-desc">robots.txt에서 GPTBot·PerplexityBot·Google-Extended를 차단하지 않는지 확인합니다.</div>
-        <div class="signal-pts">+20점</div>
+        <div class="signal-pts">+15점</div>
       </div>
       <div class="signal-card key">
         <div class="signal-icon">📋</div>
         <div class="signal-name">구조화 데이터</div>
         <div class="signal-desc">JSON-LD로 업체명·주소·서비스·담당자를 명확하게 마크업했는지 점검합니다.</div>
-        <div class="signal-pts">+20점</div>
+        <div class="signal-pts">+10점</div>
       </div>
       <div class="signal-card key">
         <div class="signal-icon">👨‍⚕️</div>
@@ -289,29 +289,41 @@
         <div class="signal-desc">담당자·전문가 이름·경력이 홈페이지 텍스트로 AI가 읽을 수 있게 제공되는지 확인합니다.</div>
         <div class="signal-pts">+15점</div>
       </div>
-      <div class="signal-card">
-        <div class="signal-icon">🕐</div>
-        <div class="signal-name">콘텐츠 신선도</div>
-        <div class="signal-desc">최근 6개월 내 업데이트된 콘텐츠가 있는지, sitemap에 날짜가 표기되어 있는지 확인합니다.</div>
+      <div class="signal-card key">
+        <div class="signal-icon">📎</div>
+        <div class="signal-name">인용 근거</div>
+        <div class="signal-desc">본문에 출처 표기·전문가 인용구·수치 근거가 있는지 봅니다. 프린스턴대 KDD 2024 연구가 실측한 상위 3개 기법으로, 그중 출처 명시가 단일 최대 항목입니다.</div>
         <div class="signal-pts">+15점</div>
       </div>
       <div class="signal-card">
         <div class="signal-icon">💬</div>
         <div class="signal-name">Answer-first 구조</div>
-        <div class="signal-desc">질문-답변 형식의 콘텐츠(FAQ, 서비스 안내)가 있어 AI가 바로 인용할 수 있는 구조인지 봅니다.</div>
-        <div class="signal-pts">+15점</div>
-      </div>
-      <div class="signal-card">
-        <div class="signal-icon">📱</div>
-        <div class="signal-name">모바일 접근성</div>
-        <div class="signal-desc">viewport 메타태그, 반응형 레이아웃이 정상 작동하는지 확인합니다. AI는 모바일 렌더링도 크롤링합니다.</div>
+        <div class="signal-desc">질문형 헤딩·표·FAQ 블록이 있어 AI가 바로 발췌할 수 있는 구조인지 봅니다.</div>
         <div class="signal-pts">+10점</div>
       </div>
       <div class="signal-card">
         <div class="signal-icon">⚡</div>
-        <div class="signal-name">렌더링 가능성</div>
-        <div class="signal-desc">JavaScript 의존 없이 기본 콘텐츠가 HTML에 담겨 있는지, 서버사이드 렌더링 여부를 체크합니다.</div>
+        <div class="signal-name">본문 추출성</div>
+        <div class="signal-desc">JavaScript 의존 없이 본문 텍스트가 HTML에 담겨 있는지, 가시 텍스트 비중이 충분한지 체크합니다.</div>
+        <div class="signal-pts">+10점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">📍</div>
+        <div class="signal-name">엔티티·로컬 정합</div>
+        <div class="signal-desc">상호·주소·전화(NAP)가 본문과 스키마에 일관되게 있는지 확인합니다. 지역 질의에서 엔티티로 잡히는 근거입니다.</div>
+        <div class="signal-pts">+10점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">💳</div>
+        <div class="signal-name">비급여 진료비 안내</div>
+        <div class="signal-desc">주요 항목과 금액이 함께 게시돼 있는지 봅니다. 25.2만회 통제 실험에서 '가격 미기재'가 6개 모델 공통의 인용 탈락 요인으로 확인됐고, 국내에서는 의료법상 고지 의무 항목이기도 합니다.</div>
         <div class="signal-pts">+5점</div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-icon">🕐</div>
+        <div class="signal-name">콘텐츠 신선도</div>
+        <div class="signal-desc">게시일·수정일이 노출되는지 확인합니다. 오래된 타임스탬프는 통제 실험에서 확인된 인용 탈락 요인입니다.</div>
+        <div class="signal-pts">+10점</div>
       </div>
     </div>
   </div>
@@ -498,7 +510,7 @@
       <input type="url" id="urlInput" placeholder="https://우리가게.co.kr" autocomplete="off" required />
       <button class="btn p" type="submit" id="goBtn">진단받기</button>
     </form>
-    <p class="hint" style="text-align:center">즉시 결과 · 7가지 신호 · 근거 표시</p>
+    <p class="hint" style="text-align:center">즉시 결과 · 9가지 신호 · 근거 표시</p>
     <div style="text-align:center;margin-top:20px">
       <button type="button" id="advOpen" style="background:none;border:1px solid rgba(255,255,255,.18);color:var(--text-2,rgba(255,255,255,.6));font:inherit;font-size:.82rem;padding:9px 18px;border-radius:9px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--plum,#8052ff)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)';this.style.color='var(--text-2,rgba(255,255,255,.6))'">🔒 고급 분석 (관계자 전용)</button>
     </div>
@@ -530,7 +542,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-q">측정하는 데 비용이 드나요? <span class="faq-toggle">+</span></button>
-        <div class="faq-a">페이지 위생 점검(7개 신호 분석)은 무료입니다. 실측 인용 패널은 AI 검색 API에 같은 질의를 반복해 홈페이지 출처 인용 여부를 기록하며, 일반 소비자 앱과 결과가 다를 수 있습니다.</div>
+        <div class="faq-a">페이지 위생 점검(9개 신호 분석)은 무료입니다. 실측 인용 패널은 AI 검색 API에 같은 질의를 반복해 홈페이지 출처 인용 여부를 기록하며, 일반 소비자 앱과 결과가 다를 수 있습니다.</div>
       </div>
     </div>
   </div>

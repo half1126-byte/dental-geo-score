@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>痢≪젙 諛⑸쾿濡?(v0.1) 쨌 移섍낵 GEO ?몄슜 ?먯닔</title>
-<meta name="description" content="移섍낵 GEO ?몄슜 ?먯닔???곗젙 諛⑸쾿濡???7媛??좏샇??諛곗젏쨌痢≪젙 ?뺤쓽쨌洹쇨굅, 寃곗젙濡?鍮꾧껐?뺣줎 ?ы쁽??遺꾨━." />
+<title>측정 방법론 (v0.4) · 치과 GEO 인용 점수</title>
+<meta name="description" content="치과 GEO 인용 점수의 산정 방법론 — 9개 신호의 배점·측정 정의·근거, 결정론/비결정론 재현성 분리." />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="/style.css?v=4" />
 <style>
@@ -15,55 +15,102 @@
   p,li{color:var(--text-1)}
   .wrap{max-width:780px}
   ul{margin:8px 0 8px 18px}
+  /* 좁은 화면에서 배점표가 짓눌리지 않도록 표만 가로 스크롤시킨다(본문은 스크롤 안 함). */
+  .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:14px 0;max-width:100%}
+  .tscroll table{margin:0;min-width:620px}
+  /* 좁은 화면에서 긴 URL·영문 토큰이 셀을 밀어내지 않도록 */
+  td,th{word-break:break-word;overflow-wrap:anywhere}
+  /* code는 공백이 없어 375px에서 본문을 밀어낸다(methodologyVersion·measuredAt·…) */
+  code{overflow-wrap:anywhere;word-break:break-word}
 </style>
 </head>
 <body>
 <header class="hero" style="padding:40px 0 10px">
   <div class="wrap">
-    <div class="kicker">諛⑸쾿濡?쨌 v0.1 쨌 諛쒗슚 2026-06-22</div>
-    <h1 style="font-size:1.7rem">移섍낵 GEO ?몄슜 ?먯닔 <span class="g">?곗젙 諛⑸쾿濡?/span></h1>
-    <p class="sub">?먯닔??紐⑤뱺 ??ぉ? 痢≪젙 媛?ν븯怨??ы쁽 媛?ν븳 洹쇨굅濡쒕쭔 留뚮벊?덈떎. 異붿젙移섎? ?ъ떎濡??곗? ?딆뒿?덈떎.</p>
+    <div class="kicker">방법론 · v0.4 · 발효 2026-08-06</div>
+    <h1 style="font-size:1.7rem">치과 GEO 인용 점수 <span class="g">산정 방법론</span></h1>
+    <p class="sub">점수의 모든 항목은 측정 가능하고 재현 가능한 근거로만 만듭니다. 추정치를 사실로 쓰지 않습니다.</p>
   </div>
 </header>
 
 <main class="wrap">
-  <h2>??吏?쒖쓽 援щ텇 (以묒슂)</h2>
-  <p><b>??以鍮꾨룄 ?먯닔(0~100)</b> ?????섏씠吏媛 ?뺤쓽?섎뒗 ?먯닔. ?섏씠吏 援ъ“ ?좏샇留뚯쑝濡?怨꾩궛?섎뒗 <b>寃곗젙濡좎쟻</b> 媛믪엯?덈떎. 媛숈? URL쨌媛숈? 諛⑸쾿濡?踰꾩쟾쨌媛숈? ?뚮뜑 寃곌낵硫?<b>媛숈? ?먯닔</b>媛 ?섏샃?덈떎(?ы쁽 媛??.</p>
-  <p><b>???ㅼ륫 ?몄슜(愿痢?</b> ??ChatGPT쨌Perplexity???ㅼ젣濡?吏덈Ц???몄슜 ?щ?瑜?痢≪젙??媛? ?앹꽦??AI??鍮꾧껐?뺣줎?곸씠誘濡? ?대뒗 <b>?먯닔媛 ?꾨땲??痢≪젙 ?쒖젏??愿痢?+ ?좊ː援ш컙</b>?쇰줈 ?쒖떆?⑸땲??N??諛섎났쨌利앷굅 ?숇큺). <b>?좎? ?≪쓽 ?꾩슂議곌굔(異붿텧 ?꾩깮)??肉? ?〓? ?덉륫?섏? ?딆뒿?덈떎</b> ???먯궗 寃利?v0.1)?먯꽌 以鍮꾨룄 ?먯닔? ?ㅼ젣 ?몄슜? ?곴????놁뿀?듬땲??<a href="https://github.com/">寃利?由ы룷??/a> 李몄“). ?먯닔媛 ?믪븘?????④퀬, ??븘???????덉뒿?덈떎.</p>
+  <h2>두 지표의 구분 (중요)</h2>
+  <p><b>① 준비도 점수(0~100)</b> — 이 페이지가 정의하는 점수. 페이지 구조 신호만으로 계산하는 <b>결정론적</b> 값입니다. 같은 URL·같은 방법론 버전·같은 렌더 결과면 <b>같은 점수</b>가 나옵니다(재현 가능).</p>
+  <p><b>② 실측 인용(관측)</b> — ChatGPT·Perplexity에 실제로 질문해 인용 여부를 측정한 값. 생성형 AI는 비결정론적이므로, 이는 <b>점수가 아니라 측정 시점의 관측 + 신뢰구간</b>으로 제시합니다(N회 반복·증거 동봉). <b>①은 ②의 필요조건(추출 위생)일 뿐, ②를 예측하지 않습니다</b> — 자사 검증(v0.1)에서 준비도 점수와 실제 인용은 상관이 없었습니다(<a href="https://github.com/">검증 리포트</a> 참조). 점수가 높아도 안 뜨고, 낮아도 뜰 수 있습니다.</p>
 
-  <h2>以鍮꾨룄 ?먯닔 ??7媛??좏샇? 諛곗젏</h2>
+  <h2>준비도 점수 — 9개 신호와 배점</h2>
+  <p>두 축으로 나눠 봅니다. <b>축A 기술 준비도(50)</b>는 "AI 크롤러가 읽을 수 있는가", <b>축B 콘텐츠 인용성(50)</b>은 "인용할 가치가 있는가"입니다.</p>
+  <div class="tscroll">
   <table>
-    <thead><tr><th>?좏샇</th><th>諛곗젏</th><th>痢≪젙 ?뺤쓽</th><th>洹쇨굅</th></tr></thead>
+    <thead><tr><th>신호</th><th>축</th><th>배점</th><th>측정 정의</th><th>근거</th></tr></thead>
     <tbody>
-      <tr><td>AI ?щ·???덉슜</td><td>15</td><td>robots.txt媛 OAI-SearchBot쨌PerplexityBot쨌Google-Extended쨌CCBot쨌ClaudeBot瑜?李⑤떒?섏? ?딆쓬(李⑤떒 ???몄슜 遺덇?)</td><td>OpenAI/Perplexity ?щ·??臾몄꽌, robots.txt ?쒖?</td></tr>
-      <tr><td>援ъ“???곗씠??JSON-LD)</td><td>20</td><td>Dentist/LocalBusiness(10) + FAQPage(5) + Person/Org/Article(5). ?먯떆 HTML??<code>script[type=application/ld+json]</code>?먯꽌 吏곸젒 ?뚯떛(@graph쨌諛곗뿴 泥섎━)</td><td>schema.org, RAG 寃???뺥솗???곌뎄(援ъ“???곗씠??+?④낵)</td></tr>
-      <tr><td>E-E-A-T(?묒꽦?먃룹옄寃?</td><td>15</td><td>?섎즺吏??먭꺽 ?좏샇(?꾨Ц?샕룸㈃?댟룹튂?섑븰諛뺤궗 ?? + sameAs(SNS/釉붾줈洹?</td><td>Google 寃???덉쭏 媛?대뱶(YMYL쨌E-E-A-T)</td></tr>
-      <tr><td>?좎꽑??/td><td>10</td><td>寃뚯떆???섏젙??datePublished쨌article:modified_time쨌time[datetime])</td><td>?앹꽦??寃?됱쓽 理쒖떊??媛以?/td></tr>
-      <tr><td>Answer-first 援ъ“</td><td>20</td><td>H1/H2 ?꾧퀎 + 吏덈Ц??H2 + ??+ FAQ/Q&A 釉붾줉</td><td>GEO ?곌뎄(Aggarwal et al., KDD'24): answer-first쨌?몄슜쨌?듦퀎媛 媛?쒖꽦??(?⑹꽦 踰ㅼ튂 ?쒖젙 ?몃? ?곌뎄移???蹂?移섍낵???몄슜 利앷?瑜?蹂댁옣?섏? ?딆쓬)</td></tr>
-      <tr><td>異붿텧??S/N)</td><td>10</td><td>媛???띿뒪??/ HTML 鍮꾩쑉, ?ㅽ겕由쏀듃 怨쇰떎 ?щ?</td><td>RAG 泥?궧? 源⑤걮???쒕㎤??HTML?먯꽌 ?깅뒫??/td></tr>
-      <tr><td>?뷀떚?걔룸줈而??뺥빀</td><td>10</td><td>NAP(?곹샇쨌二쇱냼쨌?꾪솕)??蹂몃Ц/?ㅽ궎留?議댁옱</td><td>濡쒖뺄 ?뷀떚???쇨???寃?됀텮I ?좊ː)</td></tr>
+      <tr><td>AI 크롤러 허용</td><td>A</td><td>15</td><td>robots.txt를 RFC 9309 규칙(와일드카드·최장일치)으로 해석해, <b>인용 경로 봇</b>(OAI-SearchBot·PerplexityBot·ClaudeBot·Claude-SearchBot·Googlebot·Applebot 등)이 막혔는지 봅니다. 학습 전용 봇(GPTBot·CCBot·Google-Extended)만 막은 경우는 감점하지 않습니다</td><td>OpenAI·Anthropic·Google 공식 크롤러 문서, RFC 9309</td></tr>
+      <tr><td>구조화 데이터(JSON-LD)</td><td>A</td><td>10</td><td>Dentist/LocalBusiness(7) + Person·Organization·Article(3) + FAQPage(2) + 권위 sameAs(2). 원시 HTML의 <code>script[type=application/ld+json]</code>에서 직접 파싱(@graph·배열 처리)</td><td>schema.org. 단 Google은 <b>"구조화 데이터는 생성형 AI 검색에 필수가 아니다"</b>라고 명시하고 있어 배점을 낮게 둡니다</td></tr>
+      <tr><td>추출성(S/N)</td><td>A</td><td>10</td><td>가시 텍스트 / HTML 비율, 스크립트 과다 여부</td><td>RAG 청킹은 깨끗한 시맨틱 HTML에서 성능↑. SAGEO Arena(<a href="https://arxiv.org/abs/2602.12187" target="_blank" rel="noopener">arXiv:2602.12187</a>): 구조 정보가 검색 Hit Rate +22%</td></tr>
+      <tr><td>엔티티·로컬 정합</td><td>A</td><td>10</td><td>NAP(상호·주소·전화)의 본문/스키마 존재</td><td>로컬 엔티티 일관성(검색·AI 신뢰)</td></tr>
+      <tr><td><b>비급여 진료비 안내</b></td><td>A</td><td><b>5</b></td><td>진료 항목과 금액이 같은 표·같은 줄에 함께 게시돼 있는지. 표 또는 항목 3건 이상이면 만점, 항목 1~2건이나 고지 문구만 있으면 부분 점수</td><td>What Gets Cited(<a href="https://arxiv.org/abs/2605.25517" target="_blank" rel="noopener">arXiv:2605.25517</a>) 25.2만회 통제 실험에서 '가격 미기재'가 6개 모델 공통 인용 탈락 요인. 국내에서는 의료법상 고지 의무 항목이기도 합니다</td></tr>
+      <tr><td>E-E-A-T(작성자·자격)</td><td>B</td><td>15</td><td>의료진 자격 신호(전문의·면허·치의학박사 등) + sameAs(SNS/블로그)</td><td>Google 검색 품질 가이드(YMYL·E-E-A-T)</td></tr>
+      <tr><td><b>인용 근거(출처·인용구·통계)</b></td><td>B</td><td><b>15</b></td><td>본문의 외부 출처 표기(7) + 통계 수치(4) + 전문가 인용구(4). 후기성 인용 블록은 제외</td><td>Aggarwal et al., <i>GEO</i>, KDD 2024 (<a href="https://arxiv.org/abs/2311.09735" target="_blank" rel="noopener">arXiv:2311.09735</a>)가 쿼리 1만 건으로 실측한 상위 3개 기법. <b>아래 '수치의 해석' 참고</b></td></tr>
+      <tr><td>Answer-first 구조</td><td>B</td><td>10</td><td>H1/H2 위계 + 질문형 H2 + 표 + FAQ/Q&A 블록 (구조 신호 전용)</td><td>포맷팅 단독 효과의 근거는 약합니다 — Citation Absorption(<a href="https://arxiv.org/abs/2604.25707" target="_blank" rel="noopener">arXiv:2604.25707</a>)은 Q&A 포맷이 오히려 −5.74%였다고 보고합니다</td></tr>
+      <tr><td>신선도</td><td>B</td><td>10</td><td>게시일/수정일(datePublished·article:modified_time·time[datetime])</td><td>같은 통제 실험에서 <b>'오래된 타임스탬프'가 6개 모델 공통 인용 탈락 요인</b>으로 확인돼, v0.4에서 자사 휴리스틱이 아닌 실측 근거 항목으로 재분류했습니다</td></tr>
     </tbody>
   </table>
-  <p class="small muted">諛곗젏? GEO ?곌뎄???④낵?ш린 ?쒖쐞? ?섎즺(YMYL) ?꾨찓??媛以묒쓣 諛섏쁺??v0.1 珥덉븞?낅땲?? 媛以묒튂 蹂寃쎌? 踰꾩쟾 踰뷀봽 + 蹂寃??대젰?쇰줈留??대쨪吏묐땲??留덉????꾩쓽 ?섏젙 湲덉?).</p>
+  </div>
+  <p class="small muted">합계 100점(축A 50 + 축B 50). 가중치 변경은 버전 범프 + 변경 이력으로만 이뤄집니다(마케팅 임의 수정 금지).</p>
 
-  <h2>?ы쁽??/h2>
+  <h2>수치의 해석 — "30~40%"가 뜻하지 않는 것</h2>
+  <p>KDD 2024의 상위 3기법 수치는 업계에서 자주 인용되지만, 그대로 성과 약속으로 옮기면 틀립니다. 정확히는 이렇습니다.</p>
   <ul>
-    <li>以鍮꾨룄 ?먯닔???숈씪 ?낅젰 + ?숈씪 諛⑸쾿濡?踰꾩쟾 + ?숈씪 ?뚮뜑 寃곌낵?먯꽌 寃곗젙濡좎쟻?쇰줈 ?숈씪?⑸땲??</li>
-    <li>紐⑤뱺 寃곌낵??<code>methodologyVersion쨌measuredAt쨌renderMode쨌domain</code>???숇큺?⑸땲??</li>
-    <li>JS ?뚮뜑(SPA) ?ъ씠?몃뒗 ?쇰? ?좏샇瑜??쎌? 紐삵븯誘濡?"痢≪젙 ?쒗븳"?쇰줈 ?뺤쭅?섍쾶 ?쒓린?⑸땲??0???꾩옣 湲덉?).</li>
+    <li><b>이미 후보에 들어온 뒤의 재배분입니다.</b> 해당 실험은 5개 문서가 컨텍스트에 올라온 상태에서 그 안의 인용 지분이 어떻게 나뉘는지를 측정했습니다. 검색 후보에 못 들어간 페이지에는 적용되지 않습니다.</li>
+    <li><b>클릭·내원·매출은 측정되지 않았습니다.</b> 측정된 것은 답변 텍스트 안의 노출 지분입니다.</li>
+    <li><b>순위에 따라 부호가 뒤집힙니다.</b> 출처 명시는 검색 5위권에서 +115.1%였지만 이미 1위인 사이트에서는 −30.3%였습니다. 같은 작업이 위치에 따라 반대로 작동합니다.</li>
+    <li><b>안정적인 인과효과는 아직 확립되지 않았습니다.</b> GEO 연구 45편을 검토한 서베이(<a href="https://arxiv.org/abs/2607.14035" target="_blank" rel="noopener">arXiv:2607.14035</a>)는 <i>"안정적이고 종단적이며 플랫폼을 가로지르는 인과효과를 보인 기법은 없다"</i>고 결론냅니다.</li>
+    <li><b>본문만 손대면 역효과일 수 있습니다.</b> SAGEO Arena는 본문만 최적화했을 때 검색 단계 Hit Rate가 −9%였다고 보고합니다. 축A(읽히는 조건)가 먼저인 이유입니다.</li>
+    <li><b>규모에 따라 결과가 크게 다릅니다.</b> 브랜드 규모별 측정(<a href="https://arxiv.org/abs/2606.20065" target="_blank" rel="noopener">arXiv:2606.20065</a>)에서 대형 브랜드 가시성은 73%였지만 소규모·니치는 11%였습니다. 개별 의원에 대형 브랜드 기준의 기대치를 적용하면 안 됩니다.</li>
+  </ul>
+  <p class="small muted">한국어 대상 GEO 연구는 위 서베이 45편 안에 한 건도 없습니다. 국내 적용의 외적 타당성은 검증되지 않았으며, 자체 실측 축적으로만 확인할 수 있습니다.</p>
+
+  <h2>등급 산정</h2>
+  <p>75점 이상 우수 / 50점 이상 보통 / 30점 이상 개선 여지 큼 / 그 미만 초기 단계.</p>
+  <p>단, 아래 셋 중 하나에 해당하면 총점과 무관하게 <b>'우수' 등급을 보류하고 '보통'까지만 부여</b>합니다. 점수 자체는 그대로 두고 등급 라벨만 조정합니다.</p>
+  <ul>
+    <li><b>인용 경로 크롤러 차단</b> — 답변에 출처로 실리는 봇이 막힌 경우입니다. 인용 후보에서 아예 제외되므로 '우수'를 붙이는 것이 정확하지 않습니다. 학습 전용 봇(GPTBot·CCBot 등)만 막은 것은 여기에 해당하지 않습니다.</li>
+    <li><b>인용 근거 0점</b> — 출처·인용구·통계가 하나도 없다는 뜻입니다. 위 연구가 실측한 상위 3개 기법이 전부 비어 있는 페이지를 '우수'라고 부르면 이 방법론과 모순됩니다.</li>
+    <li><b>측정 제한(JS 렌더)</b> — 본문을 정적으로 읽지 못한 결과는 하한선입니다. 읽지 못한 페이지에 '우수'를 붙이지 않습니다.</li>
+  </ul>
+  <p class="small muted">이 게이트는 v0.3에서 도입하고 v0.4에서 크롤러 판정을 정정했습니다(학습 전용 봇만 막은 사이트는 더 이상 게이트에 걸리지 않습니다). 도입 전 기준으로 '우수'였던 페이지 상당수가 '보통'으로 바뀝니다 — 대부분 인용 근거가 0점이기 때문입니다. 등급을 후하게 주는 것보다 무엇이 비어 있는지 정확히 알려드리는 쪽을 택했습니다.</p>
+
+  <h2>재현성</h2>
+  <ul>
+    <li>준비도 점수는 동일 입력 + 동일 방법론 버전 + 동일 렌더 결과에서 결정론적으로 동일합니다.</li>
+    <li>모든 결과에 <code>methodologyVersion·measuredAt·renderMode·domain</code>을 동봉합니다.</li>
+    <li>JS 렌더(SPA) 사이트는 일부 신호를 읽지 못하므로 "측정 제한"으로 정직하게 표기합니다(0점 위장 금지).</li>
   </ul>
 
-  <h2>?쒓퀎 (?뺤쭅 怨좎?)</h2>
+  <h2>한계 (정직 고지)</h2>
   <ul>
-    <li>以鍮꾨룄 ?먯닔???몄슜??<b>?꾩슂議곌굔(異붿텧 ?꾩깮)</b>?대ŉ <b>?몄텧???덉륫?섏? ?딆뒿?덈떎</b> ???먯궗 寃利앹뿉???먯닔? ?ㅼ젣 ?몄슜? 臾댁긽愿?댁뿀?듬땲?? ?ㅼ젣 ?몄슜 ?щ????≪떎痢≪쑝濡쒕쭔 ?뺤씤?⑸땲??</li>
-    <li>?ㅼ륫 ?몄슜? API 湲곗? 愿痢≪쑝濡? ?뚮퉬????chatgpt.com ????寃곌낵? ?ㅻ? ???덉뒿?덈떎.</li>
-    <li>?ㅼ씠踰?AI 釉뚮━?묒? 怨듦컻 API媛 ?놁뼱 ?먮룞 痢≪젙 ??곸씠 ?꾨땲硫? 蹂꾨룄 以鍮꾨룄 泥댄겕由ъ뒪?몃줈 ?ㅻ９?덈떎.</li>
+    <li>준비도 점수는 인용의 <b>필요조건(추출 위생)</b>이며 <b>노출을 예측하지 않습니다</b> — 자사 검증에서 점수와 실제 인용은 무상관이었습니다. 실제 인용 여부는 ②실측으로만 확인합니다.</li>
+    <li>실측 인용은 API 기준 관측으로, 소비자 앱(chatgpt.com 등)의 결과와 다를 수 있습니다.</li>
+    <li>네이버 AI 브리핑은 공개 API가 없어 자동 측정 대상이 아니며, 별도 준비도 체크리스트로 다룹니다.</li>
   </ul>
 
-  <h2>蹂寃??대젰</h2>
-  <ul><li><b>v0.1</b> (2026-06-22) ??理쒖큹 怨듦컻. 7媛??좏샇쨌諛곗젏 ?뺤쓽.</li></ul>
+  <h2>변경 이력</h2>
+  <ul>
+    <li><b>v0.4</b> (2026-08-06) — <b>후속 연구를 반영해 배점을 재조정하고 크롤러 판정을 다시 만들었습니다.</b>
+      <ul>
+        <li><b>비급여 진료비 안내(5점) 신설</b> · <b>신선도 5→10</b> — 25.2만회 통제 실험(<a href="https://arxiv.org/abs/2605.25517" target="_blank" rel="noopener">arXiv:2605.25517</a>)에서 '가격 미기재'와 '오래된 타임스탬프'가 6개 모델 공통의 인용 탈락 요인으로 확인됐습니다.</li>
+        <li><b>Answer-first 15→10</b> — 포맷팅 단독 효과의 근거가 약하다는 후속 연구(Q&A 포맷 −5.74%, 서베이 45편)를 반영했습니다.</li>
+        <li><b>구조화 데이터 15→10</b> — Google이 "구조화 데이터는 생성형 AI 검색에 필수가 아니다"라고 명시했고, FAQ 리치리절트는 2026년 5월 노출이 중단됐습니다. 그에 따라 FAQPage가 두 항목에서 중복 계상되던 것을 바로잡고 배점을 낮췄습니다.</li>
+        <li><b>robots.txt 판정 재작성</b> — RFC 9309(와일드카드·최장일치·정확 토큰 일치)를 구현하고, 봇을 인용 경로 / 사용자 요청 / 학습 / 폐기 4종으로 분류했습니다. 이전에는 무관한 <code>User-agent: bot</code> 그룹이 AI 봇 6종 차단으로 오판됐고, <code>Disallow: /*</code>는 차단으로 잡히지 않았으며, 학습 전용 봇만 막은 사이트가 인용 경로를 막은 사이트와 동일하게 감점됐습니다.</li>
+        <li>권위 sameAs 신호가 채점기에 전달되지 않던 배선 오류를 수정했습니다(해당 배점이 실제로 지급된 적이 없었습니다).</li>
+      </ul>
+    </li>
+    <li><b>v0.3</b> (2026-08-06) — <b>'인용 근거' 항목을 독립 신호로 승격(15점).</b> v0.2까지 이 신호는 Answer-first 항목 안에 합계 6점으로 묻혀 있어 리포트에 보이지 않았습니다. Aggarwal et al.(KDD 2024)이 쿼리 1만 건으로 실측한 상위 3개 기법이 <b>출처 명시·전문가 인용구·통계 수치</b>였고, 그중 출처 명시가 단일 최대 효과(검색 5위권 기준)였기에 별도 항목으로 분리하고 배점을 올렸습니다. 재원은 구조화 데이터 20→15, 신선도 10→5, Answer-first 20→15에서 조달했습니다 — 세 항목 모두 해당 논문이 직접 실측한 대상이 아니기 때문입니다. 함께 등급 게이트(크롤러 차단 시 '우수' 불가)를 도입했습니다.</li>
+    <li><b>v0.2</b> — 두 진단 축(기술 준비도 / 콘텐츠 인용성) 분리.</li>
+    <li><b>v0.1</b> (2026-06-22) — 최초 공개. 7개 신호·배점 정의.</li>
+  </ul>
 </main>
 
-<footer><div class="wrap"><a href="/">???먯닔 痢≪젙?쇰줈</a> 쨌 硫붾뵒?ㅻ찓??移섍낵 GEO</div></footer>
+<footer><div class="wrap"><a href="/">← 점수 측정으로</a> · 메디앤메디 치과 GEO</div></footer>
 </body>
 </html>

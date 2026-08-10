@@ -259,7 +259,7 @@ function render(d) {
     if (!isOperator) return;
     hide('leadForm');
     [_fc, _rc].forEach(el => { if (el) el.classList.remove('hidden'); });
-    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 실측 중 (ChatGPT·Perplexity·Claude)...</p>';
+    $('citationPanel').innerHTML = '<p class="muted small" style="padding:8px 0">AI 검색 엔진 실측 중...</p>';
     show('citationPanel');
     autoFetchCitation();
   });
@@ -318,6 +318,10 @@ function renderRadar(breakdown) {
 
 // Opportunity framing — never grades/낙제, attribute gaps to page structure, not the dentist.
 function verdictLine(d) {
+  // 등급 하드 게이트(v0.4)가 걸린 경우 점수만 보고 "잘 갖췄다"고 말하지 않는다.
+  // 이 한 줄이 없으면 87점·크롤 차단 사이트에서 등급은 '보통'인데 바로 아래 문장이
+  // "인용하기 좋은 구조"라고 반대로 말한다 — 게이트가 막으려던 그 주장이 그대로 남는다.
+  if (d.bandCapped && d.bandNote) return d.bandNote;
   if (d.score >= 75) return 'AI가 인용하기 좋은 구조를 잘 갖추고 있습니다.';
   if (d.score >= 50) return '기본기는 갖췄고, 몇 가지만 보완하면 인용 가능성이 더 올라갑니다.';
   if (d.score >= 30) return '개선 여지가 큽니다 — 아래 항목이 채워지면 AI가 찾기 쉬워집니다.';
@@ -412,10 +416,13 @@ function renderComparePanel(compData) {
   const cDomain = cD.domain || '비교 사이트';
 
   const compMap = Object.fromEntries(cBreakdown.map((c) => [c.label, c]));
-  const gaps = [], same = [], uBetter = [];
+  const gaps = [], same = [], uBetter = [], limited = [];
   for (const u of uBreakdown) {
     const c = compMap[u.label];
     if (!c) continue;
+    // 측정 제한(JS 렌더로 못 읽은 신호)은 '없음'이 아니다 → ✗ 격차로 단정하지 않는다.
+    // lib/compare.js(운영자 화면)와 같은 규칙을 공개 비교 카드에도 적용한다.
+    if (u.measurement === 'limited') { limited.push({ label: u.label, cOk: c.status === 'ok' }); continue; }
     const uOk = u.status === 'ok';
     const cOk = c.status === 'ok';
     if (!uOk && cOk) gaps.push({ label: u.label, note: c.note });
@@ -452,7 +459,8 @@ function renderComparePanel(compData) {
     ${gaps.length ? secHead(`⬆️ 비교 대상에 있고 우리에 없는 항목 (${gaps.length}개)`) + `<div class="cmp-note">구조 차이는 개선 가설이며 AI 인용·추천의 원인으로 단정할 수 없습니다</div>` + gaps.map((g) => row(g.label, false, true)).join('') : ''}
     ${same.length ? secHead(`✅ 양쪽 모두 통과 (${same.length}개)`) + same.map((g) => row(g.label, true, true)).join('') : ''}
     ${uBetter.length ? secHead(`📌 우리만 통과 (${uBetter.length}개)`) + uBetter.map((g) => row(g.label, true, false)).join('') : ''}
-    ${!gaps.length && !same.length && !uBetter.length ? '<p class="muted small" style="margin-top:8px">비교 가능한 신호 데이터가 없습니다.</p>' : ''}
+    ${limited.length ? secHead(`⏸ 측정 제한 — JS 렌더로 확인 불가 (${limited.length}개)`) + `<div class="cmp-note">정적 분석으로 읽지 못한 항목입니다. 없다는 뜻이 아니며, 정밀 측정은 헤드리스 렌더가 필요합니다</div>` + limited.map((g) => `<div class="cmp-row"><div class="cmp-label">${esc(g.label)}</div><div class="cmp-val">—</div><div class="cmp-val ${g.cOk ? 'ok' : 'fail'}">${g.cOk ? '✓' : '✗'}</div></div>`).join('') : ''}
+    ${!gaps.length && !same.length && !uBetter.length && !limited.length ? '<p class="muted small" style="margin-top:8px">비교 가능한 신호 데이터가 없습니다.</p>' : ''}
     <p class="small muted" style="margin-top:12px;font-size:.73rem">기술 점수 비교 — AI 인용·추천과 직접 인과관계 없음 (페이지 위생 지표)</p>
   </div>`;
 }

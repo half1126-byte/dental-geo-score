@@ -13,7 +13,9 @@
 // a { byRegion: { region: panel } } response. `regions` overrides `region`.
 import { createHash } from 'node:crypto';
 import { sendAlert } from '../lib/alert.js';
+import { auditUrl } from '../lib/audit.js';
 import { runCitationPanel } from '../lib/citation.js';
+import { diagnose } from '../lib/diagnose.js';
 import { AUTO_ENGINES, allQueryVariants } from '../lib/engines.js';
 import { checkNaverLocal, naverApiAvailable } from '../lib/naver.js';
 import { registrableDomain, isKnownPlatformDomain } from '../lib/normalize.js';
@@ -145,13 +147,21 @@ export default async function handler(req, res) {
       const cached = noCache ? null : await store.cacheGet(cacheKey);
       if (cached) {
         const byRegion = buildByRegionView(cached.panelsByRegion, effectiveRegions, view);
-        res.status(200).json({ clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion, measuredAt: cached.measuredAt, costNote, view: isOperator ? 'private' : 'public', cached: true });
+        res.status(200).json({
+          clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion,
+          measuredAt: cached.measuredAt, costNote, view: isOperator ? 'private' : 'public', cached: true,
+          ...(cached.structure
+            ? { diagnosisByRegion: buildDiagnosisByRegion(cached.structure, cached.panelsByRegion, effectiveRegions) }
+            : {}),
+        });
         return;
       }
 
       // Per-IP + daily global cap — checked after cache miss, before any paid call
       if (await enforceRateCaps(ipHash, domain, store, res)) return;
 
+      // 구조는 지역과 무관하게 같은 사이트다 — 한 번만 읽어 모든 지역 진단에 재사용한다.
+      const structurePromiseMulti = structureSummary(url);
       const settlements = await Promise.allSettled(
         effectiveRegions.map((r) => runCitationPanel({
           clinicDomain: domain,
@@ -180,7 +190,8 @@ export default async function handler(req, res) {
         panelsByRegion[r] = s.status === 'fulfilled' ? s.value : { error: String(s.reason?.message || 'unknown') };
       }
 
-      await store.cacheSet(cacheKey, { type: 'multi', panelsByRegion, measuredAt }, DAY);
+      const structureMulti = await structurePromiseMulti;
+      await store.cacheSet(cacheKey, { type: 'multi', panelsByRegion, measuredAt, ...(structureMulti ? { structure: structureMulti } : {}) }, DAY);
 
       // Persist citation history per region (non-blocking, same shape as single-region path)
       for (const r of effectiveRegions) {
@@ -200,7 +211,13 @@ export default async function handler(req, res) {
       }
 
       const byRegion = buildByRegionView(panelsByRegion, effectiveRegions, view);
-      res.status(200).json({ clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion, measuredAt, costNote, view: isOperator ? 'private' : 'public' });
+      res.status(200).json({
+        clinicDomain: domain, regions: effectiveRegions, procedure: procedure || '', byRegion,
+        measuredAt, costNote, view: isOperator ? 'private' : 'public',
+        ...(structureMulti
+          ? { diagnosisByRegion: buildDiagnosisByRegion(structureMulti, panelsByRegion, effectiveRegions) }
+          : {}),
+      });
       return;
     }
 
@@ -209,12 +226,18 @@ export default async function handler(req, res) {
     const cacheKey = `${domain}|${(effectiveRegions[0] || '').toLowerCase()}|${(procedure || '').trim().toLowerCase()}|${queryFP}`;
     const cached = noCache ? null : await store.cacheGet(cacheKey);
     if (cached) {
-      res.status(200).json({ ...view(cached), costNote, cached: true });
+      // 구조는 캐시와 함께 저장해 둔다(없으면 구버전 캐시 — 진단만 생략하고 실측은 그대로 낸다).
+      res.status(200).json({
+        ...view(cached), costNote, cached: true,
+        ...(cached.structure ? { diagnosis: buildDiagnosis(cached.structure, cached) } : {}),
+      });
       return;
     }
 
     if (await enforceRateCaps(ipHash, domain, store, res)) return;
 
+    // 구조 진단은 실측과 동시에 돌린다. 유료 호출을 기다리는 동안 어차피 놀고 있는 시간이다.
+    const structurePromise = structureSummary(url);
     const result = await runCitationPanel({
       clinicDomain: domain,
       region: effectiveRegions[0] || '',
@@ -244,7 +267,12 @@ export default async function handler(req, res) {
       }).catch(() => null);
     }
 
-    const enriched = naverResult ? { ...result, naverLocal: naverResult } : result;
+    const structure = await structurePromise;
+    const enriched = {
+      ...result,
+      ...(naverResult ? { naverLocal: naverResult } : {}),
+      ...(structure ? { structure } : {}),
+    };
     await store.cacheSet(cacheKey, enriched, DAY);
 
     // Persist citation history (non-blocking — never fail the response on KV errors)
@@ -261,10 +289,47 @@ export default async function handler(req, res) {
     };
     store.histAppend(`c:${domain}`, histRecord).catch(() => {});
 
-    res.status(200).json({ ...view(enriched), costNote });
+    res.status(200).json({
+      ...view(enriched), costNote,
+      ...(structure ? { diagnosis: buildDiagnosis(structure, result) } : {}),
+    });
   } catch (e) {
     res.status(500).json({ error: 'internal', message: String(e?.message || e).slice(0, 200) });
   }
+}
+
+// 구조 점수를 가볍게 확보한다. 유료 API가 아니라 페이지 1회 fetch라 실측 비용에 영향이 없다.
+// 실패해도 절대 실측 응답을 깨뜨리지 않는다 — 진단은 부가 정보이고 실측이 본체다.
+async function structureSummary(url) {
+  try {
+    const r = await auditUrl(url, { timeoutMs: 8000 });
+    return {
+      score: r.score, band: r.band, breakdown: r.breakdown,
+      needsHeadless: r.needsHeadless, axes: r.axes,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// 구조 + 실측을 합쳐 "왜 이런 결과인지"를 만든다. 구조를 못 읽었으면 실측만으로 진단한다.
+// diagnose()는 경쟁사 도메인을 담지 않으므로 공개 뷰에서도 그대로 노출 가능하다.
+function buildDiagnosis(structure, panel) {
+  try {
+    return diagnose({ scored: structure || {}, panel: panel && !panel.error ? panel : null });
+  } catch {
+    return null;
+  }
+}
+
+// 지역별 진단. 구조는 공통이고 실측만 지역마다 다르므로, 같은 구조에 각 지역 패널을 물린다.
+export function buildDiagnosisByRegion(structure, panelsByRegion, regions) {
+  const out = {};
+  for (const r of regions) {
+    const p = panelsByRegion?.[r];
+    out[r] = p && !p.error ? buildDiagnosis(structure, p) : null;
+  }
+  return out;
 }
 
 // Build byRegion response: apply view() to each raw panel; pass through errors unchanged.

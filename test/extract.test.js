@@ -167,7 +167,7 @@ test('procedureGuess detects + ranks by frequency (RICH → 임플란트 top)', 
   assert.ok(p[0].hits >= 2);
 });
 
-// GEO content citability signals (KDD 2024: statistics +33%, quotations +41%, citations +27%)
+// GEO content citability signals — KDD 2024(arXiv:2311.09735) 실측 상위 3개 기법. 기법별 세부 %는 논문에 없음(인용 금지).
 
 test('hasStatistics: ≥2 numeric measurements in p/li text → true', () => {
   const html = `<html><body>${PAD}
@@ -257,4 +257,110 @@ test('lenient JSON-LD: genuinely broken JSON (unclosed brace) still silently ski
   </script></head><body>${PAD}</body></html>`;
   const j = extractSignals(html).jsonld;
   assert.equal(j.hasDental, false, 'truly broken JSON must not crash — silent skip');
+});
+
+// ── v0.4 회귀: 한국 주소·지역·질문형 H2·인용 근거 ──────────────────────────────
+// 전부 실제 거래처 리포트에 잘못 나갔던 사례에서 뽑았다. 되돌아가면 즉시 실패해야 한다.
+const V4_PAD = '치과 진료 안내 본문입니다. '.repeat(60);
+const v4page = (inner) => `<html><body><div>${V4_PAD}</div>${inner}</body></html>`;
+
+test('v0.4 주소: 표준 3토큰·광역시·특별자치 주소를 모두 인식한다', () => {
+  for (const a of [
+    '서울 강남구 테헤란로 123',        // v0.3까지 미탐 — "주소 없음"이 잘못 나갔다
+    '서울특별시 강남구 테헤란로 123',
+    '부산광역시 해운대구 센텀중앙로 79',
+    '경기 성남시 분당구 판교역로 235',
+    '인천광역시 연수구 송도과학로 80',
+    '제주특별자치도 제주시 첨단로 242',
+    '세종특별자치시 한누리대로 2130',
+  ]) assert.equal(extractSignals(v4page(`<p>${a}</p>`)).address, true, a);
+});
+
+test('v0.4 주소: 진료시간 문자열을 주소로 오탐하지 않는다', () => {
+  assert.equal(extractSignals(v4page('<p>진료시간 평일 10시-19시</p>')).address, false);
+});
+
+test('v0.4 지역: 유령 지역명(부산광역·서울특별)을 만들지 않는다', () => {
+  const loc = (a) => extractSignals(v4page(`<p>${a}</p>`)).locationGuess || {};
+  assert.equal(loc('부산광역시 해운대구 센텀중앙로 79').sido, '부산');
+  assert.equal(loc('서울특별시 강남구 테헤란로 123').sido, '서울');
+  assert.equal(loc('제주특별자치도 제주시 첨단로 242').sido, '제주');
+});
+
+test('v0.4 지역: 시도와 이름이 겹치는 실재 시군구(경기 광주시)를 버리지 않는다', () => {
+  const g = extractSignals(v4page('<p>경기 광주시 경안로 20</p>')).locationGuess;
+  assert.equal(g.sido, '경기');
+  assert.equal(g.district, '광주시', '광주시가 버려지면 유료 실측 쿼리가 도 단위로 나간다');
+});
+
+test('v0.4 지역: 2단계 행정구역은 환자가 검색하는 마지막 구를 쓴다', () => {
+  assert.equal(extractSignals(v4page('<p>경기 성남시 분당구 판교역로 235</p>')).locationGuess.district, '분당구');
+});
+
+test('v0.4 질문형 H2: 의문 종결어미를 검출한다', () => {
+  const qh = (h) => extractSignals(v4page(`<h2>${h}</h2>`)).questionH2;
+  assert.equal(qh('사랑니를 꼭 빼야 하는가'), 1);
+  assert.equal(qh('교정 치료가 필요한가'), 1);
+  assert.equal(qh('임플란트 얼마나 걸리나요?'), 1);
+  assert.equal(qh('AI는 어디서 정보를 얻나'), 1);
+});
+
+test('v0.4 질문형 H2: 평서형 명사 제목을 질문으로 오탐하지 않는다', () => {
+  const qh = (h) => extractSignals(v4page(`<h2>${h}</h2>`)).questionH2;
+  // '차이·주의·준비·기간'이 정규식에 있어 성실한 거래처가 반대로 손해를 봤다
+  assert.equal(qh('임플란트 후 주의사항'), 0);
+  assert.equal(qh('진료 기간 안내'), 0);
+  assert.equal(qh('보험 적용 차이 정리'), 0);
+  assert.equal(qh('정보 왜곡을 막습니다'), 0);
+  assert.equal(qh('대표원장 김미나'), 0, '의료진 이름이 질문형으로 잡히면 안 된다');
+});
+
+test('v0.4 인용 근거: 환자 후기 위젯을 인용구·출처로 세지 않는다', () => {
+  const s = extractSignals(v4page('<blockquote><p>친절하고 좋았어요 정말 만족합니다</p><cite>이OO 님</cite></blockquote>'));
+  assert.equal(s.hasQuotations, false, '치료경험담은 의료법 56조 리스크 — 가점 대상이 아니다');
+  assert.equal(s.hasCitedSources, false);
+});
+
+test('v0.4 인용 근거: 직선 따옴표 인용구를 인식한다(한글 키보드 기본)', () => {
+  const s = extractSignals(v4page('<p>원장은 "골유착이 완료되기 전에는 강한 힘을 피해야 합니다"라고 설명한다</p>'));
+  assert.equal(s.hasQuotations, true);
+});
+
+test('v0.4 통계: 출구 번호·가격을 통계로 세지 않는다', () => {
+  assert.equal(extractSignals(v4page('<p>지하철 2호선 강남역 1번 출구</p>')).statCount, 0);
+  assert.equal(extractSignals(v4page('<p>임플란트 1개 1,200,000원</p>')).statCount, 0);
+  assert.ok(extractSignals(v4page('<p>재발률은 3%이며 누적 증례는 120건입니다</p>')).statCount > 0);
+});
+
+// ── v0.4: 비급여 진료비 판정 ──────────────────────────────────────────────────
+// v0.3의 /임플란트.*비용/ 은 평탄화 본문 전체에 .* 를 걸어 사실상 상시 통과였다.
+// 진료 항목과 금액이 '같은 블록에서' 나오는지로 바꿨다.
+test('v0.4 가격: 표·다항목은 충분(2), 단일 항목·고지문구는 일부(1)', () => {
+  const P = (i) => extractSignals(`<html><body><div>${V4_PAD}</div>${i}</body></html>`);
+  assert.equal(P('<table><tr><td>임플란트</td><td>1,200,000원</td></tr><tr><td>크라운</td><td>500,000원</td></tr></table>').priceBand, 2);
+  assert.equal(P('<ul><li>임플란트 120만원</li><li>크라운 50만원</li><li>스케일링 30,000원</li></ul>').priceBand, 2);
+  assert.equal(P('<p>임플란트 1,200,000원부터</p>').priceBand, 1);
+  assert.equal(P('<p>비급여 진료비용 안내는 원내에 게시되어 있습니다.</p>').priceBand, 1);
+});
+
+test('v0.4 가격: 전화번호·번지·연도를 금액으로 오탐하지 않는다', () => {
+  const P = (i) => extractSignals(`<html><body><div>${V4_PAD}</div>${i}</body></html>`);
+  assert.equal(P('<p>임플란트 상담 02-123-4567</p>').priceBand, 0);
+  assert.equal(P('<p>임플란트 클리닉 테헤란로 1234</p>').priceBand, 0);
+  assert.equal(P('<p>임플란트 진료 2024년 시작</p>').priceBand, 0);
+});
+
+test('v0.4 가격: 항목과 금액이 다른 문단에 흩어져 있으면 통과시키지 않는다', () => {
+  // v0.3에서 참이 되던 대표 케이스
+  const s = extractSignals(`<html><body><div>${V4_PAD}</div><p>임플란트 클리닉</p><p>진료 비용은 상담 후 안내드립니다.</p></body></html>`);
+  assert.equal(s.priceBand, 0);
+});
+
+test('v0.4: hasSameAsAuthority가 최상위 신호로 노출된다(배선 회귀)', () => {
+  // v0.3까지 jsonld 안에만 있어 scorer가 읽지 못했고 해당 3점이 한 번도 지급되지 않았다.
+  const html = `<!doctype html><html><head><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Dentist","name":"t","sameAs":["https://ko.wikipedia.org/wiki/x"]}
+  </script></head><body>${V4_PAD}</body></html>`;
+  const s = extractSignals(html);
+  assert.equal(s.hasSameAsAuthority, true, '최상위에 노출돼야 scorer가 읽는다');
 });
